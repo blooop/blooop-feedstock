@@ -123,29 +123,24 @@ Use `pixi run <task>` to execute these tasks:
 
 ### Trusted Publishing
 
-This repository uses **trusted publishing** with OIDC authentication for secure uploads to prefix.dev. No API keys are required in GitHub secrets.
+This repository uses **trusted publishing** with OIDC authentication for secure uploads to prefix.dev. No API keys or GitHub environments are required.
 
-### Environment Configuration
+### Configuration
 
-The workflow uses a `release` environment for trusted publishing. Make sure to:
-
-1. Create a `release` environment in your GitHub repository settings
-2. Configure the trusted publisher on prefix.dev with your repository details
-3. Ensure the workflow file is named `release-workflow.yml` (as configured)
+The workflow is configured to match your trusted publisher setup:
+- Repository: `blooop/blooop-feedstock`
+- Workflow: `release-workflow.yml`
+- No environment restrictions
 
 ### GitHub Repository Setup
 
-For trusted publishing to work properly:
+The trusted publisher is already configured correctly:
 
-1. **Create release environment:**
-   - Go to Settings → Environments → New environment
-   - Name it `release`
-   - Configure any protection rules if desired
+✅ Repository: `blooop/blooop-feedstock`  
+✅ Workflow: `release-workflow.yml`  
+✅ No environment restrictions  
 
-2. **Verify trusted publisher:**
-   - Ensure your prefix.dev trusted publisher is configured for:
-     - Repository: `blooop/blooop-feedstock`
-     - Workflow: `release-workflow.yml`
+The workflow is ready to use!
 
 ## 📚 Adding New Packages
 

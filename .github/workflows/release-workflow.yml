@@ -87,7 +87,6 @@ jobs:
     needs: check-updates
     if: needs.check-updates.outputs.has-updates == 'true'
     runs-on: ubuntu-latest
-    environment: release  # Use release environment for trusted publishing
     strategy:
       matrix: ${{ fromJson(needs.check-updates.outputs.matrix) }}
       fail-fast: false
