@@ -149,7 +149,7 @@ jobs:
           failures=0
           for PKG_FILE in output/*/*.tar.bz2 output/*/*.conda; do
             echo "📤 Uploading $(basename "$PKG_FILE") to blooop via trusted publishing..."
-            if pixi run rattler-build upload prefix --verbose --skip-existing=all --channel blooop "$PKG_FILE"; then
+            if pixi run rattler-build upload prefix --verbose --skip-existing --channel blooop "$PKG_FILE"; then
               echo "✅ Trusted upload succeeded: $(basename "$PKG_FILE")"
               uploads=$((uploads+1))
               continue
@@ -158,7 +158,7 @@ jobs:
             echo "⚠️ Trusted upload failed for $(basename "$PKG_FILE")."
             if [ -n "${PIXI_TOKEN:-}" ]; then
               echo "🔑 Retrying with PIXI_TOKEN..."
-              if pixi run rattler-build upload prefix --verbose --skip-existing=all --channel blooop --api-key "$PIXI_TOKEN" "$PKG_FILE"; then
+              if pixi run rattler-build upload prefix --verbose --skip-existing --channel blooop --api-key "$PIXI_TOKEN" "$PKG_FILE"; then
                 echo "✅ Upload with PIXI_TOKEN succeeded: $(basename "$PKG_FILE")"
                 uploads=$((uploads+1))
                 continue
