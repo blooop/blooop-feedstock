@@ -5,31 +5,46 @@ package:
   version: "2.0.61"
 
 source:
+  - path: claude-shim.sh
 
 build:
   number: 0
   script:
     - mkdir -p $PREFIX/bin
-    - echo "#!/bin/bash" > $PREFIX/bin/claude-code
-    - echo "echo 'Claude Code $PKG_VERSION - Demo Package'" >> $PREFIX/bin/claude-code
+    - cp $SRC_DIR/claude-shim.sh $PREFIX/bin/claude-code
     - chmod +x $PREFIX/bin/claude-code
 
 requirements:
-  build:
+  run:
+    - bash  # [unix]
+    - curl
     - tar  # [unix]
     - unzip  # [win]
 
 tests:
   - script:
-      - claude-code
-      - which claude-code
+      - if: unix
+        then:
+          - which claude-code
+          - test -x $PREFIX/bin/claude-code
+      - if: win
+        then:
+          - where claude-code
 
 about:
   homepage: https://claude.ai/
   license: LicenseRef-Proprietary
   license_family: Proprietary
-  summary: Claude AI coding assistant desktop application
+  summary: Claude AI coding assistant installer shim
   description: |
+    This package provides a shim that downloads and installs the official Claude Code
+    desktop application from Anthropic on first run. This package does NOT redistribute
+    the Claude Code binary to comply with licensing requirements.
+
+    On first execution, the shim will automatically download the appropriate Claude Code
+    binary for your platform from Anthropic's official distribution servers and install
+    it within your conda/pixi environment.
+
     Claude Code is a desktop application that provides AI-powered coding assistance
     from Anthropic's Claude AI models. It offers code completion, explanation,
     debugging help, and other development tools integrated into your workflow.
