@@ -57,22 +57,27 @@ def update_recipe(version: str, manifest: Dict) -> None:
     # Update version
     recipe = re.sub(r'version: "[^"]+"', f'version: "{version}"', recipe, count=1)
     
-    # Update checksums for each platform
-    platforms_data = manifest.get("platforms", {})
-    
+    # Update URLs to use actual version numbers instead of templates
     for platform, platform_data in platforms_data.items():
         if platform in PLATFORM_MAPPING:
             checksum = platform_data.get("checksum")
             if checksum:
-                # Find the line with this platform selector and update the next sha256 line
+                # Update both the URL and the checksum for this platform
                 platform_selector = PLATFORM_MAPPING[platform]
                 
-                # Pattern to match the sha256 line after the platform selector
+                # Update URL with actual version
+                if platform == "win32-x64":
+                    url_pattern = rf"(https://storage\.googleapis\.com/claude-code-dist-[^/]+/claude-code-releases/)[^/]+(/win32-x64/claude-code\.zip)"
+                    recipe = re.sub(url_pattern, f"\\g<1>{version}\\g<2>", recipe)
+                else:
+                    url_pattern = rf"(https://storage\.googleapis\.com/claude-code-dist-[^/]+/claude-code-releases/)[^/]+(/[^/]+/claude-code\.tar\.gz)"
+                    recipe = re.sub(url_pattern, f"\\g<1>{version}\\g<2>", recipe)
+                
+                # Update checksum
                 pattern = rf"(# \[{re.escape(platform_selector)}\]\s*\n\s*sha256:\s*)[a-f0-9]+"
                 replacement = f"\\g<1>{checksum}"
-                
                 recipe = re.sub(pattern, replacement, recipe, flags=re.MULTILINE)
-                print(f"✅ Updated {platform} checksum")
+                print(f"✅ Updated {platform} URL and checksum")
     
     # Reset build number to 0 for new version
     recipe = re.sub(r'number: \d+', 'number: 0', recipe)

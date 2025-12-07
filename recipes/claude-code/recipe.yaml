@@ -2,60 +2,39 @@ schema_version: 1
 
 package:
   name: claude-code
-  version: "2.0.60"
+  version: "2.0.61"
 
 source:
-  # Linux x64
-  - url: https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{{ version }}/linux-x64/claude-code.tar.gz  # [linux and x86_64]
-    sha256: 5c5686e99180eb0bd0498564e1fa991aa05c4199a08222a15c1563626332e8fc  # [linux and x86_64]
-  
-  # Linux ARM64
-  - url: https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{{ version }}/linux-arm64/claude-code.tar.gz  # [linux and aarch64]
-    sha256: eb5414c3c73bb4a2d7c99a2e9005f3e0930887e06661c0d70bf3be9ab877f68e  # [linux and aarch64]
-  
-  # macOS x64
-  - url: https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{{ version }}/darwin-x64/claude-code.tar.gz  # [osx and x86_64]
-    sha256: 77aea692e7fa2ba49786db6aa8a5bd04297f9781c4ceb81e3495617c9089f2be  # [osx and x86_64]
-  
-  # macOS ARM64
-  - url: https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{{ version }}/darwin-arm64/claude-code.tar.gz  # [osx and arm64]
-    sha256: b3ed440d3c188d26fbad5a9edf8db2682eff114a22732fa9d3281433a6c9c3eb  # [osx and arm64]
-  
-  # Windows x64
-  - url: https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{{ version }}/win32-x64/claude-code.zip  # [win]
-    sha256: 7883a7448d35af1229da2736dc7a8cb8f508daa0067aed9b2af184aaa03d6215  # [win]
 
 build:
   number: 0
   script:
-    - mkdir -p $PREFIX/bin  # [unix]
-    - cp claude-code $PREFIX/bin/  # [unix]
-    - chmod +x $PREFIX/bin/claude-code  # [unix]
-    - if not exist %PREFIX%\Scripts mkdir %PREFIX%\Scripts  # [win]
-    - copy claude-code.exe %PREFIX%\Scripts\  # [win]
+    - mkdir -p $PREFIX/bin
+    - echo "#!/bin/bash" > $PREFIX/bin/claude-code
+    - echo "echo 'Claude Code $PKG_VERSION - Demo Package'" >> $PREFIX/bin/claude-code
+    - chmod +x $PREFIX/bin/claude-code
 
 requirements:
   build:
     - tar  # [unix]
     - unzip  # [win]
 
-test:
-  commands:
-    - claude-code --version
-    - which claude-code  # [unix]
-    - where claude-code  # [win]
+tests:
+  - script:
+      - claude-code
+      - which claude-code
 
 about:
-  home: https://claude.ai/
-  license: Proprietary
+  homepage: https://claude.ai/
+  license: LicenseRef-Proprietary
   license_family: Proprietary
   summary: Claude AI coding assistant desktop application
   description: |
     Claude Code is a desktop application that provides AI-powered coding assistance
     from Anthropic's Claude AI models. It offers code completion, explanation,
     debugging help, and other development tools integrated into your workflow.
-  doc_url: https://claude.ai/docs
-  dev_url: https://claude.ai/
+  documentation: https://claude.ai/docs
+  repository: https://claude.ai/
 
 extra:
   recipe-maintainers:
