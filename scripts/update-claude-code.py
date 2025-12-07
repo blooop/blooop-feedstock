@@ -35,13 +35,19 @@ def update_recipe(version: str) -> None:
 
     recipe = RECIPE_PATH.read_text()
 
+    # Check current version
+    current_version_match = re.search(r'version: "([^"]+)"', recipe)
+    current_version = current_version_match.group(1) if current_version_match else None
+
     # Update version
     recipe = re.sub(r'version: "[^"]+"', f'version: "{version}"', recipe, count=1)
-    print(f"✅ Updated package version to {version}")
 
-    # Reset build number to 0 for new version
-    recipe = re.sub(r'number: \d+', 'number: 0', recipe)
-    print("✅ Reset build number to 0")
+    # Only reset build number if the version actually changed
+    if current_version != version:
+        recipe = re.sub(r'number: \d+', 'number: 0', recipe)
+        print(f"✅ Updated package version to {version} and reset build number to 0")
+    else:
+        print(f"✅ Version {version} is already current, keeping existing build number")
 
     RECIPE_PATH.write_text(recipe)
 
