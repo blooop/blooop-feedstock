@@ -58,6 +58,7 @@ def update_recipe(version: str, manifest: Dict) -> None:
     recipe = re.sub(r'version: "[^"]+"', f'version: "{version}"', recipe, count=1)
     
     # Update URLs to use actual version numbers instead of templates
+    platforms_data = manifest.get("platforms", {})
     for platform, platform_data in platforms_data.items():
         if platform in PLATFORM_MAPPING:
             checksum = platform_data.get("checksum")
