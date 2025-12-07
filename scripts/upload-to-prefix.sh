@@ -5,7 +5,7 @@ set -e
 # Usage: ./upload-to-prefix.sh <output_dir> <channel_name>
 
 OUTPUT_DIR=${1:-"output"}
-CHANNEL=${2:-"blooop-tools"}
+CHANNEL=${2:-"blooop"}
 
 if [ -z "$PREFIX_API_KEY" ]; then
     echo "❌ PREFIX_API_KEY environment variable not set"

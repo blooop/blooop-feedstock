@@ -1,6 +1,6 @@
 # blooop-feedstock
 
-Personal conda channel feedstock for the `blooop-tools` channel. This repository contains conda recipes and automation for building and maintaining conda packages.
+Personal conda channel feedstock for the `blooop` channel. This repository contains conda recipes and automation for building and maintaining conda packages.
 
 ## 📦 Available Packages
 
@@ -194,13 +194,13 @@ Once packages are uploaded to prefix.dev:
 
 ```bash
 # Add the channel
-conda config --add channels https://prefix.dev/channels/blooop-tools
+conda config --add channels https://prefix.dev/channels/blooop
 
 # Install packages
 conda install claude-code
 
 # Or with pixi
-pixi add --channel https://prefix.dev/channels/blooop-tools claude-code
+pixi add --channel https://prefix.dev/channels/blooop claude-code
 ```
 
 ### From local builds
@@ -262,7 +262,7 @@ This feedstock repository is licensed under the MIT License. Individual packages
 
 ## 🔗 Links
 
-- [prefix.dev Channel](https://prefix.dev/channels/blooop-tools)
+- [prefix.dev Channel](https://prefix.dev/channels/blooop)
 - [rattler-build Documentation](https://prefix-dev.github.io/rattler-build/)
 - [pixi Documentation](https://prefix.dev/docs/pixi)
 - [conda-forge Documentation](https://conda-forge.org/docs/)

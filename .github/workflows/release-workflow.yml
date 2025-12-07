@@ -138,20 +138,12 @@ jobs:
           find output -name "*.conda" -o -name "*.tar.bz2" | sort
 
       - name: Upload to prefix.dev
-        env:
-          PIXI_TOKEN: ${{ secrets.PIXI_TOKEN }}
         run: |
           set -e
           for PKG_FILE in output/*.tar.bz2 output/*.conda; do
             [ -e "$PKG_FILE" ] || continue
-            SHA256=$(sha256sum "$PKG_FILE" | awk '{print $1}')
-            curl -X POST "https://prefix.dev/api/v1/upload/blooop?force=true" \
-              -H "Authorization: Bearer $PIXI_TOKEN" \
-              -H "X-File-Name: $(basename "$PKG_FILE")" \
-              -H "X-File-SHA256: $SHA256" \
-              -H "Content-Length: $(stat -c%s "$PKG_FILE")" \
-              -H "Content-Type: application/octet-stream" \
-              --data-binary @"$PKG_FILE"
+            # Use trusted publishing (OIDC) to upload directly to the channel.
+            pixi run rattler-build upload prefix --skip-existing=all --channel blooop "$PKG_FILE"
           done
 
       - name: Upload build artifacts
@@ -186,7 +178,7 @@ jobs:
             - `win-64`
 
             ### 📤 Upload Status
-            ✅ Packages uploaded to https://prefix.dev/channels/blooop-tools using trusted publisher
+            ✅ Packages uploaded to https://prefix.dev/channels/blooop using trusted publisher
 
             ---
             *This PR was automatically created by the release workflow.*
