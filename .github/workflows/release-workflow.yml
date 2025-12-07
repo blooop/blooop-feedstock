@@ -138,13 +138,41 @@ jobs:
           find output -name "*.conda" -o -name "*.tar.bz2" | sort
 
       - name: Upload to prefix.dev
+        env:
+          PIXI_TOKEN: ${{ secrets.PIXI_TOKEN }}
         run: |
-          set -e
+          set -euo pipefail
+          shopt -s nullglob
+          export RUST_LOG=rattler_build=info
+
+          uploads=0
+          failures=0
           for PKG_FILE in output/*.tar.bz2 output/*.conda; do
-            [ -e "$PKG_FILE" ] || continue
-            # Use trusted publishing (OIDC) to upload directly to the channel.
-            pixi run rattler-build upload prefix --skip-existing=all --channel blooop "$PKG_FILE"
+            echo "📤 Uploading $(basename "$PKG_FILE") to blooop via trusted publishing..."
+            if pixi run rattler-build upload prefix --verbose --skip-existing=all --channel blooop "$PKG_FILE"; then
+              echo "✅ Trusted upload succeeded: $(basename "$PKG_FILE")"
+              uploads=$((uploads+1))
+              continue
+            fi
+
+            echo "⚠️ Trusted upload failed for $(basename "$PKG_FILE")."
+            if [ -n "${PIXI_TOKEN:-}" ]; then
+              echo "🔑 Retrying with PIXI_TOKEN..."
+              if pixi run rattler-build upload prefix --verbose --skip-existing=all --channel blooop --api-key "$PIXI_TOKEN" "$PKG_FILE"; then
+                echo "✅ Upload with PIXI_TOKEN succeeded: $(basename "$PKG_FILE")"
+                uploads=$((uploads+1))
+                continue
+              fi
+            fi
+
+            echo "❌ Upload failed: $(basename "$PKG_FILE")"
+            failures=$((failures+1))
           done
+
+          echo "Upload summary: ${uploads} succeeded, ${failures} failed."
+          if [ "$failures" -gt 0 ]; then
+            exit 1
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
