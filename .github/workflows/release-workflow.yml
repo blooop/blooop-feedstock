@@ -138,10 +138,21 @@ jobs:
           find output -name "*.conda" -o -name "*.tar.bz2" | sort
 
       - name: Upload to prefix.dev
-        uses: prefix-dev/upload-conda@v1
-        with:
-          package-path: output/
-          channel: blooop-tools
+        env:
+          PIXI_TOKEN: ${{ secrets.PIXI_TOKEN }}
+        run: |
+          set -e
+          for PKG_FILE in output/*.tar.bz2 output/*.conda; do
+            [ -e "$PKG_FILE" ] || continue
+            SHA256=$(sha256sum "$PKG_FILE" | awk '{print $1}')
+            curl -X POST "https://prefix.dev/api/v1/upload/blooop?force=true" \
+              -H "Authorization: Bearer $PIXI_TOKEN" \
+              -H "X-File-Name: $(basename "$PKG_FILE")" \
+              -H "X-File-SHA256: $SHA256" \
+              -H "Content-Length: $(stat -c%s "$PKG_FILE")" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$PKG_FILE"
+          done
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
