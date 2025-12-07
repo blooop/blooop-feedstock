@@ -1,0 +1,10 @@
+name: blooop-feedstock
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - rattler-build
+  - curl
+  - jq
+  - pyyaml
+  - requests

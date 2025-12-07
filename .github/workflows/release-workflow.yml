@@ -1,0 +1,184 @@
+name: Release Workflow
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Specific package to update (leave empty for all)'
+        required: false
+        type: string
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write  # Required for trusted publishing with OIDC
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has-updates: ${{ steps.set-matrix.outputs.has-updates }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: latest
+
+      - name: Check for updates
+        id: check
+        run: |
+          # Create array of packages that need updates
+          UPDATES="[]"
+
+          # Check claude-code
+          if [ -d "recipes/claude-code" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "claude-code" ]); then
+            echo "🔍 Checking claude-code for updates..."
+            
+            # Get current version from recipe
+            CURRENT=$(grep -A 3 'package:' recipes/claude-code/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+            
+            # Get latest version from stable endpoint
+            LATEST=$(curl -s https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/stable || echo "")
+            echo "Latest version: $LATEST"
+            
+            if [ -n "$LATEST" ] && [ "$CURRENT" != "$LATEST" ]; then
+              echo "📦 Update found: claude-code $CURRENT → $LATEST"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-code", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "✅ claude-code is up to date"
+            fi
+          fi
+
+          # Add checks for other packages here as you add them...
+          # Example:
+          # if [ -d "recipes/another-package" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "another-package" ]); then
+          #   # Check another-package logic here
+          # fi
+
+          echo "updates=$UPDATES" >> $GITHUB_OUTPUT
+
+      - name: Set matrix
+        id: set-matrix
+        run: |
+          UPDATES='${{ steps.check.outputs.updates }}'
+          echo "matrix={\"include\":$UPDATES}" >> $GITHUB_OUTPUT
+
+          if [ "$UPDATES" != "[]" ]; then
+            echo "has-updates=true" >> $GITHUB_OUTPUT
+            echo "📦 Updates found: $UPDATES"
+          else
+            echo "has-updates=false" >> $GITHUB_OUTPUT
+            echo "✅ All packages up to date"
+          fi
+
+  update-packages:
+    needs: check-updates
+    if: needs.check-updates.outputs.has-updates == 'true'
+    runs-on: ubuntu-latest
+    environment: release  # Use release environment for trusted publishing
+    strategy:
+      matrix: ${{ fromJson(needs.check-updates.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: latest
+
+      - name: Update ${{ matrix.package }} recipe
+        run: |
+          echo "🔄 Updating ${{ matrix.package }} from ${{ matrix.current }} to ${{ matrix.latest }}"
+          pixi run python scripts/update-${{ matrix.package }}.py ${{ matrix.latest }}
+
+      - name: Build ${{ matrix.package }}
+        run: |
+          mkdir -p output
+          
+          # Define platforms to build for
+          PLATFORMS=("linux-64" "linux-aarch64" "osx-64" "osx-arm64" "win-64")
+          
+          echo "🏗️  Building ${{ matrix.package }} for multiple platforms..."
+          
+          for platform in "${PLATFORMS[@]}"; do
+            echo "Building for $platform..."
+            
+            pixi run rattler-build build \
+              --recipe recipes/${{ matrix.package }}/recipe.yaml \
+              --target-platform $platform \
+              --output-dir output \
+              --channel conda-forge || {
+                echo "⚠️  Skipping $platform (build failed or not supported)"
+                continue
+              }
+              
+            echo "✅ Built for $platform"
+          done
+          
+          # List built packages
+          echo "📦 Built packages:"
+          find output -name "*.conda" -o -name "*.tar.bz2" | sort
+
+      - name: Upload to prefix.dev
+        uses: prefix-dev/upload-conda@v1
+        with:
+          package-path: output/
+          channel: blooop-tools
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: conda-packages-${{ matrix.package }}-${{ matrix.latest }}
+          path: output/
+          retention-days: 30
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Update ${{ matrix.package }} to ${{ matrix.latest }}"
+          title: "🤖 Update ${{ matrix.package }} to ${{ matrix.latest }}"
+          body: |
+            ## 🤖 Automated Update: ${{ matrix.package }}
+
+            **Previous version:** ${{ matrix.current }}  
+            **New version:** ${{ matrix.latest }}
+
+            ### 📦 Changes
+            - Updated package version to `${{ matrix.latest }}`
+            - Updated source checksums for all platforms
+            - Reset build number to 0
+
+            ### 🏗️ Build Status
+            Built conda packages for supported platforms:
+            - `linux-64` 
+            - `linux-aarch64`
+            - `osx-64`
+            - `osx-arm64` 
+            - `win-64`
+
+            ### 📤 Upload Status
+            ✅ Packages uploaded to https://prefix.dev/channels/blooop-tools using trusted publisher
+
+            ---
+            *This PR was automatically created by the release workflow.*
+            *Built packages are available as GitHub Actions artifacts.*
+          branch: update-${{ matrix.package }}-${{ matrix.latest }}
+          delete-branch: true
+          labels: |
+            automated
+            update
+            ${{ matrix.package }}

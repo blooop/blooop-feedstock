@@ -1,0 +1,50 @@
+[workspace]
+name = "blooop-feedstock"
+description = "Feedstock for blooop-tools conda channel"
+authors = ["blooop <your-email@example.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "linux-aarch64"]
+
+[dependencies]
+rattler-build = "*"
+python = ">=3.10"
+curl = "*"
+
+[tasks]
+# Build specific packages
+build-claude = "rattler-build build --recipe recipes/claude-code/recipe.yaml --output-dir output"
+build-claude-linux = "rattler-build build --recipe recipes/claude-code/recipe.yaml --target-platform linux-64 --output-dir output"
+build-claude-macos = "rattler-build build --recipe recipes/claude-code/recipe.yaml --target-platform osx-64 --output-dir output"
+build-claude-windows = "rattler-build build --recipe recipes/claude-code/recipe.yaml --target-platform win-64 --output-dir output"
+
+# Build all packages
+build-all = { depends-on = ["build-claude"] }
+
+# Update specific packages
+update-claude = "python scripts/update-claude-code.py"
+
+# Check for updates across all packages
+check-updates = "bash scripts/check-updates.sh"
+
+# Test local builds
+test-claude = "rattler-build test --recipe recipes/claude-code/recipe.yaml"
+
+# Clean build outputs
+clean = "rm -rf output/*"
+
+# Development tasks
+lint-recipes = '''
+    for recipe in recipes/*/recipe.yaml; do
+        echo "Checking $recipe..."
+        python -c "import yaml; yaml.safe_load(open('$recipe'))"
+    done
+'''
+
+[feature.dev.dependencies]
+pre-commit = "*"
+black = "*"
+flake8 = "*"
+
+[environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
