@@ -14,6 +14,11 @@ on:
         required: false
         type: boolean
         default: false
+      force_overwrite:
+        description: 'Force overwrite existing assets on upload'
+        required: false
+        type: boolean
+        default: false
   push:
     tags:
       - 'v*'  # Trigger on version tags
@@ -145,11 +150,20 @@ jobs:
           shopt -s nullglob
           export RUST_LOG=rattler_build=info
 
+          # Set skip-existing flag based on force_overwrite input
+          SKIP_EXISTING_FLAG=""
+          if [ "${{ github.event.inputs.force_overwrite }}" != "true" ]; then
+            SKIP_EXISTING_FLAG="--skip-existing"
+            echo "ℹ️  Using --skip-existing (set force_overwrite to true to overwrite)"
+          else
+            echo "⚠️  Force overwrite enabled - existing assets will be replaced"
+          fi
+
           uploads=0
           failures=0
           for PKG_FILE in output/*/*.tar.bz2 output/*/*.conda; do
             echo "📤 Uploading $(basename "$PKG_FILE") to blooop via trusted publishing..."
-            if pixi run rattler-build upload prefix --verbose --skip-existing --channel blooop "$PKG_FILE"; then
+            if pixi run rattler-build upload prefix --verbose $SKIP_EXISTING_FLAG --channel blooop "$PKG_FILE"; then
               echo "✅ Trusted upload succeeded: $(basename "$PKG_FILE")"
               uploads=$((uploads+1))
               continue
@@ -158,7 +172,7 @@ jobs:
             echo "⚠️ Trusted upload failed for $(basename "$PKG_FILE")."
             if [ -n "${PIXI_TOKEN:-}" ]; then
               echo "🔑 Retrying with PIXI_TOKEN..."
-              if pixi run rattler-build upload prefix --verbose --skip-existing --channel blooop --api-key "$PIXI_TOKEN" "$PKG_FILE"; then
+              if pixi run rattler-build upload prefix --verbose $SKIP_EXISTING_FLAG --channel blooop --api-key "$PIXI_TOKEN" "$PKG_FILE"; then
                 echo "✅ Upload with PIXI_TOKEN succeeded: $(basename "$PKG_FILE")"
                 uploads=$((uploads+1))
                 continue
