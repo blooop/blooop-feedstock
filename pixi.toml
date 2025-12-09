@@ -2,7 +2,7 @@
 name = "blooop-feedstock"
 description = "Feedstock for blooop conda channel"
 authors = ["blooop <your-email@example.com>"]
-channels = ["conda-forge"]
+channels = ["https://prefix.dev/blooop", "conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "linux-aarch64"]
 
 [dependencies]

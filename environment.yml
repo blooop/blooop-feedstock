@@ -1,5 +1,6 @@
 name: blooop-feedstock
 channels:
+  - https://prefix.dev/blooop
   - conda-forge
 dependencies:
   - python>=3.10
