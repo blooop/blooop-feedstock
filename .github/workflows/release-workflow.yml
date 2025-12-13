@@ -62,10 +62,10 @@ jobs:
             # Get latest version from stable endpoint
             LATEST=$(curl -s https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/stable || echo "")
             echo "Latest version: $LATEST"
-            
-          if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
-            echo "📦 Update found: claude-code $CURRENT → $LATEST (forced: ${{ github.event.inputs.force_build }})"
-            UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-code", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "📦 Update found: claude-code $CURRENT → $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-code", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
             else
               echo "✅ claude-code is up to date"
             fi
