@@ -104,7 +104,7 @@ def update_recipe(version: str, checksums: dict[str, str]) -> None:
     if current_version:
         recipe = re.sub(
             rf'(https://github.com/{GITHUB_REPO}/releases/download/v){current_version}(/)',
-            f'\\1{version}\\2',
+            rf'\g<1>{version}\g<2>',
             recipe
         )
 
@@ -121,7 +121,7 @@ def update_recipe(version: str, checksums: dict[str, str]) -> None:
         if platform in checksums and checksums[platform]:
             # Match sha256 line with specific selector
             pattern = rf'(sha256:\s*)[\da-f]{{64}}(\s*#\s*\[{re.escape(selector)}\])'
-            replacement = rf'\1{checksums[platform]}\2'
+            replacement = rf'\g<1>{checksums[platform]}\g<2>'
             recipe = re.sub(pattern, replacement, recipe)
             print(f"  ✅ Updated checksum for {platform}")
 
