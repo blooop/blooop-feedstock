@@ -5,16 +5,16 @@ package:
   version: "0.8.10"
 
 source:
-  - url: https://github.com/skevetter/devpod/releases/download/v{{ version }}/devpod-linux-amd64  # [linux64]
-    sha256: "4d433a01684bf20c9e8cb258b34d7410688e97a3e6c99d3f814976a47f5bd177"  # [linux64]
-  - url: https://github.com/skevetter/devpod/releases/download/v{{ version }}/devpod-linux-arm64  # [aarch64]
-    sha256: "4af7a7c226fe23f9728601134a359ffe6eecb25287e81c3331a56bc2c0e73ea0"  # [aarch64]
-  - url: https://github.com/skevetter/devpod/releases/download/v{{ version }}/devpod-darwin-amd64  # [osx and x86_64]
-    sha256: "23b41c0cb91785a7cb60fe0919150f644ea8b304d04307ec8b3d7cac60392ebf"  # [osx and x86_64]
-  - url: https://github.com/skevetter/devpod/releases/download/v{{ version }}/devpod-darwin-arm64  # [osx and arm64]
-    sha256: "3045bb81303f471dbf96214c39265fa1f0de2e5d7c673bdbbde51278eca00372"  # [osx and arm64]
-  - url: https://github.com/skevetter/devpod/releases/download/v{{ version }}/devpod-windows-amd64.exe  # [win]
-    sha256: "6979dba5e8699434a1acaa7ee2722f2d3f093e259c6571a36c8a5f7e6c810f2b"  # [win]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.8.10/devpod-linux-amd64  # [linux and x86_64]
+    sha256: 4d433a01684bf20c9e8cb258b34d7410688e97a3e6c99d3f814976a47f5bd177  # [linux and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.8.10/devpod-linux-arm64  # [linux and aarch64]
+    sha256: 4af7a7c226fe23f9728601134a359ffe6eecb25287e81c3331a56bc2c0e73ea0  # [linux and aarch64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.8.10/devpod-darwin-amd64  # [osx and x86_64]
+    sha256: 23b41c0cb91785a7cb60fe0919150f644ea8b304d04307ec8b3d7cac60392ebf  # [osx and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.8.10/devpod-darwin-arm64  # [osx and arm64]
+    sha256: 3045bb81303f471dbf96214c39265fa1f0de2e5d7c673bdbbde51278eca00372  # [osx and arm64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.8.10/devpod-windows-amd64.exe  # [win]
+    sha256: 6979dba5e8699434a1acaa7ee2722f2d3f093e259c6571a36c8a5f7e6c810f2b  # [win]
 
 build:
   number: 0

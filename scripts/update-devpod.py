@@ -97,16 +97,21 @@ def update_recipe(version: str, checksums: dict[str, str]) -> None:
     current_version_match = re.search(r'version: "([^"]+)"', recipe)
     current_version = current_version_match.group(1) if current_version_match else None
 
-    # Update version
-    recipe = re.sub(r'version: "[^"]+"', f'version: "{version}"', recipe, count=1)
+    # Update version in package section
+    recipe = re.sub(r'(package:.*?version:\s*)"[^"]+"', f'\\1"{version}"', recipe, count=1, flags=re.DOTALL)
+
+    # Update version in all URLs
+    if current_version:
+        recipe = re.sub(
+            rf'(https://github.com/{GITHUB_REPO}/releases/download/v){current_version}(/)',
+            f'\\1{version}\\2',
+            recipe
+        )
 
     # Update checksums for each platform
-    # The pattern matches: sha256: "hash"  # [selector]
-    # We need to update each one based on the selector
-
     selector_map = {
-        "linux64": "linux-64",
-        "aarch64": "linux-aarch64",
+        "linux and x86_64": "linux-64",
+        "linux and aarch64": "linux-aarch64",
         "osx and x86_64": "osx-64",
         "osx and arm64": "osx-arm64",
         "win": "win-64",
@@ -115,8 +120,8 @@ def update_recipe(version: str, checksums: dict[str, str]) -> None:
     for selector, platform in selector_map.items():
         if platform in checksums and checksums[platform]:
             # Match sha256 line with specific selector
-            pattern = rf'(sha256:\s*)"[^"]*"(\s*#\s*\[{re.escape(selector)}\])'
-            replacement = rf'\1"{checksums[platform]}"\2'
+            pattern = rf'(sha256:\s*)[\da-f]{{64}}(\s*#\s*\[{re.escape(selector)}\])'
+            replacement = rf'\1{checksums[platform]}\2'
             recipe = re.sub(pattern, replacement, recipe)
             print(f"  ✅ Updated checksum for {platform}")
 
