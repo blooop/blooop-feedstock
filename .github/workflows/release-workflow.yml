@@ -45,6 +45,28 @@ jobs:
         with:
           pixi-version: latest
 
+      - name: Update pixi lock file if needed
+        run: |
+          echo "🔒 Checking if pixi.lock is up to date..."
+          if ! pixi install --locked 2>&1 | grep -q "up-to-date"; then
+            echo "⚠️  Lock file out of date, updating..."
+            pixi install
+
+            if git diff --quiet pixi.lock; then
+              echo "✅ Lock file is now up to date (no changes needed)"
+            else
+              echo "📝 Lock file updated, committing changes..."
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add pixi.lock
+              git commit -m "chore: update pixi.lock file [skip ci]"
+              git push
+              echo "✅ Lock file committed and pushed"
+            fi
+          else
+            echo "✅ Lock file is already up to date"
+          fi
+
       - name: Check for updates
         id: check
         run: |
@@ -128,6 +150,28 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.8.1
         with:
           pixi-version: latest
+
+      - name: Update pixi lock file if needed
+        run: |
+          echo "🔒 Checking if pixi.lock is up to date..."
+          if ! pixi install --locked 2>&1 | grep -q "up-to-date"; then
+            echo "⚠️  Lock file out of date, updating..."
+            pixi install
+
+            if git diff --quiet pixi.lock; then
+              echo "✅ Lock file is now up to date (no changes needed)"
+            else
+              echo "📝 Lock file updated, committing changes..."
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add pixi.lock
+              git commit -m "chore: update pixi.lock file [skip ci]"
+              git push
+              echo "✅ Lock file committed and pushed"
+            fi
+          else
+            echo "✅ Lock file is already up to date"
+          fi
 
       - name: Update ${{ matrix.package }} recipe
         run: |
