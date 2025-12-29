@@ -183,7 +183,7 @@ jobs:
           mkdir -p output
           
           # Define platforms to build for
-          PLATFORMS=("linux-64" "linux-aarch64" "osx-64" "osx-arm64" "win-64")
+          PLATFORMS=("linux-64" "linux-aarch64")
           
           echo "🏗️  Building ${{ matrix.package }} for multiple platforms..."
           
