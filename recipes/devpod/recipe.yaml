@@ -1,0 +1,72 @@
+schema_version: 1
+
+package:
+  name: devpod
+  version: "0.8.10"
+
+source:
+  - url: https://github.com/skevetter/devpod/releases/download/v${{ version }}/devpod-linux-amd64  # [linux64]
+    sha256: ""  # [linux64]
+  - url: https://github.com/skevetter/devpod/releases/download/v${{ version }}/devpod-linux-arm64  # [aarch64]
+    sha256: ""  # [aarch64]
+  - url: https://github.com/skevetter/devpod/releases/download/v${{ version }}/devpod-darwin-amd64  # [osx and x86_64]
+    sha256: ""  # [osx and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v${{ version }}/devpod-darwin-arm64  # [osx and arm64]
+    sha256: ""  # [osx and arm64]
+  - url: https://github.com/skevetter/devpod/releases/download/v${{ version }}/devpod-windows-amd64.exe  # [win]
+    sha256: ""  # [win]
+
+build:
+  number: 0
+  script:
+    - if: unix
+      then:
+        - mkdir -p $PREFIX/bin
+        - cp devpod-* $PREFIX/bin/devpod || cp $SRC_DIR/devpod-* $PREFIX/bin/devpod
+        - chmod +x $PREFIX/bin/devpod
+    - if: win
+      then:
+        - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
+        - copy devpod-windows-amd64.exe %PREFIX%\Library\bin\devpod.exe
+
+requirements:
+  build:
+    - ${{ compiler('c') }}  # [unix]
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - which devpod
+          - test -x $PREFIX/bin/devpod
+          - devpod version
+      - if: win
+        then:
+          - where devpod
+          - devpod version
+
+about:
+  homepage: https://devpod.sh
+  license: MPL-2.0
+  license_family: MOZILLA
+  summary: Codespaces but open-source, client-only and unopinionated
+  description: |
+    DevPod is an open-source tool that allows you to create reproducible developer
+    environments based on a devcontainer.json on any backend. Each developer environment
+    runs in a separate container and is specified through a devcontainer.json.
+
+    DevPod can use any IDE and works with any cloud provider, Kubernetes cluster,
+    or on localhost. It's designed to be a cost-effective alternative to GitHub
+    Codespaces and similar hosted services.
+
+    Key features:
+    - Support for multiple IDEs (VSCode, JetBrains, and more)
+    - Works with various backends (Docker, Kubernetes, SSH, cloud VMs)
+    - DevContainer standard compliant
+    - Client-only architecture for maximum privacy and control
+  documentation: https://devpod.sh/docs
+  repository: https://github.com/loft-sh/devpod
+
+extra:
+  recipe-maintainers:
+    - blooop

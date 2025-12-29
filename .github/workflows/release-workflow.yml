@@ -71,6 +71,26 @@ jobs:
             fi
           fi
 
+          # Check devpod
+          if [ -d "recipes/devpod" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "devpod" ]); then
+            echo "🔍 Checking devpod for updates..."
+
+            # Get current version from recipe
+            CURRENT=$(grep -A 3 'package:' recipes/devpod/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            # Get latest version from GitHub releases API
+            LATEST=$(curl -s https://api.github.com/repos/skevetter/devpod/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/' || echo "")
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "📦 Update found: devpod $CURRENT → $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "devpod", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "✅ devpod is up to date"
+            fi
+          fi
+
           # Add checks for other packages here as you add them...
           # Example:
           # if [ -d "recipes/another-package" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "another-package" ]); then
