@@ -36,10 +36,6 @@ build:
         - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
         - copy %SRC_DIR%\devpod-windows-amd64.exe %PREFIX%\Library\bin\devpod.exe
 
-requirements:
-  build:
-    - ${{ compiler('c') }}  # [unix]
-
 tests:
   - script:
       - if: unix
