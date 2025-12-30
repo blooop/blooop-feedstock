@@ -10,16 +10,9 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 ### 🚀 Quick Install
 
 ```bash
-# Add the channel
-conda config --add channels https://prefix.dev/channels/blooop
-
-# Install packages
-conda install claude-code
-conda install devpod
-
-# Or with pixi
-pixi add --channel https://prefix.dev/channels/blooop claude-code
-pixi add --channel https://prefix.dev/channels/blooop devpod
+# Install packages globally with pixi
+pixi global install --channel https://prefix.dev/channels/blooop claude-code
+pixi global install --channel https://prefix.dev/channels/blooop devpod
 ```
 
 ## 🛠️ Development Guide
@@ -214,14 +207,11 @@ To add a new package to the feedstock:
 Once packages are uploaded to prefix.dev:
 
 ```bash
-# Add the channel
-conda config --add channels https://prefix.dev/channels/blooop
+# Install packages globally with pixi
+pixi global install --channel https://prefix.dev/channels/blooop claude-code
+pixi global install --channel https://prefix.dev/channels/blooop devpod
 
-# Install packages
-conda install claude-code
-conda install devpod
-
-# Or with pixi
+# Or add to a pixi project
 pixi add --channel https://prefix.dev/channels/blooop claude-code
 pixi add --channel https://prefix.dev/channels/blooop devpod
 ```
@@ -230,7 +220,7 @@ pixi add --channel https://prefix.dev/channels/blooop devpod
 
 ```bash
 # Install from local build
-conda install ./output/linux-64/claude-code-*.conda
+pixi global install ./output/linux-64/claude-code-*.conda
 ```
 
 ## 🐛 Troubleshooting
