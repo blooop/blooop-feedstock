@@ -2,24 +2,20 @@ schema_version: 1
 
 package:
   name: claude-code
-  version: "2.0.67"
+  version: "2.0.68"
 
 source:
   - path: claude-shim.sh
 
 build:
-  number: 1
+  number: 0
   script:
     - mkdir -p $PREFIX/bin
     - cp $SRC_DIR/claude-shim.sh $PREFIX/bin/claude-code
     - chmod +x $PREFIX/bin/claude-code
 
 requirements:
-  run:
-    - bash  # [unix]
-    - curl
-    - tar  # [unix]
-    - unzip  # [win]
+  run: []
 
 tests:
   - script:
