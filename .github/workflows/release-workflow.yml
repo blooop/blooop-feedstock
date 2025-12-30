@@ -187,77 +187,70 @@ jobs:
           echo "🔄 Updating ${{ matrix.package }} from ${{ matrix.current }} to ${{ matrix.latest }}"
           pixi run python scripts/update-${{ matrix.package }}.py ${{ matrix.latest }}
 
-      - name: Build ${{ matrix.package }}
-        run: |
-          mkdir -p output
-          
-          # Define platforms to build for
-          PLATFORMS=("linux-64" "linux-aarch64")
-          
-          echo "🏗️  Building ${{ matrix.package }} for multiple platforms..."
-          
-          for platform in "${PLATFORMS[@]}"; do
-            echo "Building for $platform..."
-            
-            pixi run rattler-build build \
-              --recipe recipes/${{ matrix.package }}/recipe.yaml \
-              --target-platform $platform \
-              --output-dir output \
-              --channel conda-forge || {
-                echo "⚠️  Skipping $platform (build failed or not supported)"
-                continue
-              }
-              
-            echo "✅ Built for $platform"
-          done
-          
-          # List built packages
-          echo "📦 Built packages:"
-          find output -name "*.conda" -o -name "*.tar.bz2" | sort
-
-      - name: Upload to prefix.dev
+      - name: Build and Upload ${{ matrix.package }}
         env:
           PIXI_TOKEN: ${{ secrets.PIXI_TOKEN }}
         run: |
-          set -euo pipefail
-          shopt -s nullglob
-          export RUST_LOG=rattler_build=info
+          mkdir -p output
 
-          # Set skip-existing flag based on force_overwrite input
-          SKIP_EXISTING_FLAG=""
-          if [ "${{ github.event.inputs.force_overwrite }}" != "true" ]; then
-            SKIP_EXISTING_FLAG="--skip-existing"
-            echo "ℹ️  Using --skip-existing (set force_overwrite to true to overwrite)"
-          else
-            echo "⚠️  Force overwrite enabled - existing assets will be replaced"
-          fi
+          # Define platforms to build for
+          PLATFORMS=("linux-64" "linux-aarch64")
 
-          uploads=0
+          echo "🏗️  Building and uploading ${{ matrix.package }} for multiple platforms..."
+          echo "Force overwrite: ${{ github.event.inputs.force_overwrite }}"
+
           failures=0
-          for PKG_FILE in output/*/*.tar.bz2 output/*/*.conda; do
-            echo "📤 Uploading $(basename "$PKG_FILE") to blooop via trusted publishing..."
-            if pixi run rattler-build upload prefix --verbose $SKIP_EXISTING_FLAG --channel blooop "$PKG_FILE"; then
-              echo "✅ Trusted upload succeeded: $(basename "$PKG_FILE")"
-              uploads=$((uploads+1))
-              continue
-            fi
+          for platform in "${PLATFORMS[@]}"; do
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "Processing $platform..."
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-            echo "⚠️ Trusted upload failed for $(basename "$PKG_FILE")."
-            if [ -n "${PIXI_TOKEN:-}" ]; then
-              echo "🔑 Retrying with PIXI_TOKEN..."
-              if pixi run rattler-build upload prefix --verbose $SKIP_EXISTING_FLAG --channel blooop --api-key "$PIXI_TOKEN" "$PKG_FILE"; then
-                echo "✅ Upload with PIXI_TOKEN succeeded: $(basename "$PKG_FILE")"
-                uploads=$((uploads+1))
-                continue
+            # Use force overwrite logic: auto-increment build number on conflicts
+            if [ "${{ github.event.inputs.force_overwrite }}" == "true" ]; then
+              if ! bash scripts/build-and-upload.sh "${{ matrix.package }}" "$platform" blooop; then
+                echo "⚠️  Failed to build/upload for $platform"
+                failures=$((failures+1))
+              fi
+            else
+              # Normal mode: skip existing packages
+              echo "Building for $platform..."
+              if pixi run rattler-build build \
+                --recipe recipes/${{ matrix.package }}/recipe.yaml \
+                --target-platform $platform \
+                --output-dir output \
+                --channel conda-forge; then
+
+                # Upload with --skip-existing
+                for PKG_FILE in output/$platform/*.tar.bz2 output/$platform/*.conda; do
+                  [ -f "$PKG_FILE" ] || continue
+                  echo "📤 Uploading $(basename "$PKG_FILE") (skip-existing mode)..."
+
+                  if pixi run rattler-build upload prefix --verbose --skip-existing --channel blooop "$PKG_FILE"; then
+                    echo "✅ Upload succeeded"
+                  elif [ -n "${PIXI_TOKEN:-}" ]; then
+                    echo "🔑 Retrying with PIXI_TOKEN..."
+                    if pixi run rattler-build upload prefix --verbose --skip-existing --channel blooop --api-key "$PIXI_TOKEN" "$PKG_FILE"; then
+                      echo "✅ Upload succeeded with token"
+                    else
+                      echo "⚠️  Upload failed (package may already exist)"
+                    fi
+                  fi
+                done
+              else
+                echo "⚠️  Skipping $platform (build failed or not supported)"
+                failures=$((failures+1))
               fi
             fi
-
-            echo "❌ Upload failed: $(basename "$PKG_FILE")"
-            failures=$((failures+1))
           done
 
-          echo "Upload summary: ${uploads} succeeded, ${failures} failed."
+          # List all built packages
+          echo ""
+          echo "📦 All built packages:"
+          find output -name "*.conda" -o -name "*.tar.bz2" | sort
+
           if [ "$failures" -gt 0 ]; then
+            echo "⚠️  Some platforms failed"
             exit 1
           fi
 

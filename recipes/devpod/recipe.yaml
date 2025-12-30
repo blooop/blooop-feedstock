@@ -17,7 +17,7 @@ source:
     sha256: 6e618cca2a6e8fc8b774391281dca0251589455c5398b55a576e53e598154a0e  # [win]
 
 build:
-  number: 0
+  number: 1
   script:
     - if: unix
       then:
