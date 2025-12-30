@@ -7,7 +7,22 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **claude-code** - Claude AI coding assistant desktop application
 - **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
 
-## 🚀 Quick Start
+### 🚀 Quick Install
+
+```bash
+# Add the channel
+conda config --add channels https://prefix.dev/channels/blooop
+
+# Install packages
+conda install claude-code
+conda install devpod
+
+# Or with pixi
+pixi add --channel https://prefix.dev/channels/blooop claude-code
+pixi add --channel https://prefix.dev/channels/blooop devpod
+```
+
+## 🛠️ Development Guide
 
 ### Prerequisites
 
