@@ -9,6 +9,10 @@ on:
         description: 'Specific package to update (leave empty for all)'
         required: false
         type: string
+      version:
+        description: 'Specific version to build (leave empty to use latest from API)'
+        required: false
+        type: string
       force_build:
         description: 'Force build even if no updates found'
         required: false
@@ -76,14 +80,19 @@ jobs:
           # Check claude-code
           if [ -d "recipes/claude-code" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "claude-code" ]); then
             echo "🔍 Checking claude-code for updates..."
-            
+
             # Get current version from recipe
             CURRENT=$(grep -A 3 'package:' recipes/claude-code/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
             echo "Current version: $CURRENT"
-            
-            # Get latest version from stable endpoint
-            LATEST=$(curl -s https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/stable || echo "")
-            echo "Latest version: $LATEST"
+
+            # Use custom version if provided, otherwise fetch from stable endpoint
+            if [ -n "${{ github.event.inputs.version }}" ]; then
+              LATEST="${{ github.event.inputs.version }}"
+              echo "Using custom version: $LATEST"
+            else
+              LATEST=$(curl -s https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/stable || echo "")
+              echo "Latest version from API: $LATEST"
+            fi
 
             if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
               echo "📦 Update found: claude-code $CURRENT → $LATEST (forced: ${{ github.event.inputs.force_build }})"
