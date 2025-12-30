@@ -5,6 +5,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 ## 📦 Available Packages
 
 - **claude-code** - Claude AI coding assistant desktop application
+- **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
 
 ## 🚀 Quick Start
 
@@ -31,7 +32,10 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
    ```bash
    # Build claude-code for current platform
    pixi run build-claude
-   
+
+   # Build devpod for current platform
+   rattler-build build --recipe recipes/devpod/recipe.yaml
+
    # Build for specific platform
    pixi run rattler-build build --recipe recipes/claude-code/recipe.yaml --target-platform linux-64
    ```
@@ -54,11 +58,13 @@ blooop-feedstock/
 │   └── workflows/
 │       └── update-packages.yml      # Automated package updates and builds
 ├── recipes/
-│   └── claude-code/
-│       └── recipe.yaml              # Claude Code conda recipe
+│   ├── claude-code/
+│   │   └── recipe.yaml              # Claude Code conda recipe
+│   └── devpod/
+│       └── recipe.yaml              # DevPod conda recipe (from skevetter fork)
 ├── scripts/
 │   ├── update-claude-code.py        # Update script for Claude Code
-│   ├── check-updates.sh             # Check all packages for updates  
+│   ├── check-updates.sh             # Check all packages for updates
 │   └── upload-to-prefix.sh          # Upload packages to prefix.dev
 ├── pixi.toml                        # Project configuration and tasks
 └── README.md                        # This file
@@ -198,9 +204,11 @@ conda config --add channels https://prefix.dev/channels/blooop
 
 # Install packages
 conda install claude-code
+conda install devpod
 
 # Or with pixi
 pixi add --channel https://prefix.dev/channels/blooop claude-code
+pixi add --channel https://prefix.dev/channels/blooop devpod
 ```
 
 ### From local builds
