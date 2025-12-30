@@ -21,13 +21,20 @@ build:
   script:
     - if: unix
       then:
-        - mkdir -p $PREFIX/bin
-        - cp devpod-* $PREFIX/bin/devpod || cp $SRC_DIR/devpod-* $PREFIX/bin/devpod
-        - chmod +x $PREFIX/bin/devpod
+        - mkdir -p "$PREFIX/bin"
+        - |
+          case "${target_platform:-}" in
+            linux-64)      SRC_FILE="devpod-linux-amd64" ;;
+            linux-aarch64) SRC_FILE="devpod-linux-arm64" ;;
+            osx-64)        SRC_FILE="devpod-darwin-amd64" ;;
+            osx-arm64)     SRC_FILE="devpod-darwin-arm64" ;;
+            *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+          install -Dm755 "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/devpod"
     - if: win
       then:
         - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
-        - copy devpod-windows-amd64.exe %PREFIX%\Library\bin\devpod.exe
+        - copy %SRC_DIR%\devpod-windows-amd64.exe %PREFIX%\Library\bin\devpod.exe
 
 requirements:
   build:
@@ -39,7 +46,17 @@ tests:
         then:
           - which devpod
           - test -x $PREFIX/bin/devpod
-          - devpod version
+          - |
+              if "$PREFIX/bin/devpod" version; then
+                :
+              else
+                status=$?
+                if [ "$status" -eq 126 ]; then
+                  echo "Skipping runtime test for non-native binary on $(uname -m)"
+                else
+                  exit "$status"
+                fi
+              fi
       - if: win
         then:
           - where devpod
