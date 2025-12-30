@@ -30,11 +30,11 @@ On first execution, the shim will:
 ```bash
 $ claude-code --version
 🔍 Claude Code not found. Downloading official installer...
-📥 Downloading from: https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/2.0.61/claude-linux-x64.tar.gz
+📥 Downloading from: https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/2.0.68/claude-linux-x64.tar.gz
 📦 Installing to: /path/to/your/env/opt/claude-code
-✅ Claude Code 2.0.61 installed successfully!
+✅ Claude Code 2.0.68 installed successfully!
 
-Claude Code 2.0.61
+Claude Code 2.0.68
 ```
 
 ### Subsequent Runs

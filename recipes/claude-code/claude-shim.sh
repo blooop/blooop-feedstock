@@ -5,7 +5,7 @@
 set -e
 
 # Version of Claude Code this shim is designed for
-CLAUDE_VERSION="${PKG_VERSION:-2.0.61}"
+CLAUDE_VERSION="${PKG_VERSION:-2.0.68}"
 
 # Determine platform and architecture
 get_platform_info() {
