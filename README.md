@@ -15,6 +15,8 @@ pixi global install --channel https://prefix.dev/channels/blooop claude-code
 pixi global install --channel https://prefix.dev/channels/blooop devpod
 ```
 
+**Channel:** https://prefix.dev/channels/blooop
+
 ## 🛠️ Development Guide
 
 ### Prerequisites
@@ -80,44 +82,11 @@ blooop-feedstock/
 
 ## 🤖 Automation
 
-### GitHub Actions
+Automated workflows handle daily package updates, building for all platforms, and publishing to prefix.dev using OIDC trusted publishing.
 
-The repository includes automated workflows that:
+**Supported Platforms:** `linux-64`, `linux-aarch64`, `osx-64`, `osx-arm64`, `win-64`
 
-- **Daily Updates**: Checks for new package versions every day at 2 AM UTC
-- **Automatic Building**: Builds packages for all supported platforms when updates are found
-- **Pull Requests**: Creates PRs with version updates and build artifacts
-- **Trusted Publishing**: Uploads packages to prefix.dev using OIDC authentication (no API keys needed)
-- **Release Triggers**: Can be triggered by tags, releases, or manual dispatch
-
-### Supported Platforms
-
-- `linux-64` (Linux x86_64)
-- `linux-aarch64` (Linux ARM64)  
-- `osx-64` (macOS x86_64)
-- `osx-arm64` (macOS ARM64/Apple Silicon)
-- `win-64` (Windows x86_64)
-
-### Manual Triggers
-
-You can manually trigger package updates:
-
-1. **Via GitHub Actions UI:**
-   - Go to Actions → "Release Workflow" 
-   - Click "Run workflow"
-   - Optionally specify a single package to update
-
-2. **Via Local Scripts:**
-   ```bash
-   # Check for updates
-   pixi run check-updates
-   
-   # Update specific package
-   pixi run update-claude
-   
-   # Build and test locally
-   pixi run build-claude
-   ```
+**Manual Triggers:** Run workflow from GitHub Actions UI or use `pixi run check-updates` / `pixi run update-claude` locally.
 
 ## 📋 Available Tasks
 
@@ -135,147 +104,38 @@ Use `pixi run <task>` to execute these tasks:
 
 ## 🔧 Configuration
 
-### Trusted Publishing
-
-This repository uses **trusted publishing** with OIDC authentication for secure uploads to prefix.dev. No API keys or GitHub environments are required.
-
-### Configuration
-
-The workflow is configured to match your trusted publisher setup:
-- Repository: `blooop/blooop-feedstock`
-- Workflow: `release-workflow.yml`
-- No environment restrictions
-
-### GitHub Repository Setup
-
-The trusted publisher is already configured correctly:
-
-✅ Repository: `blooop/blooop-feedstock`  
-✅ Workflow: `release-workflow.yml`  
-✅ No environment restrictions  
-
-The workflow is ready to use!
+Uses OIDC trusted publishing for secure uploads to prefix.dev (no API keys needed). Configured for `blooop/blooop-feedstock` repository with `release-workflow.yml`.
 
 ## 📚 Adding New Packages
 
-To add a new package to the feedstock:
-
-1. **Create the recipe directory:**
-   ```bash
-   mkdir -p recipes/my-package
-   ```
-
-2. **Create the recipe file:**
-   ```yaml
-   # recipes/my-package/recipe.yaml
-   schema_version: 1
-   
-   package:
-     name: my-package
-     version: "1.0.0"
-   
-   source:
-     url: https://example.com/my-package-1.0.0.tar.gz
-     sha256: abc123...
-   
-   # ... rest of recipe
-   ```
-
-3. **Create an update script:**
-   ```python
-   # scripts/update-my-package.py
-   # Copy and modify scripts/update-claude-code.py
-   ```
-
-4. **Update the GitHub workflow:**
-   Add update checking logic for your package in `.github/workflows/update-packages.yml`
-
-5. **Add pixi tasks:**
-   ```toml
-   # Add to pixi.toml [tasks] section
-   build-my-package = "rattler-build build --recipe recipes/my-package/recipe.yaml --output-dir output"
-   update-my-package = "python scripts/update-my-package.py"
-   ```
-
-6. **Update the check script:**
-   Add your package to `scripts/check-updates.sh`
+1. Create recipe in `recipes/my-package/recipe.yaml`
+2. Create update script in `scripts/update-my-package.py` (copy from existing scripts)
+3. Add pixi tasks to `pixi.toml`
+4. Update `.github/workflows/update-packages.yml` and `scripts/check-updates.sh`
 
 ## 🌐 Installing Packages
 
-### From the conda channel
-
-Once packages are uploaded to prefix.dev:
-
 ```bash
-# Install packages globally with pixi
+# From channel
 pixi global install --channel https://prefix.dev/channels/blooop claude-code
-pixi global install --channel https://prefix.dev/channels/blooop devpod
 
-# Or add to a pixi project
+# Or add to a project
 pixi add --channel https://prefix.dev/channels/blooop claude-code
-pixi add --channel https://prefix.dev/channels/blooop devpod
-```
 
-### From local builds
-
-```bash
-# Install from local build
+# From local build
 pixi global install ./output/linux-64/claude-code-*.conda
 ```
 
 ## 🐛 Troubleshooting
 
-### Build Issues
-
-1. **Missing dependencies:**
-   ```bash
-   pixi install  # Reinstall dependencies
-   ```
-
-2. **Platform not supported:**
-   Some packages may not build for all platforms. Check the recipe's platform selectors.
-
-3. **Checksum mismatches:**
-   Update the recipe with correct checksums:
-   ```bash
-   pixi run update-claude  # Updates checksums automatically
-   ```
-
-### Upload Issues
-
-1. **Authentication errors:**
-   - Verify your `PREFIX_API_KEY` is correct
-   - Check that your prefix.dev account has upload permissions
-
-2. **Channel not found:**
-   - Ensure the channel exists on prefix.dev
-   - Verify the channel name in scripts
-
-### Update Issues
-
-1. **Network timeouts:**
-   - Check internet connectivity
-   - Upstream services may be temporarily unavailable
-
-2. **Version parsing errors:**
-   - Check that upstream version formats haven't changed
-   - Update parsing logic in update scripts if needed
+- **Build issues:** Run `pixi install` to reinstall dependencies, or `pixi run update-claude` to update checksums
+- **Upload issues:** Verify trusted publishing is configured correctly on prefix.dev
+- **Update issues:** Check network connectivity and upstream version formats
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Add or update packages following the established patterns
-4. Test builds locally
-5. Submit a pull request
+Fork the repository, create a feature branch, test locally, and submit a pull request.
 
 ## 📄 License
 
 This feedstock repository is licensed under the MIT License. Individual packages may have their own licenses - see each recipe for details.
-
-## 🔗 Links
-
-- [prefix.dev Channel](https://prefix.dev/channels/blooop)
-- [rattler-build Documentation](https://prefix-dev.github.io/rattler-build/)
-- [pixi Documentation](https://prefix.dev/docs/pixi)
-- [conda-forge Documentation](https://conda-forge.org/docs/)
