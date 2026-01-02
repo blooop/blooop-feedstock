@@ -13,11 +13,6 @@ on:
         description: 'Specific version to build (leave empty to use API)'
         required: false
         type: string
-      use_latest:
-        description: 'Use latest endpoint instead of stable'
-        required: false
-        type: boolean
-        default: true
       force_build:
         description: 'Force build even if no updates found'
         required: false
@@ -90,22 +85,13 @@ jobs:
             CURRENT=$(grep -A 3 'package:' recipes/claude-code/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
             echo "Current version: $CURRENT"
 
-            # Use custom version if provided, otherwise fetch from API
+            # Use custom version if provided, otherwise fetch latest from API
             if [ -n "${{ github.event.inputs.version }}" ]; then
               LATEST="${{ github.event.inputs.version }}"
               echo "Using custom version: $LATEST"
             else
-              # Choose endpoint based on use_latest flag
-              if [ "${{ github.event.inputs.use_latest }}" == "true" ]; then
-                ENDPOINT="latest"
-                echo "Using latest endpoint (includes pre-releases)"
-              else
-                ENDPOINT="stable"
-                echo "Using stable endpoint (production releases only)"
-              fi
-
-              LATEST=$(curl -s "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/$ENDPOINT" || echo "")
-              echo "Version from $ENDPOINT endpoint: $LATEST"
+              LATEST=$(curl -s "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/latest" || echo "")
+              echo "Latest version: $LATEST"
             fi
 
             if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
