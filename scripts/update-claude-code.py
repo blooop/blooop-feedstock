@@ -16,15 +16,15 @@ BASE_URL = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8
 RECIPE_PATH = Path("recipes/claude-code/recipe.yaml")
 
 def get_version(version_arg: str | None = None) -> str:
-    """Get Claude Code version - either from argument or fetch latest stable."""
+    """Get Claude Code version - either from argument or fetch latest."""
     if version_arg:
         return version_arg
 
     try:
-        with urllib.request.urlopen(f"{BASE_URL}/stable") as response:
+        with urllib.request.urlopen(f"{BASE_URL}/latest") as response:
             return response.read().decode().strip()
     except Exception as e:
-        print(f"❌ Failed to fetch stable version: {e}")
+        print(f"❌ Failed to fetch latest version: {e}")
         sys.exit(1)
 
 def update_recipe(version: str) -> None:
