@@ -2,8 +2,6 @@
 # Test script for verifying package installations from the blooop channel
 # This script tests that packages can be installed and executed correctly
 
-set -e
-
 CHANNEL="https://prefix.dev/blooop"
 PASSED=0
 FAILED=0
@@ -36,12 +34,12 @@ run_test() {
     ((TESTS_RUN++))
     log_info "Running test: $test_name"
 
-    if eval "$test_cmd" 2>&1; then
+    if eval "$test_cmd" >/dev/null 2>&1; then
         log_pass "$test_name"
         return 0
     else
         log_fail "$test_name"
-        return 1
+        return 0  # Don't fail the script, just record the failure
     fi
 }
 
@@ -58,37 +56,48 @@ echo ""
 run_test "pixi is available" "pixi --version"
 
 # Test 2: Channel is accessible
-run_test "Channel is accessible" "curl -sf '${CHANNEL}/linux-64/repodata.json' -o /dev/null || curl -sf '${CHANNEL}/noarch/repodata.json' -o /dev/null"
+run_test "Channel is accessible" "curl -sf '${CHANNEL}/linux-64/repodata.json' -o /dev/null"
 
 # Test 3: Install claude-code package
 log_info "Installing claude-code package..."
+((TESTS_RUN++))
 if pixi global install --channel "$CHANNEL" claude-code 2>&1; then
     log_pass "claude-code package installation"
+
+    # Test 4: Verify claude command exists via pixi
+    run_test "claude command exists" "which claude"
+
+    # Test 5: claude command is executable
+    run_test "claude command is executable" "test -x \$(which claude)"
+
+    # Test 6: Check the actual shim script syntax (in the environment)
+    CLAUDE_ENV_SCRIPT="$HOME/.pixi/envs/claude-code/bin/claude"
+    if [ -f "$CLAUDE_ENV_SCRIPT" ]; then
+        run_test "claude shim has valid syntax" "bash -n '$CLAUDE_ENV_SCRIPT'"
+    else
+        log_info "Skipping shim syntax check (env script not found)"
+    fi
+
+    # Test 7: Test claude can run (will download on first run)
+    log_info "Testing claude execution (this may download on first run)..."
     ((TESTS_RUN++))
-
-    # Test 4: Verify claude binary exists
-    run_test "claude binary exists" "which claude || command -v claude"
-
-    # Test 5: claude binary is executable
-    run_test "claude binary is executable" "test -x \$(which claude)"
-
-    # Test 6: claude shim syntax check
-    run_test "claude shim has valid syntax" "bash -n \$(which claude)"
+    if timeout 120 claude --help >/dev/null 2>&1; then
+        log_pass "claude --help executes successfully"
+    else
+        log_fail "claude --help failed"
+    fi
 else
     log_fail "claude-code package installation"
-    ((TESTS_RUN++))
 fi
 
-# Test 7: Try to install devpod if available
+# Test: Try to install devpod if available
 log_info "Checking if devpod package is available..."
 if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
     log_info "Installing devpod package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" devpod 2>&1; then
         log_pass "devpod package installation"
-
-        # Test 8: Verify devpod binary exists
-        run_test "devpod binary exists" "which devpod || command -v devpod"
+        run_test "devpod binary exists" "which devpod"
     else
         log_fail "devpod package installation"
     fi

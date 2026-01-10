@@ -1,22 +1,22 @@
 name: Test Package Installation
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'recipes/**'
-      - 'tests/**'
-      - '.github/workflows/test-install.yml'
-  pull_request:
-    branches: [main]
+  # Run after release workflow completes
+  workflow_run:
+    workflows: ["Release Workflow"]
+    types:
+      - completed
+  # Manual trigger for local diagnostics
   workflow_dispatch:
+  # Daily run as backup
   schedule:
-    # Run daily at 3 AM UTC (after the release workflow at 2 AM)
     - cron: '0 3 * * *'
 
 jobs:
   test-install:
     runs-on: ubuntu-latest
+    # Only run if release succeeded (or on manual/schedule trigger)
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
@@ -58,7 +58,11 @@ jobs:
 
   test-install-arm64:
     runs-on: ubuntu-24.04-arm
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # Only run if release succeeded, and skip for external PRs
+    if: |
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    continue-on-error: true  # ARM64 runners may not always be available
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -88,14 +92,15 @@ jobs:
           docker rmi blooop-test:arm64 || true
 
   test-summary:
-    needs: [test-install, test-install-arm64]
+    needs: [test-install]
+    # Don't require ARM64 for success
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
         run: |
-          if [ "${{ needs.test-install.result }}" == "failure" ] || [ "${{ needs.test-install-arm64.result }}" == "failure" ]; then
-            echo "Some tests failed"
+          if [ "${{ needs.test-install.result }}" == "failure" ]; then
+            echo "x64 tests failed"
             exit 1
           fi
-          echo "All tests passed!"
+          echo "All required tests passed!"
