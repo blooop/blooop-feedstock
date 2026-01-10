@@ -1,8 +1,19 @@
 #!/bin/bash
 # Claude Code Shim - Downloads and executes the official Claude Code binary
 # This shim does NOT redistribute the Claude Code binary, but downloads it on-demand
+#
+# Behavior:
+# 1. If official Claude install exists (~/.local/bin/claude), defer to it
+# 2. Otherwise, download and install to the conda/pixi environment
 
 set -e
+
+# Check for existing official Claude installation first
+# The official installer puts claude at ~/.local/bin/claude -> ~/.local/share/claude/
+OFFICIAL_CLAUDE="$HOME/.local/bin/claude"
+if [ -x "$OFFICIAL_CLAUDE" ] && [ -d "$HOME/.local/share/claude" ]; then
+    exec "$OFFICIAL_CLAUDE" "$@"
+fi
 
 # GCS bucket URL for Claude Code releases
 GCS_BUCKET="https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
@@ -82,6 +93,13 @@ get_latest_version() {
 install_claude_code() {
     local version="$1"
     local platform="$2"
+    local is_update="$3"
+
+    if [ "$is_update" != "true" ]; then
+        echo "First run: Setting up Claude Code..."
+        echo "This one-time download will fetch the official binary."
+        echo ""
+    fi
 
     echo "Downloading Claude Code v${version} for ${platform}..."
 
@@ -166,11 +184,11 @@ if [ ! -f "$REAL_BINARY" ]; then
         echo "Error: Cannot fetch latest version and no local installation found." >&2
         exit 1
     fi
-    install_claude_code "$LATEST_VERSION" "$PLATFORM"
+    install_claude_code "$LATEST_VERSION" "$PLATFORM" "false"
 elif [ -n "$LATEST_VERSION" ] && [ "$LATEST_VERSION" != "$INSTALLED_VERSION" ]; then
     # Update available
     echo "Update available: ${INSTALLED_VERSION:-unknown} -> $LATEST_VERSION"
-    install_claude_code "$LATEST_VERSION" "$PLATFORM"
+    install_claude_code "$LATEST_VERSION" "$PLATFORM" "true"
 fi
 
 # Execute the real Claude Code binary with all arguments

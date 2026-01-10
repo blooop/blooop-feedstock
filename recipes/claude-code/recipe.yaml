@@ -11,8 +11,8 @@ build:
   number: 0
   script:
     - mkdir -p $PREFIX/bin
-    - cp $SRC_DIR/claude-shim.sh $PREFIX/bin/claude-code
-    - chmod +x $PREFIX/bin/claude-code
+    - cp $SRC_DIR/claude-shim.sh $PREFIX/bin/claude
+    - chmod +x $PREFIX/bin/claude
 
 requirements:
   run: []
@@ -21,12 +21,12 @@ tests:
   - script:
       - if: unix
         then:
-          - which claude-code
-          - test -x $PREFIX/bin/claude-code
-          - bash -n $PREFIX/bin/claude-code  # syntax check
+          - which claude
+          - test -x $PREFIX/bin/claude
+          - bash -n $PREFIX/bin/claude  # syntax check
       - if: win
         then:
-          - where claude-code
+          - where claude
 
 about:
   homepage: https://claude.ai/
@@ -34,18 +34,21 @@ about:
   license_family: Proprietary
   summary: Claude AI coding assistant installer shim
   description: |
-    This package provides a shim that downloads and runs the official Claude Code
-    binary from Anthropic on first run. This package does NOT redistribute
-    Claude Code to comply with licensing requirements.
+    This package provides a shim that integrates with the official Claude Code
+    application from Anthropic. It exposes the 'claude' command.
 
-    On first execution, the shim will automatically download the latest Claude Code
-    binary for your platform from Anthropic's official distribution servers and install
-    it within your conda/pixi environment. The shim also auto-updates to the latest
-    stable version when available.
+    Behavior:
+    - If Claude is already installed via the official installer (~/.local/bin/claude),
+      the shim defers to it, ensuring compatibility with existing installations.
+    - If no official installation exists, the shim downloads the latest Claude Code
+      on first run to the conda/pixi environment.
+    - The shim auto-updates to the latest stable version when available.
+
+    This package does NOT redistribute Claude Code to comply with licensing
+    requirements. It only downloads from Anthropic's official distribution servers.
 
     Claude Code is a CLI tool that provides AI-powered coding assistance
-    from Anthropic's Claude AI models. It offers code editing, explanation,
-    debugging help, and other development tools integrated into your terminal workflow.
+    from Anthropic's Claude AI models.
   documentation: https://claude.ai/docs
   repository: https://claude.ai/
 
