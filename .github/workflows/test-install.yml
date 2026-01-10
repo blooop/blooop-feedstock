@@ -20,10 +20,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        base_image:
-          - ghcr.io/prefix-dev/pixi:latest
-          - ghcr.io/prefix-dev/pixi:jammy
-          - ghcr.io/prefix-dev/pixi:bookworm
+        include:
+          - base_image: ghcr.io/prefix-dev/pixi:latest
+            tag: latest
+          - base_image: ghcr.io/prefix-dev/pixi:jammy
+            tag: jammy
+          - base_image: ghcr.io/prefix-dev/pixi:bookworm
+            tag: bookworm
 
     steps:
       - name: Checkout repository
@@ -38,7 +41,7 @@ jobs:
           context: ./tests
           build-args: |
             BASE_IMAGE=${{ matrix.base_image }}
-          tags: blooop-test:${{ matrix.base_image }}
+          tags: blooop-test:${{ matrix.tag }}
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -46,12 +49,12 @@ jobs:
       - name: Run installation tests
         run: |
           echo "Running tests with base image: ${{ matrix.base_image }}"
-          docker run --rm blooop-test:${{ matrix.base_image }}
+          docker run --rm blooop-test:${{ matrix.tag }}
 
       - name: Test cleanup
         if: always()
         run: |
-          docker rmi blooop-test:${{ matrix.base_image }} || true
+          docker rmi blooop-test:${{ matrix.tag }} || true
 
   test-install-arm64:
     runs-on: ubuntu-24.04-arm
