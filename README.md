@@ -11,11 +11,11 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 
 ```bash
 # Install packages globally with pixi
-pixi global install --channel https://prefix.dev/channels/blooop claude-code
-pixi global install --channel https://prefix.dev/channels/blooop devpod
+pixi global install --channel https://prefix.dev/blooop claude-code
+pixi global install --channel https://prefix.dev/blooop devpod
 ```
 
-**Channel:** https://prefix.dev/channels/blooop
+**Channel:** https://prefix.dev/blooop
 
 ## 🛠️ Development Guide
 
@@ -66,7 +66,8 @@ pixi global install --channel https://prefix.dev/channels/blooop devpod
 blooop-feedstock/
 ├── .github/
 │   └── workflows/
-│       └── update-packages.yml      # Automated package updates and builds
+│       ├── release-workflow.yml     # Automated package updates and builds
+│       └── test-install.yml         # Docker-based installation tests
 ├── recipes/
 │   ├── claude-code/
 │   │   └── recipe.yaml              # Claude Code conda recipe
@@ -75,7 +76,11 @@ blooop-feedstock/
 ├── scripts/
 │   ├── update-claude-code.py        # Update script for Claude Code
 │   ├── check-updates.sh             # Check all packages for updates
-│   └── upload-to-prefix.sh          # Upload packages to prefix.dev
+│   ├── upload-to-prefix.sh          # Upload packages to prefix.dev
+│   └── run-docker-tests.sh          # Run Docker-based installation tests locally
+├── tests/
+│   ├── Dockerfile                   # Test container based on pixi-docker
+│   └── test-install.sh              # Installation verification test script
 ├── pixi.toml                        # Project configuration and tasks
 └── README.md                        # This file
 ```
@@ -99,6 +104,7 @@ Use `pixi run <task>` to execute these tasks:
 | `update-claude` | Update claude-code recipe to latest version |
 | `check-updates` | Check all packages for available updates |
 | `test-claude` | Test claude-code package |
+| `test-docker` | Run Docker-based installation tests |
 | `clean` | Remove build outputs |
 | `lint-recipes` | Validate recipe YAML files |
 
@@ -117,10 +123,10 @@ Uses OIDC trusted publishing for secure uploads to prefix.dev (no API keys neede
 
 ```bash
 # From channel
-pixi global install --channel https://prefix.dev/channels/blooop claude-code
+pixi global install --channel https://prefix.dev/blooop claude-code
 
 # Or add to a project
-pixi add --channel https://prefix.dev/channels/blooop claude-code
+pixi add --channel https://prefix.dev/blooop claude-code
 
 # From local build
 pixi global install ./output/linux-64/claude-code-*.conda

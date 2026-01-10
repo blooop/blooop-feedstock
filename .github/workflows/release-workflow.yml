@@ -276,7 +276,7 @@ jobs:
           - Updated package version from ${{ matrix.current }} to ${{ matrix.latest }}
           - Updated source checksums for all platforms
           - Reset build number to 0
-          - Built and uploaded packages to https://prefix.dev/channels/blooop
+          - Built and uploaded packages to https://prefix.dev/blooop
 
           🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

@@ -1,0 +1,98 @@
+name: Test Package Installation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'recipes/**'
+      - 'tests/**'
+      - '.github/workflows/test-install.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Run daily at 3 AM UTC (after the release workflow at 2 AM)
+    - cron: '0 3 * * *'
+
+jobs:
+  test-install:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        base_image:
+          - ghcr.io/prefix-dev/pixi:latest
+          - ghcr.io/prefix-dev/pixi:jammy
+          - ghcr.io/prefix-dev/pixi:bookworm
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./tests
+          build-args: |
+            BASE_IMAGE=${{ matrix.base_image }}
+          tags: blooop-test:${{ matrix.base_image }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run installation tests
+        run: |
+          echo "Running tests with base image: ${{ matrix.base_image }}"
+          docker run --rm blooop-test:${{ matrix.base_image }}
+
+      - name: Test cleanup
+        if: always()
+        run: |
+          docker rmi blooop-test:${{ matrix.base_image }} || true
+
+  test-install-arm64:
+    runs-on: ubuntu-24.04-arm
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test image (ARM64)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./tests
+          build-args: |
+            BASE_IMAGE=ghcr.io/prefix-dev/pixi:latest
+          tags: blooop-test:arm64
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run installation tests (ARM64)
+        run: |
+          echo "Running tests on ARM64"
+          docker run --rm blooop-test:arm64
+
+      - name: Test cleanup
+        if: always()
+        run: |
+          docker rmi blooop-test:arm64 || true
+
+  test-summary:
+    needs: [test-install, test-install-arm64]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.test-install.result }}" == "failure" ] || [ "${{ needs.test-install-arm64.result }}" == "failure" ]; then
+            echo "Some tests failed"
+            exit 1
+          fi
+          echo "All tests passed!"

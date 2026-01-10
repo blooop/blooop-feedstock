@@ -29,6 +29,9 @@ check-updates = "bash scripts/check-updates.sh"
 # Test local builds
 test-claude = "rattler-build test --recipe recipes/claude-code/recipe.yaml"
 
+# Docker-based installation tests
+test-docker = "bash scripts/run-docker-tests.sh"
+
 # Clean build outputs
 clean = "rm -rf output/*"
 
