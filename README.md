@@ -15,7 +15,7 @@ pixi global install --channel https://prefix.dev/blooop claude-code
 pixi global install --channel https://prefix.dev/blooop devpod
 ```
 
-**Channel:** https://prefix.dev/blooop
+**Channel:** [https://prefix.dev/channels/blooop](https://prefix.dev/channels/blooop)
 
 ## 🛠️ Development Guide
 
