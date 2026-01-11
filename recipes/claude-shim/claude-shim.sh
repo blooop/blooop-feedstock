@@ -84,9 +84,9 @@ get_installed_version() {
     fi
 }
 
-# Get latest stable version from GCS
+# Get latest version from GCS
 get_latest_version() {
-    download "$GCS_BUCKET/stable" 2>/dev/null || echo ""
+    download "$GCS_BUCKET/latest" 2>/dev/null || echo ""
 }
 
 # Install Claude Code binary

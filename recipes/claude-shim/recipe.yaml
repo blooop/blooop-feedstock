@@ -8,7 +8,7 @@ source:
   - path: claude-shim.sh
 
 build:
-  number: 0
+  number: 1
   script:
     - mkdir -p $PREFIX/bin
     - cp $SRC_DIR/claude-shim.sh $PREFIX/bin/claude
@@ -42,7 +42,7 @@ about:
       the shim defers to it, ensuring compatibility with existing installations.
     - If no official installation exists, the shim downloads the latest Claude Code
       on first run to the conda/pixi environment.
-    - The shim auto-updates to the latest stable version when available.
+    - The shim auto-updates to the latest version when available.
 
     This package does NOT redistribute Claude Code to comply with licensing
     requirements. It only downloads from Anthropic's official distribution servers.
