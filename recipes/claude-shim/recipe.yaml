@@ -2,13 +2,13 @@ schema_version: 1
 
 package:
   name: claude-shim
-  version: "0.0.1"
+  version: "0.1.0"
 
 source:
   - path: claude-shim.sh
 
 build:
-  number: 1
+  number: 0
   script:
     - mkdir -p $PREFIX/bin
     - cp $SRC_DIR/claude-shim.sh $PREFIX/bin/claude
