@@ -58,11 +58,11 @@ run_test "pixi is available" "pixi --version"
 # Test 2: Channel is accessible
 run_test "Channel is accessible" "curl -sf '${CHANNEL}/linux-64/repodata.json' -o /dev/null"
 
-# Test 3: Install claude-code package
-log_info "Installing claude-code package..."
+# Test 3: Install claude-shim package
+log_info "Installing claude-shim package..."
 ((TESTS_RUN++))
-if pixi global install --channel "$CHANNEL" claude-code 2>&1; then
-    log_pass "claude-code package installation"
+if pixi global install --channel "$CHANNEL" claude-shim 2>&1; then
+    log_pass "claude-shim package installation"
 
     # Test 4: Verify claude command exists via pixi
     run_test "claude command exists" "which claude"
@@ -71,7 +71,7 @@ if pixi global install --channel "$CHANNEL" claude-code 2>&1; then
     run_test "claude command is executable" "test -x \$(which claude)"
 
     # Test 6: Check the actual shim script syntax (in the environment)
-    CLAUDE_ENV_SCRIPT="$HOME/.pixi/envs/claude-code/bin/claude"
+    CLAUDE_ENV_SCRIPT="$HOME/.pixi/envs/claude-shim/bin/claude"
     if [ -f "$CLAUDE_ENV_SCRIPT" ]; then
         run_test "claude shim has valid syntax" "bash -n '$CLAUDE_ENV_SCRIPT'"
     else
@@ -87,7 +87,7 @@ if pixi global install --channel "$CHANNEL" claude-code 2>&1; then
         log_fail "claude --help failed"
     fi
 else
-    log_fail "claude-code package installation"
+    log_fail "claude-shim package installation"
 fi
 
 # Test: Try to install devpod if available

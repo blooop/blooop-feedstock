@@ -4,7 +4,7 @@
 ARG BASE_IMAGE=ghcr.io/prefix-dev/pixi:latest
 FROM ${BASE_IMAGE}
 
-# Install curl (needed by claude-code shim to download binary)
+# Install curl (needed by claude-shim to download binary)
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 

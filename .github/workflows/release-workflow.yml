@@ -77,28 +77,24 @@ jobs:
           # Create array of packages that need updates
           UPDATES="[]"
 
-          # Check claude-code
-          if [ -d "recipes/claude-code" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "claude-code" ]); then
-            echo "🔍 Checking claude-code for updates..."
+          # Check claude-shim (shim doesn't auto-update version, only force_build triggers it)
+          if [ -d "recipes/claude-shim" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "claude-shim" ]); then
+            echo "🔍 Checking claude-shim..."
 
             # Get current version from recipe
-            CURRENT=$(grep -A 3 'package:' recipes/claude-code/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            CURRENT=$(grep -A 3 'package:' recipes/claude-shim/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
             echo "Current version: $CURRENT"
 
-            # Use custom version if provided, otherwise fetch latest from API
+            # claude-shim is versioned independently - only build on force_build or version override
             if [ -n "${{ github.event.inputs.version }}" ]; then
               LATEST="${{ github.event.inputs.version }}"
               echo "Using custom version: $LATEST"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-shim", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            elif [ "${{ github.event.inputs.force_build }}" == "true" ]; then
+              echo "📦 Force build requested for claude-shim $CURRENT"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-shim", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
             else
-              LATEST=$(curl -s "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/latest" || echo "")
-              echo "Latest version: $LATEST"
-            fi
-
-            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
-              echo "📦 Update found: claude-code $CURRENT → $LATEST (forced: ${{ github.event.inputs.force_build }})"
-              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-code", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
-            else
-              echo "✅ claude-code is up to date"
+              echo "✅ claude-shim - no build requested (use force_build or specify version)"
             fi
           fi
 
@@ -185,7 +181,19 @@ jobs:
       - name: Update ${{ matrix.package }} recipe
         run: |
           echo "🔄 Updating ${{ matrix.package }} from ${{ matrix.current }} to ${{ matrix.latest }}"
-          pixi run python scripts/update-${{ matrix.package }}.py ${{ matrix.latest }}
+
+          # claude-shim is versioned independently and doesn't need an update script
+          if [ "${{ matrix.package }}" == "claude-shim" ]; then
+            if [ "${{ matrix.current }}" != "${{ matrix.latest }}" ]; then
+              # Update version in recipe.yaml if a new version was specified
+              sed -i 's/version: "${{ matrix.current }}"/version: "${{ matrix.latest }}"/' recipes/claude-shim/recipe.yaml
+              echo "✅ Updated claude-shim version to ${{ matrix.latest }}"
+            else
+              echo "✅ claude-shim version unchanged (${{ matrix.current }})"
+            fi
+          else
+            pixi run python scripts/update-${{ matrix.package }}.py ${{ matrix.latest }}
+          fi
 
       - name: Build and Upload ${{ matrix.package }}
         env:

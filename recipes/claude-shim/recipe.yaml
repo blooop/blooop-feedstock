@@ -1,0 +1,57 @@
+schema_version: 1
+
+package:
+  name: claude-shim
+  version: "0.0.1"
+
+source:
+  - path: claude-shim.sh
+
+build:
+  number: 0
+  script:
+    - mkdir -p $PREFIX/bin
+    - cp $SRC_DIR/claude-shim.sh $PREFIX/bin/claude
+    - chmod +x $PREFIX/bin/claude
+
+requirements:
+  run: []
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - which claude
+          - test -x $PREFIX/bin/claude
+          - bash -n $PREFIX/bin/claude  # syntax check
+      - if: win
+        then:
+          - where claude
+
+about:
+  homepage: https://claude.ai/
+  license: LicenseRef-Proprietary
+  license_family: Proprietary
+  summary: Claude Code installer shim - downloads and runs the official Claude Code CLI
+  description: |
+    This package provides a shim that downloads and runs the official Claude Code
+    CLI from Anthropic. It exposes the 'claude' command.
+
+    Behavior:
+    - If Claude is already installed via the official installer (~/.local/bin/claude),
+      the shim defers to it, ensuring compatibility with existing installations.
+    - If no official installation exists, the shim downloads the latest Claude Code
+      on first run to the conda/pixi environment.
+    - The shim auto-updates to the latest stable version when available.
+
+    This package does NOT redistribute Claude Code to comply with licensing
+    requirements. It only downloads from Anthropic's official distribution servers.
+
+    Claude Code is a CLI tool that provides AI-powered coding assistance
+    from Anthropic's Claude AI models.
+  documentation: https://docs.anthropic.com/en/docs/claude-code
+  repository: https://github.com/anthropics/claude-code
+
+extra:
+  recipe-maintainers:
+    - blooop

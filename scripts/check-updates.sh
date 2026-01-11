@@ -43,39 +43,14 @@ check_package() {
     
     # Package-specific update checking
     case $package_name in
-        "claude-code")
-            check_claude_code "$current_version"
+        "claude-shim")
+            # claude-shim is versioned independently - no upstream to check
+            echo "   ✅ claude-shim is versioned independently (no upstream version to check)"
             ;;
         *)
             echo "   ⚠️  No update checker implemented for $package_name"
             ;;
     esac
-}
-
-# Check claude-code for updates
-check_claude_code() {
-    local current_version=$1
-    
-    # Fetch latest version from stable endpoint
-    local latest_version=$(curl -s https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/stable 2>/dev/null || echo "")
-    
-    if [ -z "$latest_version" ]; then
-        echo "   ❌ Failed to fetch latest version"
-        return 1
-    fi
-    
-    echo "   Latest version: $latest_version"
-    
-    if [ "$current_version" != "$latest_version" ]; then
-        echo "   🆕 UPDATE AVAILABLE: $current_version → $latest_version"
-        echo ""
-        echo "   To update, run:"
-        echo "   pixi run python scripts/update-claude-code.py $latest_version"
-        echo ""
-        UPDATES_FOUND=$((UPDATES_FOUND + 1))
-    else
-        echo "   ✅ Up to date"
-    fi
 }
 
 # Main execution

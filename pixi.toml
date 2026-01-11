@@ -12,22 +12,19 @@ curl = "*"
 
 [tasks]
 # Build specific packages
-build-claude = "rattler-build build --recipe recipes/claude-code/recipe.yaml --output-dir output"
-build-claude-linux = "rattler-build build --recipe recipes/claude-code/recipe.yaml --target-platform linux-64 --output-dir output"
-build-claude-macos = "rattler-build build --recipe recipes/claude-code/recipe.yaml --target-platform osx-64 --output-dir output"
-build-claude-windows = "rattler-build build --recipe recipes/claude-code/recipe.yaml --target-platform win-64 --output-dir output"
+build-shim = "rattler-build build --recipe recipes/claude-shim/recipe.yaml --output-dir output"
+build-shim-linux = "rattler-build build --recipe recipes/claude-shim/recipe.yaml --target-platform linux-64 --output-dir output"
+build-shim-macos = "rattler-build build --recipe recipes/claude-shim/recipe.yaml --target-platform osx-64 --output-dir output"
+build-shim-windows = "rattler-build build --recipe recipes/claude-shim/recipe.yaml --target-platform win-64 --output-dir output"
 
 # Build all packages
-build-all = { depends-on = ["build-claude"] }
-
-# Update specific packages
-update-claude = "python scripts/update-claude-code.py"
+build-all = { depends-on = ["build-shim"] }
 
 # Check for updates across all packages
 check-updates = "bash scripts/check-updates.sh"
 
 # Test local builds
-test-claude = "rattler-build test --recipe recipes/claude-code/recipe.yaml"
+test-shim = "rattler-build test --recipe recipes/claude-shim/recipe.yaml"
 
 # Docker-based installation tests
 test-docker = "bash scripts/run-docker-tests.sh"

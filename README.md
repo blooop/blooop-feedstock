@@ -4,14 +4,14 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 
 ## 📦 Available Packages
 
-- **claude-code** - Claude AI coding assistant desktop application
+- **claude-shim** - Shim that downloads and runs the official Claude Code CLI from Anthropic
 - **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
 
 ### 🚀 Quick Install
 
 ```bash
 # Install packages globally with pixi
-pixi global install --channel https://prefix.dev/blooop claude-code
+pixi global install --channel https://prefix.dev/blooop claude-shim
 pixi global install --channel https://prefix.dev/blooop devpod
 ```
 
@@ -40,24 +40,19 @@ pixi global install --channel https://prefix.dev/blooop devpod
 
 3. **Build a package:**
    ```bash
-   # Build claude-code for current platform
-   pixi run build-claude
+   # Build claude-shim for current platform
+   pixi run build-shim
 
    # Build devpod for current platform
    rattler-build build --recipe recipes/devpod/recipe.yaml
 
    # Build for specific platform
-   pixi run rattler-build build --recipe recipes/claude-code/recipe.yaml --target-platform linux-64
+   pixi run rattler-build build --recipe recipes/claude-shim/recipe.yaml --target-platform linux-64
    ```
 
 4. **Check for updates:**
    ```bash
    pixi run check-updates
-   ```
-
-5. **Update a package:**
-   ```bash
-   pixi run update-claude
    ```
 
 ## 🏗️ Repository Structure
@@ -69,12 +64,11 @@ blooop-feedstock/
 │       ├── release-workflow.yml     # Automated package updates and builds
 │       └── test-install.yml         # Docker-based installation tests
 ├── recipes/
-│   ├── claude-code/
-│   │   └── recipe.yaml              # Claude Code conda recipe
+│   ├── claude-shim/
+│   │   └── recipe.yaml              # Claude shim conda recipe
 │   └── devpod/
 │       └── recipe.yaml              # DevPod conda recipe (from skevetter fork)
 ├── scripts/
-│   ├── update-claude-code.py        # Update script for Claude Code
 │   ├── check-updates.sh             # Check all packages for updates
 │   ├── upload-to-prefix.sh          # Upload packages to prefix.dev
 │   └── run-docker-tests.sh          # Run Docker-based installation tests locally
@@ -99,11 +93,10 @@ Use `pixi run <task>` to execute these tasks:
 
 | Task | Description |
 |------|-------------|
-| `build-claude` | Build claude-code package |
+| `build-shim` | Build claude-shim package |
 | `build-all` | Build all packages |
-| `update-claude` | Update claude-code recipe to latest version |
 | `check-updates` | Check all packages for available updates |
-| `test-claude` | Test claude-code package |
+| `test-shim` | Test claude-shim package |
 | `test-docker` | Run Docker-based installation tests |
 | `clean` | Remove build outputs |
 | `lint-recipes` | Validate recipe YAML files |
@@ -123,18 +116,18 @@ Uses OIDC trusted publishing for secure uploads to prefix.dev (no API keys neede
 
 ```bash
 # From channel
-pixi global install --channel https://prefix.dev/blooop claude-code
+pixi global install --channel https://prefix.dev/blooop claude-shim
 
 # Or add to a project
-pixi add --channel https://prefix.dev/blooop claude-code
+pixi add --channel https://prefix.dev/blooop claude-shim
 
 # From local build
-pixi global install ./output/linux-64/claude-code-*.conda
+pixi global install ./output/linux-64/claude-shim-*.conda
 ```
 
 ## 🐛 Troubleshooting
 
-- **Build issues:** Run `pixi install` to reinstall dependencies, or `pixi run update-claude` to update checksums
+- **Build issues:** Run `pixi install` to reinstall dependencies
 - **Upload issues:** Verify trusted publishing is configured correctly on prefix.dev
 - **Update issues:** Check network connectivity and upstream version formats
 
