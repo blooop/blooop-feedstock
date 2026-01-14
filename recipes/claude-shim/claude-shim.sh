@@ -8,6 +8,17 @@
 
 set -e
 
+# Debug mode: set DEBUG_SHIM=1 to see diagnostic info
+debug() {
+    if [ "${DEBUG_SHIM:-}" = "1" ]; then
+        echo "[DEBUG] $*" >&2
+    fi
+}
+
+debug "Shim version: 0.2.1"
+debug "HOME=$HOME"
+debug "CONDA_PREFIX=${CONDA_PREFIX:-unset}"
+
 # Check for existing official Claude installation first
 # The official installer puts claude at ~/.local/bin/claude -> ~/.local/share/claude/
 OFFICIAL_CLAUDE="$HOME/.local/bin/claude"
@@ -23,17 +34,22 @@ GCS_BUCKET="https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8
 determine_install_dir() {
     # Check for ~/.claude directory (can be mounted in Docker)
     if [ -d "$HOME/.claude" ]; then
+        debug "~/.claude exists, using it for cache"
         echo "$HOME/.claude/cache/claude-code"
         return
     fi
+    debug "~/.claude does not exist"
 
     # Check for ~/.cache directory (XDG standard, can be mounted in Docker)
     if [ -d "$HOME/.cache" ]; then
+        debug "~/.cache exists, using it for cache"
         echo "$HOME/.cache/claude-code"
         return
     fi
+    debug "~/.cache does not exist"
 
     # Fall back to conda/pixi environment directory
+    debug "Falling back to conda/pixi env directory"
     echo "${CONDA_PREFIX:-${PREFIX:-$HOME/.pixi/envs/default}}/opt/claude-code"
 }
 
@@ -41,6 +57,10 @@ determine_install_dir() {
 INSTALL_DIR="$(determine_install_dir)"
 VERSION_FILE="$INSTALL_DIR/.version"
 REAL_BINARY="$INSTALL_DIR/claude"
+
+debug "INSTALL_DIR=$INSTALL_DIR"
+debug "REAL_BINARY=$REAL_BINARY"
+debug "Binary exists: $([ -f "$REAL_BINARY" ] && echo YES || echo NO)"
 
 # Detect platform
 detect_platform() {
