@@ -18,8 +18,27 @@ fi
 # GCS bucket URL for Claude Code releases
 GCS_BUCKET="https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
 
+# Determine cache directory for the binary
+# Priority: ~/.claude/cache (if ~/.claude exists) > ~/.cache/claude-code (if ~/.cache exists) > conda/pixi env
+determine_install_dir() {
+    # Check for ~/.claude directory (can be mounted in Docker)
+    if [ -d "$HOME/.claude" ]; then
+        echo "$HOME/.claude/cache/claude-code"
+        return
+    fi
+
+    # Check for ~/.cache directory (XDG standard, can be mounted in Docker)
+    if [ -d "$HOME/.cache" ]; then
+        echo "$HOME/.cache/claude-code"
+        return
+    fi
+
+    # Fall back to conda/pixi environment directory
+    echo "${CONDA_PREFIX:-${PREFIX:-$HOME/.pixi/envs/default}}/opt/claude-code"
+}
+
 # Installation directory for the real Claude Code binary
-INSTALL_DIR="${CONDA_PREFIX:-${PREFIX:-$HOME/.pixi/envs/default}}/opt/claude-code"
+INSTALL_DIR="$(determine_install_dir)"
 VERSION_FILE="$INSTALL_DIR/.version"
 REAL_BINARY="$INSTALL_DIR/claude"
 

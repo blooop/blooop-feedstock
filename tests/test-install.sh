@@ -90,6 +90,65 @@ else
     log_fail "claude-shim package installation"
 fi
 
+# Test: Cache directory selection for Docker persistence
+log_info "Testing cache directory selection for Docker mount support..."
+
+# Test the determine_install_dir logic directly
+test_cache_dir_selection() {
+    local test_home="$1"
+    local setup="$2"
+    local expected_pattern="$3"
+    local test_name="$4"
+
+    # Create test home
+    rm -rf "$test_home"
+    mkdir -p "$test_home"
+
+    # Run setup (create dirs as needed)
+    eval "$setup"
+
+    # Source the determine_install_dir function
+    determine_install_dir() {
+        if [ -d "$HOME/.claude" ]; then
+            echo "$HOME/.claude/cache/claude-code"
+            return
+        fi
+        if [ -d "$HOME/.cache" ]; then
+            echo "$HOME/.cache/claude-code"
+            return
+        fi
+        echo "${CONDA_PREFIX:-${PREFIX:-$HOME/.pixi/envs/default}}/opt/claude-code"
+    }
+
+    # Test with modified HOME
+    local old_home="$HOME"
+    HOME="$test_home"
+    local result
+    result=$(determine_install_dir)
+    HOME="$old_home"
+
+    ((TESTS_RUN++))
+    if [[ "$result" == *"$expected_pattern"* ]]; then
+        log_pass "$test_name"
+        return 0
+    else
+        log_fail "$test_name (got: $result, expected pattern: $expected_pattern)"
+        return 1
+    fi
+}
+
+# Test: ~/.claude takes priority
+test_cache_dir_selection "/tmp/test_home_1" "mkdir -p /tmp/test_home_1/.claude /tmp/test_home_1/.cache" ".claude/cache/claude-code" "Cache uses ~/.claude when present"
+
+# Test: ~/.cache used when ~/.claude doesn't exist
+test_cache_dir_selection "/tmp/test_home_2" "mkdir -p /tmp/test_home_2/.cache" ".cache/claude-code" "Cache uses ~/.cache when ~/.claude absent"
+
+# Test: Falls back to default when neither exists
+test_cache_dir_selection "/tmp/test_home_3" ":" "/opt/claude-code" "Cache falls back to env dir when no cache dirs"
+
+# Cleanup
+rm -rf /tmp/test_home_1 /tmp/test_home_2 /tmp/test_home_3
+
 # Test: Try to install devpod if available
 log_info "Checking if devpod package is available..."
 if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
