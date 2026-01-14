@@ -2,7 +2,7 @@ schema_version: 1
 
 package:
   name: claude-shim
-  version: "0.2.1"
+  version: "0.2.2"
 
 source:
   - path: claude-shim.sh
@@ -45,6 +45,7 @@ about:
     - The shim auto-updates to the latest version when available.
     - Supports Docker caching: mount ~/.claude or ~/.cache to persist downloads
       across container runs.
+    - Self-healing: automatically detects and repairs corrupted cached binaries.
 
     Cache directory priority:
     1. ~/.claude/cache/claude-code (if ~/.claude exists)

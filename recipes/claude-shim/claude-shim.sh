@@ -15,7 +15,7 @@ debug() {
     fi
 }
 
-debug "Shim version: 0.2.1"
+debug "Shim version: 0.2.2"
 debug "HOME=$HOME"
 debug "CONDA_PREFIX=${CONDA_PREFIX:-unset}"
 
@@ -29,28 +29,78 @@ fi
 # GCS bucket URL for Claude Code releases
 GCS_BUCKET="https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
 
+# Check if a directory is writable (or can be created)
+is_writable_dir() {
+    local dir="$1"
+    if [ -d "$dir" ]; then
+        # Directory exists, check if writable
+        [ -w "$dir" ]
+    else
+        # Directory doesn't exist, check if parent is writable
+        local parent
+        parent=$(dirname "$dir")
+        [ -d "$parent" ] && [ -w "$parent" ]
+    fi
+}
+
 # Determine cache directory for the binary
-# Priority: ~/.claude/cache (if ~/.claude exists) > ~/.cache/claude-code (if ~/.cache exists) > conda/pixi env
+# Priority: ~/.claude/cache (if ~/.claude exists and writable) > ~/.cache/claude-code (if ~/.cache exists and writable) > conda/pixi env
 determine_install_dir() {
+    local cache_dir
+
     # Check for ~/.claude directory (can be mounted in Docker)
     if [ -d "$HOME/.claude" ]; then
-        debug "~/.claude exists, using it for cache"
-        echo "$HOME/.claude/cache/claude-code"
-        return
+        cache_dir="$HOME/.claude/cache/claude-code"
+        if is_writable_dir "$HOME/.claude/cache" || is_writable_dir "$HOME/.claude"; then
+            debug "~/.claude exists and is writable, using it for cache"
+            echo "$cache_dir"
+            return
+        fi
+        debug "~/.claude exists but is not writable"
+    else
+        debug "~/.claude does not exist"
     fi
-    debug "~/.claude does not exist"
 
     # Check for ~/.cache directory (XDG standard, can be mounted in Docker)
     if [ -d "$HOME/.cache" ]; then
-        debug "~/.cache exists, using it for cache"
-        echo "$HOME/.cache/claude-code"
-        return
+        cache_dir="$HOME/.cache/claude-code"
+        if is_writable_dir "$cache_dir" || is_writable_dir "$HOME/.cache"; then
+            debug "~/.cache exists and is writable, using it for cache"
+            echo "$cache_dir"
+            return
+        fi
+        debug "~/.cache exists but is not writable"
+    else
+        debug "~/.cache does not exist"
     fi
-    debug "~/.cache does not exist"
 
     # Fall back to conda/pixi environment directory
     debug "Falling back to conda/pixi env directory"
     echo "${CONDA_PREFIX:-${PREFIX:-$HOME/.pixi/envs/default}}/opt/claude-code"
+}
+
+# Validate that a Claude binary works correctly
+# Returns 0 if valid, 1 if invalid/corrupted
+validate_binary() {
+    local binary="$1"
+
+    # Check file exists and is executable
+    if [ ! -x "$binary" ]; then
+        debug "Binary not executable: $binary"
+        return 1
+    fi
+
+    # Run with --version and check output contains "Claude Code"
+    local version_output
+    version_output=$("$binary" --version 2>&1) || true
+
+    if echo "$version_output" | grep -q "Claude Code"; then
+        debug "Binary validation passed: $version_output"
+        return 0
+    else
+        debug "Binary validation failed. Output: $version_output"
+        return 1
+    fi
 }
 
 # Installation directory for the real Claude Code binary
@@ -216,18 +266,38 @@ fi
 LATEST_VERSION=$(get_latest_version)
 INSTALLED_VERSION=$(get_installed_version)
 
-# Check if we need to install or update
+# Check if we need to install, update, or repair
+NEED_INSTALL="false"
+IS_REPAIR="false"
+
 if [ ! -f "$REAL_BINARY" ]; then
     # No binary installed
+    debug "Binary not found, need fresh install"
+    NEED_INSTALL="true"
+elif ! validate_binary "$REAL_BINARY"; then
+    # Binary exists but is corrupted
+    echo "Cached binary appears corrupted, will re-download..."
+    rm -f "$REAL_BINARY" "$VERSION_FILE"
+    NEED_INSTALL="true"
+    IS_REPAIR="true"
+elif [ -n "$LATEST_VERSION" ] && [ "$LATEST_VERSION" != "$INSTALLED_VERSION" ]; then
+    # Update available
+    echo "Update available: ${INSTALLED_VERSION:-unknown} -> $LATEST_VERSION"
+    NEED_INSTALL="true"
+fi
+
+if [ "$NEED_INSTALL" = "true" ]; then
     if [ -z "$LATEST_VERSION" ]; then
         echo "Error: Cannot fetch latest version and no local installation found." >&2
         exit 1
     fi
-    install_claude_code "$LATEST_VERSION" "$PLATFORM" "false"
-elif [ -n "$LATEST_VERSION" ] && [ "$LATEST_VERSION" != "$INSTALLED_VERSION" ]; then
-    # Update available
-    echo "Update available: ${INSTALLED_VERSION:-unknown} -> $LATEST_VERSION"
-    install_claude_code "$LATEST_VERSION" "$PLATFORM" "true"
+    if [ "$IS_REPAIR" = "true" ]; then
+        install_claude_code "$LATEST_VERSION" "$PLATFORM" "true"
+    elif [ ! -f "$REAL_BINARY" ]; then
+        install_claude_code "$LATEST_VERSION" "$PLATFORM" "false"
+    else
+        install_claude_code "$LATEST_VERSION" "$PLATFORM" "true"
+    fi
 fi
 
 # Execute the real Claude Code binary with all arguments

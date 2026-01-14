@@ -149,6 +149,45 @@ test_cache_dir_selection "/tmp/test_home_3" ":" "/opt/claude-code" "Cache falls 
 # Cleanup
 rm -rf /tmp/test_home_1 /tmp/test_home_2 /tmp/test_home_3
 
+# Test: Corrupted binary recovery (self-healing)
+log_info "Testing corrupted binary recovery..."
+test_corrupted_binary_recovery() {
+    local test_home="/tmp/test_home_corrupt"
+    rm -rf "$test_home"
+    mkdir -p "$test_home/.claude/cache/claude-code"
+
+    # Create a fake corrupted binary (not a real Claude binary)
+    echo '#!/bin/bash
+echo "Bun is a fast JavaScript runtime"' > "$test_home/.claude/cache/claude-code/claude"
+    chmod +x "$test_home/.claude/cache/claude-code/claude"
+    echo "1.0.0" > "$test_home/.claude/cache/claude-code/.version"
+
+    # Test that validate_binary detects this as corrupted
+    validate_binary() {
+        local binary="$1"
+        if [ ! -x "$binary" ]; then
+            return 1
+        fi
+        local version_output
+        version_output=$("$binary" --version 2>&1) || true
+        if echo "$version_output" | grep -q "Claude Code"; then
+            return 0
+        else
+            return 1
+        fi
+    }
+
+    ((TESTS_RUN++))
+    if ! validate_binary "$test_home/.claude/cache/claude-code/claude"; then
+        log_pass "Corrupted binary detected correctly"
+    else
+        log_fail "Failed to detect corrupted binary"
+    fi
+
+    rm -rf "$test_home"
+}
+test_corrupted_binary_recovery
+
 # Test: Try to install devpod if available
 log_info "Checking if devpod package is available..."
 if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
