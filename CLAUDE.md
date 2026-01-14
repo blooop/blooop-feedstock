@@ -98,3 +98,56 @@ Add new tests to `tests/test-install.sh`. The test framework provides:
 - `log_pass "test name"` - Mark test passed
 - `log_fail "test name"` - Mark test failed
 - `run_test "name" "command"` - Run command and log pass/fail
+
+## Troubleshooting
+
+### Bun Help Instead of Claude Code
+
+If running `claude` shows Bun's help output instead of Claude Code:
+
+```
+Bun is a fast JavaScript runtime, package manager, bundler, and test runner. (1.3.5+...)
+Usage: bun <command> [...flags] [...args]
+...
+```
+
+This is a known issue where the Claude Code binary (which is bundled with Bun) fails to find its embedded JavaScript code. Common causes:
+
+1. **Corrupted download** - The binary was partially downloaded or corrupted
+2. **Permission issues** - The binary can't read its own embedded resources
+3. **Wrong platform** - Downloaded binary for wrong architecture (e.g., musl vs glibc)
+
+**Fix:** Delete the cached binary and re-download:
+
+```bash
+# Clear the cache
+rm -rf ~/.claude/cache/claude-code/
+rm -rf ~/.cache/claude-code/
+
+# Re-run claude to trigger fresh download
+claude --version
+```
+
+### Debug Mode
+
+Run with `DEBUG_SHIM=1` to see diagnostic info:
+
+```bash
+DEBUG_SHIM=1 claude --version
+```
+
+This shows:
+- `HOME` - Verify home directory is correct
+- `INSTALL_DIR` - Where the binary is being cached
+- `Binary exists: YES/NO` - Whether cache is found
+
+### Multiple Claude Binaries
+
+Check if there are multiple `claude` binaries in PATH:
+
+```bash
+type -a claude
+which claude
+```
+
+Ensure the pixi-installed shim takes precedence.
