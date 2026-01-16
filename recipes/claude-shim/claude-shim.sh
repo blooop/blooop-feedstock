@@ -15,7 +15,7 @@ debug() {
     fi
 }
 
-debug "Shim version: 0.2.2"
+debug "Shim version: 0.3.0"
 debug "HOME=$HOME"
 debug "CONDA_PREFIX=${CONDA_PREFIX:-unset}"
 

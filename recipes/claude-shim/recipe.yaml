@@ -2,17 +2,21 @@ schema_version: 1
 
 package:
   name: claude-shim
-  version: "0.2.2"
+  version: "0.3.0"
 
 source:
   - path: claude-shim.sh
+  - path: cld.sh
+  - path: cldr.sh
 
 build:
   number: 0
   script:
     - mkdir -p $PREFIX/bin
     - cp $SRC_DIR/claude-shim.sh $PREFIX/bin/claude
-    - chmod +x $PREFIX/bin/claude
+    - cp $SRC_DIR/cld.sh $PREFIX/bin/cld
+    - cp $SRC_DIR/cldr.sh $PREFIX/bin/cldr
+    - chmod +x $PREFIX/bin/claude $PREFIX/bin/cld $PREFIX/bin/cldr
 
 requirements:
   run: []
@@ -22,11 +26,19 @@ tests:
       - if: unix
         then:
           - which claude
+          - which cld
+          - which cldr
           - test -x $PREFIX/bin/claude
+          - test -x $PREFIX/bin/cld
+          - test -x $PREFIX/bin/cldr
           - bash -n $PREFIX/bin/claude  # syntax check
+          - bash -n $PREFIX/bin/cld
+          - bash -n $PREFIX/bin/cldr
       - if: win
         then:
           - where claude
+          - where cld
+          - where cldr
 
 about:
   homepage: https://claude.ai/
@@ -35,7 +47,10 @@ about:
   summary: Claude Code installer shim - downloads and runs the official Claude Code CLI
   description: |
     This package provides a shim that downloads and runs the official Claude Code
-    CLI from Anthropic. It exposes the 'claude' command.
+    CLI from Anthropic. It exposes the following commands:
+    - 'claude' - the main Claude Code CLI
+    - 'cld' - shortcut for 'claude --dangerously-skip-permissions'
+    - 'cldr' - shortcut for 'claude --dangerously-skip-permissions --resume'
 
     Behavior:
     - If Claude is already installed via the official installer (~/.local/bin/claude),
