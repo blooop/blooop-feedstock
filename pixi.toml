@@ -17,8 +17,10 @@ build-shim-linux = "rattler-build build --recipe recipes/claude-shim/recipe.yaml
 build-shim-macos = "rattler-build build --recipe recipes/claude-shim/recipe.yaml --target-platform osx-64 --output-dir output"
 build-shim-windows = "rattler-build build --recipe recipes/claude-shim/recipe.yaml --target-platform win-64 --output-dir output"
 
+build-ralph = "rattler-build build --recipe recipes/ralph-claude-code/recipe.yaml --output-dir output"
+
 # Build all packages
-build-all = { depends-on = ["build-shim"] }
+build-all = { depends-on = ["build-shim", "build-ralph"] }
 
 # Check for updates across all packages
 check-updates = "bash scripts/check-updates.sh"

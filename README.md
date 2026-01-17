@@ -6,6 +6,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 
 - **claude-shim** - Shim that downloads and runs the official Claude Code CLI from Anthropic
 - **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
+- **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection
 
 ### 🚀 Quick Install
 
@@ -13,6 +14,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 # Install packages globally with pixi
 pixi global install --channel https://prefix.dev/blooop claude-shim
 pixi global install --channel https://prefix.dev/blooop devpod
+pixi global install --channel https://prefix.dev/blooop ralph-claude-code
 ```
 
 **Channel:** [https://prefix.dev/channels/blooop](https://prefix.dev/channels/blooop)
@@ -66,8 +68,10 @@ blooop-feedstock/
 ├── recipes/
 │   ├── claude-shim/
 │   │   └── recipe.yaml              # Claude shim conda recipe
-│   └── devpod/
-│       └── recipe.yaml              # DevPod conda recipe (from skevetter fork)
+│   ├── devpod/
+│   │   └── recipe.yaml              # DevPod conda recipe (from skevetter fork)
+│   └── ralph-claude-code/
+│       └── recipe.yaml              # Ralph autonomous development loop
 ├── scripts/
 │   ├── check-updates.sh             # Check all packages for updates
 │   ├── upload-to-prefix.sh          # Upload packages to prefix.dev
@@ -94,6 +98,7 @@ Use `pixi run <task>` to execute these tasks:
 | Task | Description |
 |------|-------------|
 | `build-shim` | Build claude-shim package |
+| `build-ralph` | Build ralph-claude-code package |
 | `build-all` | Build all packages |
 | `check-updates` | Check all packages for available updates |
 | `test-shim` | Test claude-shim package |
