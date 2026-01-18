@@ -4,9 +4,9 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 
 ## 📦 Available Packages
 
-- **claude-shim** - Shim that downloads and runs the official Claude Code CLI from Anthropic
+- **claude-shim** - Shim that downloads and runs the official [Claude Code CLI](https://github.com/anthropics/claude-code) from Anthropic
 - **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
-- **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection
+- **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection (from [frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code))
 
 ### 🚀 Quick Install
 

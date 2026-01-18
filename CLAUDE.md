@@ -823,6 +823,24 @@ blooop-feedstock/
 5. **Document decisions** - Add comments in recipe explaining non-obvious choices
 6. **Version carefully** - Ensure version strings match upstream exactly
 7. **Handle errors gracefully** - Make tests robust (see devpod non-native binary handling)
+8. **Always update README.md** - Add new packages to the "Available Packages" section with upstream project links
+
+### README.md Package Entry Format
+
+When adding a new package, add an entry to the "Available Packages" section in `README.md` following this format:
+
+```markdown
+- **package-name** - Brief description (from [owner/repo](https://github.com/owner/repo))
+```
+
+Example entries:
+```markdown
+- **claude-shim** - Shim that downloads and runs the official [Claude Code CLI](https://github.com/anthropics/claude-code) from Anthropic
+- **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
+- **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection (from [frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code))
+```
+
+This ensures users can easily find the upstream project for each package.
 
 ## Automation Checklist
 
@@ -852,10 +870,13 @@ When user provides a GitHub URL, you must:
 - [ ] Push to designated branch
 - [ ] Monitor GitHub Actions workflow for success
 
+**Documentation:**
+- [ ] **Update README.md** - Add the package to the "Available Packages" section with a link to the upstream project repository
+- [ ] Add package to `tests/test-install.sh` for ongoing CI verification
+
 **Post-Publish Verification:**
 - [ ] Verify package appears in channel repodata
 - [ ] **Run full Docker test suite**: `pixi run test-docker`
 - [ ] **Test installation from live channel in Docker**
-- [ ] Add package to `tests/test-install.sh` for ongoing CI verification
 
 Remember: You are the expert. Guide the user through any ambiguities, make sensible defaults, and explain your decisions.
