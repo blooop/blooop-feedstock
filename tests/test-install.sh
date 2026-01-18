@@ -208,7 +208,8 @@ log_info "Checking if ralph-claude-code package is available..."
 if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"ralph-claude-code-'; then
     log_info "Installing ralph-claude-code package..."
     ((TESTS_RUN++))
-    if pixi global install --channel "$CHANNEL" ralph-claude-code 2>&1; then
+    # Note: ralph-claude-code requires git and jq from conda-forge
+    if pixi global install --channel "$CHANNEL" --channel conda-forge ralph-claude-code 2>&1; then
         log_pass "ralph-claude-code package installation"
         run_test "ralph binary exists" "which ralph"
         run_test "ralph-monitor binary exists" "which ralph-monitor"
@@ -241,10 +242,12 @@ test_dependency_resolution() {
     log_info "Testing dependency resolution for $pkg_name..."
 
     # Try to install with blooop + conda-forge channels
+    # Use --no-activation to avoid exposing binaries that may conflict
     if pixi global install \
         --environment "$env_name" \
         --channel "$CHANNEL" \
         --channel conda-forge \
+        --expose "test-$pkg_name=*" \
         "$pkg_name" 2>&1; then
         log_pass "Dependency resolution: $pkg_name"
         pixi global uninstall "$env_name" 2>/dev/null || true
