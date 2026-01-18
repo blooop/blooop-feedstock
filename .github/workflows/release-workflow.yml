@@ -128,20 +128,7 @@ jobs:
 
             # Get latest prerelease version from GitHub releases API
             # This finds the first prerelease with assets (non-empty assets array)
-            LATEST=$(curl -s https://api.github.com/repos/skevetter/devpod/releases | \
-              python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-for r in data:
-    if r.get('prerelease') and r.get('assets'):
-        print(r['tag_name'].lstrip('v'))
-        sys.exit(0)
-# Fallback to latest release if no prerelease with assets
-for r in data:
-    if r.get('assets'):
-        print(r['tag_name'].lstrip('v'))
-        sys.exit(0)
-" 2>/dev/null || echo "")
+            LATEST=$(curl -s https://api.github.com/repos/skevetter/devpod/releases | jq -r '[.[] | select(.prerelease == true and (.assets | length) > 0)][0].tag_name // ([.[] | select((.assets | length) > 0)][0].tag_name) // empty' | sed 's/^v//' || echo "")
             echo "Latest prerelease: $LATEST"
 
             # Normalize versions for comparison (conda uses underscores, GitHub uses hyphens)
