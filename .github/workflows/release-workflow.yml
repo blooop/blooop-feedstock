@@ -189,10 +189,10 @@ jobs:
 
           # Define platform configurations with native runners
           # Each platform runs on a runner with matching architecture
+          # Note: Intel Mac (osx-64) not supported - macos-13 runners are retired
           PLATFORMS='[
             {"runner": "ubuntu-latest", "platform": "linux-64"},
             {"runner": "ubuntu-24.04-arm", "platform": "linux-aarch64"},
-            {"runner": "macos-13", "platform": "osx-64"},
             {"runner": "macos-14", "platform": "osx-arm64"}
           ]'
 
