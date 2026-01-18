@@ -203,6 +203,67 @@ else
     log_info "Skipping devpod test (package not in channel)"
 fi
 
+# Test: Try to install ralph-claude-code if available
+log_info "Checking if ralph-claude-code package is available..."
+if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"ralph-claude-code-'; then
+    log_info "Installing ralph-claude-code package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" ralph-claude-code 2>&1; then
+        log_pass "ralph-claude-code package installation"
+        run_test "ralph binary exists" "which ralph"
+        run_test "ralph-monitor binary exists" "which ralph-monitor"
+        run_test "ralph-setup binary exists" "which ralph-setup"
+        run_test "ralph --help works" "ralph --help"
+    else
+        log_fail "ralph-claude-code package installation"
+    fi
+else
+    log_info "Skipping ralph-claude-code test (package not in channel)"
+fi
+
+# ============================================================================
+# Dependency resolution test
+# This test verifies packages can be installed with blooop + conda-forge
+# and that all dependencies are resolvable
+# ============================================================================
+echo ""
+log_info "Running dependency resolution tests..."
+log_info "Testing packages can install with blooop + conda-forge channels..."
+
+test_dependency_resolution() {
+    local pkg_name="$1"
+    local env_name="test-deps-$pkg_name"
+
+    # Remove any existing test environment
+    pixi global uninstall "$env_name" 2>/dev/null || true
+
+    ((TESTS_RUN++))
+    log_info "Testing dependency resolution for $pkg_name..."
+
+    # Try to install with blooop + conda-forge channels
+    if pixi global install \
+        --environment "$env_name" \
+        --channel "$CHANNEL" \
+        --channel conda-forge \
+        "$pkg_name" 2>&1; then
+        log_pass "Dependency resolution: $pkg_name"
+        pixi global uninstall "$env_name" 2>/dev/null || true
+        return 0
+    else
+        log_fail "Dependency resolution: $pkg_name (failed to resolve dependencies)"
+        return 1
+    fi
+}
+
+# Test each package for dependency resolution
+for pkg in claude-shim devpod devpod-prerelease ralph-claude-code; do
+    if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q "\"$pkg-"; then
+        test_dependency_resolution "$pkg"
+    else
+        log_info "Skipping dependency test for $pkg (not in channel)"
+    fi
+done
+
 # Summary
 echo ""
 echo "========================================"

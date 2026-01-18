@@ -9,7 +9,7 @@ source:
   rev: 509a9699a8c003dda8377be9f75e0af7f18ce94e
 
 build:
-  number: 1
+  number: 2
   script:
     - if: unix
       then:
@@ -53,7 +53,8 @@ build:
 
 requirements:
   run:
-    - bash
+    # Note: bash is expected to be available on the system (standard unix tool)
+    # git and jq are required from conda-forge for consistent behavior
     - git
     - jq
 
