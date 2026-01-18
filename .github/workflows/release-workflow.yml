@@ -460,32 +460,8 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            PACKAGES='${{ needs.check-updates.outputs.packages }}'
-
-            # Create commit message with all updated packages
-            COMMIT_MSG="Update packages [skip ci]
-
-Packages updated:"
-
-            echo "$PACKAGES" | jq -c '.[]' | while read -r pkg; do
-              PACKAGE=$(echo "$pkg" | jq -r '.package')
-              LATEST=$(echo "$pkg" | jq -r '.latest')
-              COMMIT_MSG="$COMMIT_MSG
-- $PACKAGE $LATEST"
-            done
-
-            COMMIT_MSG="$COMMIT_MSG
-
-Built and uploaded to https://prefix.dev/blooop
-
-Platforms: linux-64, linux-aarch64, osx-64, osx-arm64
-
-Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
-
             git add recipes/*/recipe.yaml
-            git commit -m "$COMMIT_MSG" || echo "Nothing to commit"
+            git commit -m "Update package recipes [skip ci]" || echo "Nothing to commit"
             git push || echo "Nothing to push"
           fi
 
