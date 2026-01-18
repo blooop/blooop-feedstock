@@ -1,22 +1,23 @@
 schema_version: 1
 
 package:
-  name: devpod
-  version: "0.9.3"
+  name: devpod-prerelease
+  version: "0.9.4"
 
 source:
   # NOTE: Using skevetter's fork of devpod from https://github.com/skevetter/devpod/releases
-  # instead of the official devpod (https://github.com/loft-sh/devpod)
-  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-linux-amd64  # [linux and x86_64]
-    sha256: edb4e2fe5463229ff4e15544c508d86e3da1d6a3910650ed708fabd643968f59  # [linux and x86_64]
-  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-linux-arm64  # [linux and aarch64]
-    sha256: 333f05a74659c137cee081de3fb719d8520862c5613af1ac23357c2fc1effad5  # [linux and aarch64]
-  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-darwin-amd64  # [osx and x86_64]
-    sha256: 35926201d82e2877e4861cc459423154e59ce62ae8dd50ccfbf1f9753b614b2d  # [osx and x86_64]
-  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-darwin-arm64  # [osx and arm64]
-    sha256: 41eaed94b7210398541e7ba385f48d955f9d9bb69ed96db07f062a2c3474bdc8  # [osx and arm64]
-  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-windows-amd64.exe  # [win]
-    sha256: 7c0727a98a315119edeedf00f4f6b653222a39eb806353ec3bdc59c29845747f  # [win]
+  # This package tracks PRE-RELEASE versions (prerelease: true in GitHub)
+  # For stable releases, use the 'devpod' package instead
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.4/devpod-linux-amd64  # [linux and x86_64]
+    sha256: 4aebff8d27cb3f72d393e3a7c40fb43882c6ff8964035dd59c72189d075fbf2f  # [linux and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.4/devpod-linux-arm64  # [linux and aarch64]
+    sha256: b4e867f59523787503465879e4d1d9d18d0cbc2ff860d869e51b6324ede8a108  # [linux and aarch64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.4/devpod-darwin-amd64  # [osx and x86_64]
+    sha256: 6cde683dfa83e4045d415234e4ac0c3d5b421e64da9c250ce99f20ecafb0aebf  # [osx and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.4/devpod-darwin-arm64  # [osx and arm64]
+    sha256: f98a0def83d7fb83ae4956a5384576677e2d2712a9875611a1b3302f7da6b87c  # [osx and arm64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.4/devpod-windows-amd64.exe  # [win]
+    sha256: dc62401ea00262fd96ca09dc5cf2f5348ed22b36907ee2aa9906d34c061404c9  # [win]
 
 build:
   number: 0
@@ -64,8 +65,11 @@ about:
   homepage: https://devpod.sh
   license: MPL-2.0
   license_family: MOZILLA
-  summary: Codespaces but open-source, client-only and unopinionated
+  summary: DevPod pre-release - Codespaces but open-source, client-only and unopinionated
   description: |
+    **PRE-RELEASE VERSION** - This package tracks pre-release versions of DevPod.
+    For stable releases, install the 'devpod' package instead.
+
     DevPod is an open-source tool that allows you to create reproducible developer
     environments based on a devcontainer.json on any backend. Each developer environment
     runs in a separate container and is specified through a devcontainer.json.
