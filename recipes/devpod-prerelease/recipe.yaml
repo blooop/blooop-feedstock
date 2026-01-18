@@ -1,0 +1,91 @@
+schema_version: 1
+
+package:
+  name: devpod-prerelease
+  version: "0.9.3"
+
+source:
+  # NOTE: Using skevetter's fork of devpod from https://github.com/skevetter/devpod/releases
+  # This package tracks PRE-RELEASE versions (prerelease: true in GitHub)
+  # For stable releases, use the 'devpod' package instead
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-linux-amd64  # [linux and x86_64]
+    sha256: edb4e2fe5463229ff4e15544c508d86e3da1d6a3910650ed708fabd643968f59  # [linux and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-linux-arm64  # [linux and aarch64]
+    sha256: 333f05a74659c137cee081de3fb719d8520862c5613af1ac23357c2fc1effad5  # [linux and aarch64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-darwin-amd64  # [osx and x86_64]
+    sha256: 35926201d82e2877e4861cc459423154e59ce62ae8dd50ccfbf1f9753b614b2d  # [osx and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-darwin-arm64  # [osx and arm64]
+    sha256: 41eaed94b7210398541e7ba385f48d955f9d9bb69ed96db07f062a2c3474bdc8  # [osx and arm64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.9.3/devpod-windows-amd64.exe  # [win]
+    sha256: 7c0727a98a315119edeedf00f4f6b653222a39eb806353ec3bdc59c29845747f  # [win]
+
+build:
+  number: 0
+  script:
+    - if: unix
+      then:
+        - mkdir -p "$PREFIX/bin"
+        - |
+          case "${target_platform:-}" in
+            linux-64)      SRC_FILE="devpod-linux-amd64" ;;
+            linux-aarch64) SRC_FILE="devpod-linux-arm64" ;;
+            osx-64)        SRC_FILE="devpod-darwin-amd64" ;;
+            osx-arm64)     SRC_FILE="devpod-darwin-arm64" ;;
+            *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+          install -Dm755 "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/devpod"
+    - if: win
+      then:
+        - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
+        - copy %SRC_DIR%\devpod-windows-amd64.exe %PREFIX%\Library\bin\devpod.exe
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - which devpod
+          - test -x $PREFIX/bin/devpod
+          - |
+              if "$PREFIX/bin/devpod" version; then
+                :
+              else
+                status=$?
+                if [ "$status" -eq 126 ]; then
+                  echo "Skipping runtime test for non-native binary on $(uname -m)"
+                else
+                  exit "$status"
+                fi
+              fi
+      - if: win
+        then:
+          - where devpod
+          - devpod version
+
+about:
+  homepage: https://devpod.sh
+  license: MPL-2.0
+  license_family: MOZILLA
+  summary: DevPod pre-release - Codespaces but open-source, client-only and unopinionated
+  description: |
+    **PRE-RELEASE VERSION** - This package tracks pre-release versions of DevPod.
+    For stable releases, install the 'devpod' package instead.
+
+    DevPod is an open-source tool that allows you to create reproducible developer
+    environments based on a devcontainer.json on any backend. Each developer environment
+    runs in a separate container and is specified through a devcontainer.json.
+
+    DevPod can use any IDE and works with any cloud provider, Kubernetes cluster,
+    or on localhost. It's designed to be a cost-effective alternative to GitHub
+    Codespaces and similar hosted services.
+
+    Key features:
+    - Support for multiple IDEs (VSCode, JetBrains, and more)
+    - Works with various backends (Docker, Kubernetes, SSH, cloud VMs)
+    - DevContainer standard compliant
+    - Client-only architecture for maximum privacy and control
+  documentation: https://devpod.sh/docs
+  repository: https://github.com/skevetter/devpod
+
+extra:
+  recipe-maintainers:
+    - blooop
