@@ -118,11 +118,44 @@ jobs:
             fi
           fi
 
-          # Add checks for other packages here as you add them...
-          # Example:
-          # if [ -d "recipes/another-package" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "another-package" ]); then
-          #   # Check another-package logic here
-          # fi
+          # Check devpod-prerelease
+          if [ -d "recipes/devpod-prerelease" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "devpod-prerelease" ]); then
+            echo "Checking devpod-prerelease for updates..."
+
+            # Get current version from recipe (may have underscores for conda compatibility)
+            CURRENT=$(grep -A 3 'package:' recipes/devpod-prerelease/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            # Get latest prerelease version from GitHub releases API
+            # This finds the first prerelease with assets (non-empty assets array)
+            LATEST=$(curl -s https://api.github.com/repos/skevetter/devpod/releases | \
+              python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for r in data:
+    if r.get('prerelease') and r.get('assets'):
+        print(r['tag_name'].lstrip('v'))
+        sys.exit(0)
+# Fallback to latest release if no prerelease with assets
+for r in data:
+    if r.get('assets'):
+        print(r['tag_name'].lstrip('v'))
+        sys.exit(0)
+" 2>/dev/null || echo "")
+            echo "Latest prerelease: $LATEST"
+
+            # Normalize versions for comparison (conda uses underscores, GitHub uses hyphens)
+            CURRENT_NORMALIZED=$(echo "$CURRENT" | tr '_' '-')
+            LATEST_NORMALIZED=$(echo "$LATEST" | tr '-' '_')
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT_NORMALIZED" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: devpod-prerelease $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              # Pass the original GitHub version (with hyphens) - the update script will handle conversion
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "devpod-prerelease", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "devpod-prerelease is up to date"
+            fi
+          fi
 
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
