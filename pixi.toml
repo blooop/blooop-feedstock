@@ -19,11 +19,14 @@ build-shim-windows = "rattler-build build --recipe recipes/claude-shim/recipe.ya
 
 build-ralph = "rattler-build build --recipe recipes/ralph-claude-code/recipe.yaml --output-dir output"
 
+# Build iterfzf
+build-iterfzf = "rattler-build build --recipe recipes/iterfzf/recipe.yaml --output-dir output"
+
 # Build devpod-prerelease
 build-devpod-prerelease = "rattler-build build --recipe recipes/devpod-prerelease/recipe.yaml --output-dir output"
 
 # Build all packages
-build-all = { depends-on = ["build-shim", "build-ralph", "build-devpod-prerelease"] }
+build-all = { depends-on = ["build-shim", "build-ralph", "build-devpod-prerelease", "build-iterfzf"] }
 
 # Check for updates across all packages
 check-updates = "bash scripts/check-updates.sh"

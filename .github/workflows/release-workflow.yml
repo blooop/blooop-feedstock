@@ -154,6 +154,26 @@ jobs:
             fi
           fi
 
+          # Check iterfzf (PyPI package)
+          if [ -d "recipes/iterfzf" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "iterfzf" ]); then
+            echo "Checking iterfzf for updates..."
+
+            # Get current version from recipe
+            CURRENT=$(grep -A 3 'package:' recipes/iterfzf/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            # Get latest version from PyPI
+            LATEST=$(curl -s https://pypi.org/pypi/iterfzf/json | jq -r '.info.version // empty')
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: iterfzf $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "iterfzf", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "iterfzf is up to date"
+            fi
+          fi
+
           # Check devpod-prerelease
           if [ -d "recipes/devpod-prerelease" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "devpod-prerelease" ]); then
             echo "Checking devpod-prerelease for updates..."
