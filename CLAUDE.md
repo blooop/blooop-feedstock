@@ -203,6 +203,35 @@ rattler-build test --recipe recipes/package-name/recipe.yaml
 pixi run test-package-name  # if custom test task exists
 ```
 
+### Step 5b: Verify Installation in Docker Container
+
+After building the package, verify it installs correctly in a clean Docker environment. This catches issues that local testing might miss (missing dependencies, path problems, etc.).
+
+**Quick test with locally built package:**
+```bash
+# Build the package first
+rattler-build build --recipe recipes/package-name/recipe.yaml --output-dir output
+
+# Test installation in fresh container using local output channel
+docker run --rm \
+  -v $(pwd)/output:/channel:ro \
+  ghcr.io/prefix-dev/pixi:latest \
+  bash -c "pixi global install --channel /channel --channel conda-forge package-name && package-name --version"
+```
+
+**Interactive debugging in container:**
+```bash
+docker run --rm -it \
+  -v $(pwd)/output:/channel:ro \
+  ghcr.io/prefix-dev/pixi:latest \
+  bash
+
+# Inside container, manually test:
+# pixi global install --channel /channel --channel conda-forge package-name
+# which package-name
+# package-name --help
+```
+
 ### Step 6: Commit and Push
 
 ```bash
@@ -285,7 +314,31 @@ Declare in `pixi.toml` platforms array.
 2. **Build test**: Verify binary/module is accessible
 3. **Version check**: Run `--version` or `--help` to confirm functionality
 4. **Import test**: For Python packages, verify imports work
-5. **Docker test**: Use test-docker for real-world installation validation
+5. **Docker test**: Use Docker for real-world installation validation:
+   - **Local package test**: Mount `output/` directory as a local channel
+   - **Published package test**: Run `pixi run test-docker` after publishing
+   - **Interactive debugging**: Run container with shell access to troubleshoot
+
+**Docker Testing Examples:**
+
+```bash
+# Test local .conda package before publishing
+docker run --rm \
+  -v $(pwd)/output:/channel:ro \
+  ghcr.io/prefix-dev/pixi:latest \
+  bash -c "pixi global install --channel /channel --channel conda-forge package-name && package-name --version"
+
+# Test from live channel after publishing
+docker run --rm \
+  ghcr.io/prefix-dev/pixi:latest \
+  bash -c "apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null 2>&1 && \
+           pixi global install --channel https://prefix.dev/blooop package-name && \
+           which package-name && \
+           package-name --version"
+
+# Run full test suite (tests all packages in channel)
+pixi run test-docker
+```
 
 ### Rattler-Build (2026)
 
@@ -402,6 +455,85 @@ Add new tests to `tests/test-install.sh`. The test framework provides:
 - `log_pass "test name"` - Mark test passed
 - `log_fail "test name"` - Mark test failed
 - `run_test "name" "command"` - Run command and log pass/fail
+
+### Adding Docker Tests for New Packages
+
+When adding a new package, extend the Docker test suite to include it:
+
+```bash
+# Add to tests/test-install.sh:
+
+# Test: Install package-name
+log_info "Checking if package-name is available..."
+if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"package-name-'; then
+    log_info "Installing package-name package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" package-name 2>&1; then
+        log_pass "package-name installation"
+        run_test "package-name binary exists" "which package-name"
+        run_test "package-name version check" "package-name --version"
+    else
+        log_fail "package-name installation"
+    fi
+else
+    log_info "Skipping package-name test (package not in channel)"
+fi
+```
+
+## Publishing and CI Verification Workflow
+
+**Critical principle:** Maximize local testing BEFORE publishing to the channel. Once published, packages are immediately available to users.
+
+### Pre-Publish Checklist (All Local)
+
+Before pushing to trigger publication, ensure ALL of these pass:
+
+1. Recipe syntax validates: `pixi run lint-recipes`
+2. Package builds successfully: `rattler-build build --recipe recipes/package-name/recipe.yaml --output-dir output`
+3. Recipe tests pass: `rattler-build test --recipe recipes/package-name/recipe.yaml`
+4. Binary/module works locally: `package-name --version`
+5. **Docker installation test passes** (clean environment verification):
+   ```bash
+   docker run --rm \
+     -v $(pwd)/output:/channel:ro \
+     ghcr.io/prefix-dev/pixi:latest \
+     bash -c "pixi global install --channel /channel --channel conda-forge package-name && package-name --version"
+   ```
+
+### Post-Publish Verification via GitHub Actions
+
+After pushing and the package is published to prefix.dev:
+
+1. **Monitor the GitHub Actions workflow** for the release/publish job to complete successfully
+2. **Verify the package appears in channel repodata:**
+   ```bash
+   curl -sf "https://prefix.dev/blooop/linux-64/repodata.json" | grep '"package-name-'
+   ```
+3. **Run the full Docker test suite** to verify all packages still install correctly:
+   ```bash
+   pixi run test-docker
+   ```
+4. **Test installation from the live channel:**
+   ```bash
+   docker run --rm \
+     ghcr.io/prefix-dev/pixi:latest \
+     bash -c "apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null 2>&1 && \
+              pixi global install --channel https://prefix.dev/blooop package-name && \
+              package-name --version"
+   ```
+
+### Why This Order Matters
+
+| Stage | What It Catches | Recovery Cost |
+|-------|-----------------|---------------|
+| Local build | Recipe errors, missing files | Low - just edit |
+| Local test | Binary issues, wrong paths | Low - rebuild |
+| Docker local | Missing deps, env assumptions | Medium - may need recipe changes |
+| **PUBLISH HAPPENS HERE** | | |
+| GitHub Actions | CI-specific issues | High - users may be affected |
+| Docker from channel | Channel/publication issues | High - need new release |
+
+**Always prefer catching issues in the "Low cost" stages before publishing.**
 
 ## Troubleshooting
 
@@ -658,9 +790,20 @@ blooop-feedstock/
 5. Calculate SHA256 for each URL
 6. Create `recipes/ripgrep/recipe.yaml` with binary installation
 7. Build: `rattler-build build --recipe recipes/ripgrep/recipe.yaml --output-dir output`
-8. Test: Verify `rg --version` works
-9. Commit: "Add ripgrep 14.1.0"
-10. Push to trigger publication
+8. Test locally: Verify `rg --version` works
+9. **Test in Docker** (clean environment verification):
+   ```bash
+   docker run --rm -v $(pwd)/output:/channel:ro ghcr.io/prefix-dev/pixi:latest \
+     bash -c "pixi global install --channel /channel --channel conda-forge ripgrep && rg --version"
+   ```
+10. Commit: "Add ripgrep 14.1.0"
+11. Push to trigger publication
+12. **Monitor GitHub Actions** for successful build/publish
+13. **Run full Docker test suite** after package appears in channel:
+    ```bash
+    pixi run test-docker
+    ```
+14. **Add test to test-install.sh** for ongoing CI verification
 
 ## Tips for Success
 
@@ -676,17 +819,34 @@ blooop-feedstock/
 
 When user provides a GitHub URL, you must:
 
+**Analysis Phase:**
 - [ ] Fetch repository metadata (name, description, license)
 - [ ] Find latest release version
 - [ ] Identify package type (binary, Python, source build, etc.)
 - [ ] Extract download URLs for all available platforms
 - [ ] Calculate SHA256 hashes for all downloads
+
+**Recipe Creation:**
 - [ ] Create recipe.yaml with appropriate template
 - [ ] Configure build script for each platform
-- [ ] Add appropriate tests
-- [ ] Build package locally
-- [ ] Run tests to verify installation
+- [ ] Add appropriate tests to recipe
+
+**Local Testing (ALL must pass before publishing):**
+- [ ] Syntax validation: `pixi run lint-recipes`
+- [ ] Build package locally: `rattler-build build ...`
+- [ ] Run recipe tests: `rattler-build test ...`
+- [ ] Verify binary/module works locally
+- [ ] **Docker installation test with local channel**
+
+**Publishing:**
 - [ ] Commit with descriptive message
 - [ ] Push to designated branch
+- [ ] Monitor GitHub Actions workflow for success
+
+**Post-Publish Verification:**
+- [ ] Verify package appears in channel repodata
+- [ ] **Run full Docker test suite**: `pixi run test-docker`
+- [ ] **Test installation from live channel in Docker**
+- [ ] Add package to `tests/test-install.sh` for ongoing CI verification
 
 Remember: You are the expert. Guide the user through any ambiguities, make sensible defaults, and explain your decisions.
