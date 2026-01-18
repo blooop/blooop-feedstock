@@ -56,7 +56,7 @@ echo ""
 run_test "pixi is available" "pixi --version"
 
 # Test 2: Channel is accessible
-run_test "Channel is accessible" "curl -sf '${CHANNEL}/linux-64/repodata.json' -o /dev/null"
+run_test "Channel is accessible" "curl -sLf '${CHANNEL}/linux-64/repodata.json' -o /dev/null"
 
 # Test 3: Install claude-shim package
 log_info "Installing claude-shim package..."
@@ -190,7 +190,7 @@ test_corrupted_binary_recovery
 
 # Test: Try to install devpod if available
 log_info "Checking if devpod package is available..."
-if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
     log_info "Installing devpod package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" devpod 2>&1; then
@@ -205,7 +205,7 @@ fi
 
 # Test: Try to install ralph-claude-code if available
 log_info "Checking if ralph-claude-code package is available..."
-if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"ralph-claude-code-'; then
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"ralph-claude-code-'; then
     log_info "Installing ralph-claude-code package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" ralph-claude-code 2>&1; then
@@ -257,7 +257,7 @@ test_dependency_resolution() {
 
 # Test each package for dependency resolution
 for pkg in claude-shim devpod devpod-prerelease ralph-claude-code; do
-    if curl -sf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q "\"$pkg-"; then
+    if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q "\"$pkg-"; then
         test_dependency_resolution "$pkg"
     else
         log_info "Skipping dependency test for $pkg (not in channel)"
