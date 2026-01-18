@@ -115,6 +115,13 @@ extra:
     - blooop
 ```
 
+**Note on asset naming:** The `binary-*-*` filenames above are placeholders. Real projects use varied naming conventions:
+- **Go projects:** `projectname_Linux_x86_64.tar.gz`, `projectname_Darwin_arm64.tar.gz`
+- **Rust projects:** `projectname-v1.0.0-x86_64-unknown-linux-gnu.tar.gz`, `projectname-v1.0.0-aarch64-apple-darwin.tar.gz`
+- **Generic:** `projectname-linux-amd64`, `projectname-darwin-arm64.exe`
+
+Adapt the `source` URLs and the `case` statement in the build script to match the actual asset names from the GitHub release.
+
 **Python Package Template:**
 ```yaml
 schema_version: 1
@@ -242,8 +249,10 @@ git commit -m "Add package-name X.Y.Z
 - Supports platforms: linux-64, osx-64, osx-arm64, linux-aarch64, win-64
 - Source: https://github.com/owner/repo"
 
-git push -u origin claude/pixi-conda-agent-{SESSION_ID}
+git push -u origin claude/add-package-name
 ```
+
+**Branch naming:** Use a descriptive branch name like `claude/add-{package-name}` or `feature/{package-name}`. The example above uses a simple pattern; adjust to match the repository's branching conventions.
 
 ### Step 7: Publishing to prefix.dev
 
@@ -262,7 +271,7 @@ rattler-build upload prefix -c blooop output/*.conda
 - Naming patterns: `*-linux-amd64`, `*-darwin-arm64`, `*-windows-*.exe`
 - Often from Go, Rust, or C/C++ projects
 
-**Strategy:** Direct binary installation (see devpod recipe example)
+**Strategy:** Direct binary installation (see the devpod recipe example)
 
 ### Python Packages
 **Indicators:**
@@ -593,7 +602,7 @@ Ensure the pixi-installed shim takes precedence.
 ### Conda Ecosystem 2026
 
 **Key Tools:**
-- **pixi** - Modern package manager and project manager built on conda ecosystem
+- **pixi** - Modern package manager and project manager built on the conda ecosystem
 - **rattler** - Rust library powering pixi and rattler-build
 - **rattler-build** - Fast conda package builder (replaces conda-build)
 - **prefix.dev** - Fast package index and private channel hosting
