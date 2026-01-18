@@ -35,11 +35,15 @@ permissions:
   id-token: write  # Required for trusted publishing with OIDC
 
 jobs:
+  # =============================================================================
+  # Phase 1: Check for updates and generate build matrix
+  # =============================================================================
   check-updates:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       has-updates: ${{ steps.set-matrix.outputs.has-updates }}
+      packages: ${{ steps.set-matrix.outputs.packages }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -51,24 +55,24 @@ jobs:
 
       - name: Update pixi lock file if needed
         run: |
-          echo "🔒 Checking if pixi.lock is up to date..."
+          echo "Checking if pixi.lock is up to date..."
           if ! pixi install --locked 2>&1 | grep -q "up-to-date"; then
-            echo "⚠️  Lock file out of date, updating..."
+            echo "Lock file out of date, updating..."
             pixi install
 
             if git diff --quiet pixi.lock; then
-              echo "✅ Lock file is now up to date (no changes needed)"
+              echo "Lock file is now up to date (no changes needed)"
             else
-              echo "📝 Lock file updated, committing changes..."
+              echo "Lock file updated, committing changes..."
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
               git add pixi.lock
               git commit -m "chore: update pixi.lock file [skip ci]"
               git push
-              echo "✅ Lock file committed and pushed"
+              echo "Lock file committed and pushed"
             fi
           else
-            echo "✅ Lock file is already up to date"
+            echo "Lock file is already up to date"
           fi
 
       - name: Check for updates
@@ -79,7 +83,7 @@ jobs:
 
           # Check claude-shim (shim doesn't auto-update version, only force_build triggers it)
           if [ -d "recipes/claude-shim" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "claude-shim" ]); then
-            echo "🔍 Checking claude-shim..."
+            echo "Checking claude-shim..."
 
             # Get current version from recipe
             CURRENT=$(grep -A 3 'package:' recipes/claude-shim/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
@@ -91,16 +95,16 @@ jobs:
               echo "Using custom version: $LATEST"
               UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-shim", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
             elif [ "${{ github.event.inputs.force_build }}" == "true" ]; then
-              echo "📦 Force build requested for claude-shim $CURRENT"
+              echo "Force build requested for claude-shim $CURRENT"
               UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-shim", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
             else
-              echo "✅ claude-shim - no build requested (use force_build or specify version)"
+              echo "claude-shim - no build requested (use force_build or specify version)"
             fi
           fi
 
           # Check devpod
           if [ -d "recipes/devpod" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "devpod" ]); then
-            echo "🔍 Checking devpod for updates..."
+            echo "Checking devpod for updates..."
 
             # Get current version from recipe
             CURRENT=$(grep -A 3 'package:' recipes/devpod/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
@@ -111,16 +115,16 @@ jobs:
             echo "Latest version: $LATEST"
 
             if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
-              echo "📦 Update found: devpod $CURRENT → $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              echo "Update found: devpod $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
               UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "devpod", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
             else
-              echo "✅ devpod is up to date"
+              echo "devpod is up to date"
             fi
           fi
 
           # Check ralph-claude-code
           if [ -d "recipes/ralph-claude-code" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "ralph-claude-code" ]); then
-            echo "🔍 Checking ralph-claude-code for updates..."
+            echo "Checking ralph-claude-code for updates..."
 
             # Get current version from recipe
             CURRENT=$(grep -A 3 'package:' recipes/ralph-claude-code/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
@@ -143,10 +147,10 @@ jobs:
             echo "Latest version: $LATEST"
 
             if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
-              echo "📦 Update found: ralph-claude-code $CURRENT → $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              echo "Update found: ralph-claude-code $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
               UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "ralph-claude-code", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
             else
-              echo "✅ ralph-claude-code is up to date"
+              echo "ralph-claude-code is up to date"
             fi
           fi
 
@@ -182,23 +186,50 @@ jobs:
         id: set-matrix
         run: |
           UPDATES='${{ steps.check.outputs.updates }}'
-          echo "matrix={\"include\":$UPDATES}" >> $GITHUB_OUTPUT
 
+          # Define platform configurations with native runners
+          # Each platform runs on a runner with matching architecture
+          PLATFORMS='[
+            {"runner": "ubuntu-latest", "platform": "linux-64"},
+            {"runner": "ubuntu-24.04-arm", "platform": "linux-aarch64"},
+            {"runner": "macos-13", "platform": "osx-64"},
+            {"runner": "macos-14", "platform": "osx-arm64"}
+          ]'
+
+          # Build the full matrix: each package × each platform
           if [ "$UPDATES" != "[]" ]; then
+            # Create combined matrix entries
+            MATRIX_INCLUDE=$(echo "$UPDATES" | jq -c --argjson platforms "$PLATFORMS" '
+              [.[] as $pkg | $platforms[] as $plat |
+                {
+                  package: $pkg.package,
+                  current: $pkg.current,
+                  latest: $pkg.latest,
+                  runner: $plat.runner,
+                  platform: $plat.platform
+                }
+              ]
+            ')
+
+            echo "matrix={\"include\":$MATRIX_INCLUDE}" >> $GITHUB_OUTPUT
             echo "has-updates=true" >> $GITHUB_OUTPUT
-            echo "📦 Updates found: $UPDATES"
+            echo "packages=$UPDATES" >> $GITHUB_OUTPUT
+            echo "Build matrix:"
+            echo "$MATRIX_INCLUDE" | jq .
           else
+            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
             echo "has-updates=false" >> $GITHUB_OUTPUT
-            echo "✅ All packages up to date"
+            echo "packages=[]" >> $GITHUB_OUTPUT
+            echo "All packages up to date"
           fi
 
-  update-packages:
+  # =============================================================================
+  # Phase 2: Update recipes (runs once before builds)
+  # =============================================================================
+  prepare-recipes:
     needs: check-updates
     if: needs.check-updates.outputs.has-updates == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJson(needs.check-updates.outputs.matrix) }}
-      fail-fast: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -208,158 +239,285 @@ jobs:
         with:
           pixi-version: latest
 
-      - name: Update pixi lock file if needed
+      - name: Update recipes
         run: |
-          echo "🔒 Checking if pixi.lock is up to date..."
-          if ! pixi install --locked 2>&1 | grep -q "up-to-date"; then
-            echo "⚠️  Lock file out of date, updating..."
-            pixi install
+          PACKAGES='${{ needs.check-updates.outputs.packages }}'
 
-            if git diff --quiet pixi.lock; then
-              echo "✅ Lock file is now up to date (no changes needed)"
-            else
-              echo "📝 Lock file updated, committing changes..."
-              git config user.name "github-actions[bot]"
-              git config user.email "github-actions[bot]@users.noreply.github.com"
-              git add pixi.lock
-              git commit -m "chore: update pixi.lock file [skip ci]"
-              git push
-              echo "✅ Lock file committed and pushed"
-            fi
-          else
-            echo "✅ Lock file is already up to date"
-          fi
+          echo "$PACKAGES" | jq -c '.[]' | while read -r pkg; do
+            PACKAGE=$(echo "$pkg" | jq -r '.package')
+            CURRENT=$(echo "$pkg" | jq -r '.current')
+            LATEST=$(echo "$pkg" | jq -r '.latest')
 
-      - name: Update ${{ matrix.package }} recipe
-        run: |
-          echo "🔄 Updating ${{ matrix.package }} from ${{ matrix.current }} to ${{ matrix.latest }}"
+            echo "Updating $PACKAGE from $CURRENT to $LATEST..."
 
-          # claude-shim is versioned independently and doesn't need an update script
-          if [ "${{ matrix.package }}" == "claude-shim" ]; then
-            if [ "${{ matrix.current }}" != "${{ matrix.latest }}" ]; then
-              # Update version in recipe.yaml if a new version was specified
-              sed -i 's/version: "${{ matrix.current }}"/version: "${{ matrix.latest }}"/' recipes/claude-shim/recipe.yaml
-              echo "✅ Updated claude-shim version to ${{ matrix.latest }}"
-            else
-              echo "✅ claude-shim version unchanged (${{ matrix.current }})"
-            fi
-          elif [ "${{ matrix.package }}" == "ralph-claude-code" ]; then
-            # ralph-claude-code uses git source - update version and fetch latest commit
-            if [ "${{ matrix.current }}" != "${{ matrix.latest }}" ]; then
-              # Get latest commit hash from main branch
-              LATEST_COMMIT=$(curl -s https://api.github.com/repos/frankbria/ralph-claude-code/commits/main | jq -r '.sha')
-              echo "Latest commit: $LATEST_COMMIT"
+            if [ "$PACKAGE" == "claude-shim" ]; then
+              if [ "$CURRENT" != "$LATEST" ]; then
+                sed -i 's/version: "'$CURRENT'"/version: "'$LATEST'"/' recipes/claude-shim/recipe.yaml
+                echo "Updated claude-shim version to $LATEST"
+              else
+                echo "claude-shim version unchanged ($CURRENT)"
+              fi
+            elif [ "$PACKAGE" == "ralph-claude-code" ]; then
+              if [ "$CURRENT" != "$LATEST" ]; then
+                # Get latest commit hash from main branch
+                LATEST_COMMIT=$(curl -s https://api.github.com/repos/frankbria/ralph-claude-code/commits/main | jq -r '.sha')
+                echo "Latest commit: $LATEST_COMMIT"
 
-              # Update version
-              sed -i 's/version: "${{ matrix.current }}"/version: "${{ matrix.latest }}"/' recipes/ralph-claude-code/recipe.yaml
+                # Update version
+                sed -i 's/version: "'$CURRENT'"/version: "'$LATEST'"/' recipes/ralph-claude-code/recipe.yaml
 
-              # Update git_rev
-              sed -i "s/git_rev: .*/git_rev: $LATEST_COMMIT/" recipes/ralph-claude-code/recipe.yaml
+                # Update git rev
+                sed -i "s/rev: .*/rev: $LATEST_COMMIT/" recipes/ralph-claude-code/recipe.yaml
 
-              echo "✅ Updated ralph-claude-code to ${{ matrix.latest }} (commit: ${LATEST_COMMIT:0:8})"
-            else
-              echo "✅ ralph-claude-code version unchanged (${{ matrix.current }})"
-            fi
-          else
-            pixi run python scripts/update-${{ matrix.package }}.py ${{ matrix.latest }}
-          fi
-
-      - name: Build and Upload ${{ matrix.package }}
-        env:
-          PIXI_TOKEN: ${{ secrets.PIXI_TOKEN }}
-        run: |
-          mkdir -p output
-
-          # Define platforms to build for
-          PLATFORMS=("linux-64" "linux-aarch64")
-
-          echo "🏗️  Building and uploading ${{ matrix.package }} for multiple platforms..."
-          echo "Force overwrite: ${{ github.event.inputs.force_overwrite }}"
-
-          failures=0
-          for platform in "${PLATFORMS[@]}"; do
-            echo ""
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "Processing $platform..."
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-            # Use force overwrite logic: auto-increment build number on conflicts
-            if [ "${{ github.event.inputs.force_overwrite }}" == "true" ]; then
-              if ! bash scripts/build-and-upload.sh "${{ matrix.package }}" "$platform" blooop; then
-                echo "⚠️  Failed to build/upload for $platform"
-                failures=$((failures+1))
+                echo "Updated ralph-claude-code to $LATEST (commit: ${LATEST_COMMIT:0:8})"
+              else
+                echo "ralph-claude-code version unchanged ($CURRENT)"
               fi
             else
-              # Normal mode: skip existing packages
-              echo "Building for $platform..."
-              if pixi run rattler-build build \
-                --recipe recipes/${{ matrix.package }}/recipe.yaml \
-                --target-platform $platform \
-                --output-dir output \
-                --channel conda-forge; then
-
-                # Upload with --skip-existing
-                for PKG_FILE in output/$platform/*.tar.bz2 output/$platform/*.conda; do
-                  [ -f "$PKG_FILE" ] || continue
-                  echo "📤 Uploading $(basename "$PKG_FILE") (skip-existing mode)..."
-
-                  if pixi run rattler-build upload prefix --verbose --skip-existing --channel blooop "$PKG_FILE"; then
-                    echo "✅ Upload succeeded"
-                  elif [ -n "${PIXI_TOKEN:-}" ]; then
-                    echo "🔑 Retrying with PIXI_TOKEN..."
-                    if pixi run rattler-build upload prefix --verbose --skip-existing --channel blooop --api-key "$PIXI_TOKEN" "$PKG_FILE"; then
-                      echo "✅ Upload succeeded with token"
-                    else
-                      echo "⚠️  Upload failed (package may already exist)"
-                    fi
-                  fi
-                done
+              # Use update script for other packages
+              if [ -f "scripts/update-$PACKAGE.py" ]; then
+                pixi run python scripts/update-$PACKAGE.py $LATEST
               else
-                echo "⚠️  Skipping $platform (build failed or not supported)"
-                failures=$((failures+1))
+                echo "No update script found for $PACKAGE, skipping recipe update"
               fi
             fi
           done
 
-          # List all built packages
-          echo ""
-          echo "📦 All built packages:"
-          find output -name "*.conda" -o -name "*.tar.bz2" | sort
+      - name: Commit recipe updates
+        run: |
+          if git diff --quiet; then
+            echo "No recipe changes to commit"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add recipes/*/recipe.yaml
+            git commit -m "chore: update recipes for release [skip ci]"
+            git push
+            echo "Recipe updates committed"
+          fi
 
-          if [ "$failures" -gt 0 ]; then
-            echo "⚠️  Some platforms failed"
+  # =============================================================================
+  # Phase 3: Build packages on native runners (parallel matrix)
+  # =============================================================================
+  build:
+    needs: [check-updates, prepare-recipes]
+    if: needs.check-updates.outputs.has-updates == 'true'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix: ${{ fromJson(needs.check-updates.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: main  # Get the latest with recipe updates
+
+      - name: Pull latest changes
+        run: git pull origin main
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.9.3
+        with:
+          pixi-version: latest
+
+      - name: Build ${{ matrix.package }} for ${{ matrix.platform }}
+        id: build
+        run: |
+          echo "Building ${{ matrix.package }} for ${{ matrix.platform }} on ${{ matrix.runner }}..."
+          mkdir -p output
+
+          # Build the package
+          if pixi run rattler-build build \
+            --recipe recipes/${{ matrix.package }}/recipe.yaml \
+            --target-platform ${{ matrix.platform }} \
+            --output-dir output \
+            --channel conda-forge; then
+            echo "Build succeeded"
+            echo "success=true" >> $GITHUB_OUTPUT
+
+            # List built packages
+            echo "Built packages:"
+            find output -name "*.conda" -o -name "*.tar.bz2" | head -20
+          else
+            echo "Build failed for ${{ matrix.platform }}"
+            echo "success=false" >> $GITHUB_OUTPUT
             exit 1
           fi
 
-      - name: Upload build artifacts
+      - name: Upload build artifact
+        if: steps.build.outputs.success == 'true'
         uses: actions/upload-artifact@v6
         with:
-          name: conda-packages-${{ matrix.package }}-${{ matrix.latest }}
-          path: output/
-          retention-days: 30
+          name: conda-${{ matrix.package }}-${{ matrix.platform }}
+          path: output/${{ matrix.platform }}/*.conda
+          retention-days: 7
 
-      - name: Commit and push changes
+  # =============================================================================
+  # Phase 4: Upload all packages to prefix.dev
+  # =============================================================================
+  upload:
+    needs: [check-updates, build]
+    if: always() && needs.check-updates.outputs.has-updates == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.9.3
+        with:
+          pixi-version: latest
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: artifacts
+          pattern: conda-*
+
+      - name: Organize packages
         run: |
+          mkdir -p output
+
+          echo "Downloaded artifacts:"
+          find artifacts -type f -name "*.conda" | head -50
+
+          # Move all packages to output directory with proper structure
+          for pkg in artifacts/conda-*/*.conda; do
+            if [ -f "$pkg" ]; then
+              # Extract platform from the artifact directory name
+              artifact_name=$(dirname "$pkg" | xargs basename)
+              platform=$(echo "$artifact_name" | sed 's/conda-[^-]*-//')
+
+              mkdir -p "output/$platform"
+              cp "$pkg" "output/$platform/"
+              echo "Copied $pkg to output/$platform/"
+            fi
+          done
+
+          echo ""
+          echo "Organized packages:"
+          find output -name "*.conda" | sort
+
+      - name: Upload to prefix.dev
+        env:
+          PIXI_TOKEN: ${{ secrets.PIXI_TOKEN }}
+        run: |
+          echo "Uploading packages to blooop channel..."
+
+          uploaded=0
+          failed=0
+          skipped=0
+
+          for pkg in output/*/*.conda; do
+            if [ -f "$pkg" ]; then
+              echo ""
+              echo "Uploading $(basename "$pkg")..."
+
+              if pixi run rattler-build upload prefix \
+                --skip-existing \
+                --channel blooop \
+                --api-key "$PIXI_TOKEN" \
+                "$pkg" 2>&1; then
+                echo "Upload succeeded"
+                uploaded=$((uploaded + 1))
+              else
+                # Check if it was skipped (already exists)
+                if pixi run rattler-build upload prefix \
+                  --skip-existing \
+                  --channel blooop \
+                  --api-key "$PIXI_TOKEN" \
+                  "$pkg" 2>&1 | grep -q "already exists"; then
+                  echo "Package already exists, skipped"
+                  skipped=$((skipped + 1))
+                else
+                  echo "Upload failed"
+                  failed=$((failed + 1))
+                fi
+              fi
+            fi
+          done
+
+          echo ""
+          echo "========================================="
+          echo "Upload Summary:"
+          echo "  Uploaded: $uploaded"
+          echo "  Skipped:  $skipped"
+          echo "  Failed:   $failed"
+          echo "========================================="
+
+          if [ "$failed" -gt 0 ]; then
+            echo "Some uploads failed"
+            exit 1
+          fi
+
+      - name: Commit recipe updates
+        run: |
+          git pull origin main
+
           if git diff --quiet; then
-            echo "✅ No changes to commit"
+            echo "No changes to commit"
           else
-            echo "📝 Committing updates for ${{ matrix.package }} ${{ matrix.latest }}"
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add recipes/${{ matrix.package }}/recipe.yaml
-            git commit -m "$(cat <<'EOF'
-          Update ${{ matrix.package }} to ${{ matrix.latest }} [skip ci]
 
-          - Updated package version from ${{ matrix.current }} to ${{ matrix.latest }}
-          - Updated source checksums for all platforms
-          - Reset build number to 0
-          - Built and uploaded packages to https://prefix.dev/blooop
+            PACKAGES='${{ needs.check-updates.outputs.packages }}'
 
-          🤖 Generated with [Claude Code](https://claude.com/claude-code)
+            # Create commit message with all updated packages
+            COMMIT_MSG="Update packages [skip ci]
 
-          Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-          EOF
-          )"
-            git push
-            echo "✅ Changes committed and pushed to main"
+Packages updated:"
+
+            echo "$PACKAGES" | jq -c '.[]' | while read -r pkg; do
+              PACKAGE=$(echo "$pkg" | jq -r '.package')
+              LATEST=$(echo "$pkg" | jq -r '.latest')
+              COMMIT_MSG="$COMMIT_MSG
+- $PACKAGE $LATEST"
+            done
+
+            COMMIT_MSG="$COMMIT_MSG
+
+Built and uploaded to https://prefix.dev/blooop
+
+Platforms: linux-64, linux-aarch64, osx-64, osx-arm64
+
+Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+
+            git add recipes/*/recipe.yaml
+            git commit -m "$COMMIT_MSG" || echo "Nothing to commit"
+            git push || echo "Nothing to push"
           fi
+
+  # =============================================================================
+  # Phase 5: Verify packages are available in channel
+  # =============================================================================
+  verify:
+    needs: [check-updates, upload]
+    if: always() && needs.upload.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for channel sync
+        run: sleep 30
+
+      - name: Verify packages in channel
+        run: |
+          echo "Verifying packages are available in blooop channel..."
+
+          PACKAGES='${{ needs.check-updates.outputs.packages }}'
+
+          echo "$PACKAGES" | jq -c '.[]' | while read -r pkg; do
+            PACKAGE=$(echo "$pkg" | jq -r '.package')
+            LATEST=$(echo "$pkg" | jq -r '.latest')
+
+            echo ""
+            echo "Checking $PACKAGE $LATEST..."
+
+            for platform in linux-64 linux-aarch64 osx-64 osx-arm64; do
+              if curl -sL "https://prefix.dev/blooop/$platform/repodata.json" | grep -q "\"$PACKAGE-$LATEST"; then
+                echo "  $platform: available"
+              else
+                echo "  $platform: NOT FOUND"
+              fi
+            done
+          done

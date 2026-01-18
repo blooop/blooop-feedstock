@@ -32,7 +32,8 @@ build:
             osx-arm64)     SRC_FILE="devpod-darwin-arm64" ;;
             *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
           esac
-          install -Dm755 "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/devpod"
+          cp "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/devpod"
+          chmod 755 "$PREFIX/bin/devpod"
     - if: win
       then:
         - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
