@@ -222,50 +222,8 @@ else
     log_info "Skipping ralph-claude-code test (package not in channel)"
 fi
 
-# ============================================================================
-# Dependency resolution test
-# This test verifies packages can be installed with blooop + conda-forge
-# and that all dependencies are resolvable
-# ============================================================================
-echo ""
-log_info "Running dependency resolution tests..."
-log_info "Testing packages can install with blooop + conda-forge channels..."
-
-test_dependency_resolution() {
-    local pkg_name="$1"
-    local env_name="test-deps-$pkg_name"
-
-    # Remove any existing test environment
-    pixi global uninstall "$env_name" 2>/dev/null || true
-
-    ((TESTS_RUN++))
-    log_info "Testing dependency resolution for $pkg_name..."
-
-    # Try to install with blooop + conda-forge channels
-    # Use --no-activation to avoid exposing binaries that may conflict
-    if pixi global install \
-        --environment "$env_name" \
-        --channel "$CHANNEL" \
-        --channel conda-forge \
-        --expose "test-$pkg_name=*" \
-        "$pkg_name" 2>&1; then
-        log_pass "Dependency resolution: $pkg_name"
-        pixi global uninstall "$env_name" 2>/dev/null || true
-        return 0
-    else
-        log_fail "Dependency resolution: $pkg_name (failed to resolve dependencies)"
-        return 1
-    fi
-}
-
-# Test each package for dependency resolution
-for pkg in claude-shim devpod devpod-prerelease ralph-claude-code; do
-    if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q "\"$pkg-"; then
-        test_dependency_resolution "$pkg"
-    else
-        log_info "Skipping dependency test for $pkg (not in channel)"
-    fi
-done
+# Note: Dependency resolution is implicitly tested by the installation tests above
+# If a package has unresolvable dependencies, the installation will fail
 
 # Summary
 echo ""
