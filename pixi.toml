@@ -25,8 +25,11 @@ build-iterfzf = "rattler-build build --recipe recipes/iterfzf/recipe.yaml --outp
 # Build devpod-prerelease
 build-devpod-prerelease = "rattler-build build --recipe recipes/devpod-prerelease/recipe.yaml --output-dir output"
 
+# Build speedtest-go
+build-speedtest-go = "rattler-build build --recipe recipes/speedtest-go/recipe.yaml --output-dir output"
+
 # Build all packages
-build-all = { depends-on = ["build-shim", "build-ralph", "build-devpod-prerelease", "build-iterfzf"] }
+build-all = { depends-on = ["build-shim", "build-ralph", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go"] }
 
 # Check for updates across all packages
 check-updates = "bash scripts/check-updates.sh"

@@ -1,0 +1,51 @@
+schema_version: 1
+
+package:
+  name: speedtest-go
+  version: "1.7.10"
+
+source:
+  url: https://github.com/showwin/speedtest-go/releases/download/v1.7.10/speedtest-go_1.7.10_Linux_x86_64.tar.gz
+  sha256: f349b09e20c55e2445c38592c96807378f53c090cc6a52b8fb14346b40b32ff2
+
+build:
+  number: 0
+  script:
+    - mkdir -p "$PREFIX/bin"
+    - |
+      # The tar.gz file is already extracted by rattler-build to $SRC_DIR
+      # The binary should be directly in $SRC_DIR as speedtest-go
+      if [ -f "$SRC_DIR/speedtest-go" ]; then
+        install -Dm755 "$SRC_DIR/speedtest-go" "$PREFIX/bin/speedtest-go"
+      else
+        echo "Error: speedtest-go binary not found in $SRC_DIR"
+        ls -la "$SRC_DIR"
+        exit 1
+      fi
+
+tests:
+  - script:
+      - which speedtest-go
+      - test -x $PREFIX/bin/speedtest-go
+      - speedtest-go --version
+
+about:
+  homepage: https://github.com/showwin/speedtest-go
+  license: MIT
+  license_family: MIT
+  summary: CLI and Go API to Test Internet Speed using speedtest.net
+  description: |
+    speedtest-go is a CLI and Go API to test internet speed using speedtest.net.
+    It can speedtest 2x faster than speedtest.net with almost the same result.
+
+    Features:
+    - Multiple output format (e.g. JSON, JSON-lines, Unix-like format)
+    - Saving mode (reducing memory usage, but slower)
+    - Debug mode for troubleshooting
+    - List of servers sorted by distance
+  documentation: https://github.com/showwin/speedtest-go#readme
+  repository: https://github.com/showwin/speedtest-go
+
+extra:
+  recipe-maintainers:
+    - blooop

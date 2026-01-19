@@ -222,6 +222,22 @@ else
     log_info "Skipping ralph-claude-code test (package not in channel)"
 fi
 
+# Test: Try to install speedtest-go if available
+log_info "Checking if speedtest-go package is available..."
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"speedtest-go-'; then
+    log_info "Installing speedtest-go package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" speedtest-go 2>&1; then
+        log_pass "speedtest-go package installation"
+        run_test "speedtest-go binary exists" "which speedtest-go"
+        run_test "speedtest-go version check" "speedtest-go --version"
+    else
+        log_fail "speedtest-go package installation"
+    fi
+else
+    log_info "Skipping speedtest-go test (package not in channel)"
+fi
+
 # Note: Dependency resolution is implicitly tested by the installation tests above
 # If a package has unresolvable dependencies, the installation will fail
 
