@@ -200,6 +200,26 @@ jobs:
             fi
           fi
 
+          # Check speedtest-go
+          if [ -d "recipes/speedtest-go" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "speedtest-go" ]); then
+            echo "Checking speedtest-go for updates..."
+
+            # Get current version from recipe
+            CURRENT=$(grep -A 3 'package:' recipes/speedtest-go/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            # Get latest version from GitHub releases API
+            LATEST=$(curl -s https://api.github.com/repos/showwin/speedtest-go/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/' || echo "")
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: speedtest-go $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "speedtest-go", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "speedtest-go is up to date"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix
