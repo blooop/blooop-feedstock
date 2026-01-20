@@ -5,29 +5,69 @@ package:
   version: "1.7.10"
 
 source:
-  url: https://github.com/showwin/speedtest-go/releases/download/v1.7.10/speedtest-go_1.7.10_Linux_x86_64.tar.gz
-  sha256: f349b09e20c55e2445c38592c96807378f53c090cc6a52b8fb14346b40b32ff2
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.7.10/speedtest-go_1.7.10_Linux_x86_64.tar.gz  # [linux and x86_64]
+    sha256: f349b09e20c55e2445c38592c96807378f53c090cc6a52b8fb14346b40b32ff2  # [linux and x86_64]
+    target_directory: linux-x86_64  # [linux and x86_64]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.7.10/speedtest-go_1.7.10_Linux_arm64.tar.gz  # [linux and aarch64]
+    sha256: 8aa7f95b1fd57ebf79960017aa52d9a07d4372693dbfd40fae84464122d7e425  # [linux and aarch64]
+    target_directory: linux-aarch64  # [linux and aarch64]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.7.10/speedtest-go_1.7.10_Darwin_x86_64.tar.gz  # [osx and x86_64]
+    sha256: 680da1b679f6ddd87fe79f8b52216bd847d870c0be2ae9c1baf7f3b83fc7b016  # [osx and x86_64]
+    target_directory: osx-x86_64  # [osx and x86_64]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.7.10/speedtest-go_1.7.10_Darwin_arm64.tar.gz  # [osx and arm64]
+    sha256: 773de105474b74d06a4b390a60b135a25c9c5e2685c495b544a9305aabeb1617  # [osx and arm64]
+    target_directory: osx-arm64  # [osx and arm64]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.7.10/speedtest-go_1.7.10_Windows_x86_64.tar.gz  # [win]
+    sha256: c16d736a8371f08857d2f25c0f55e17cb1294b3d647a17c9d2bdef45ff338b35  # [win]
+    target_directory: win-x86_64  # [win]
 
 build:
   number: 0
   script:
-    - mkdir -p "$PREFIX/bin"
-    - |
-      # The tar.gz file is already extracted by rattler-build to $SRC_DIR
-      # The binary should be directly in $SRC_DIR as speedtest-go
-      if [ -f "$SRC_DIR/speedtest-go" ]; then
-        install -Dm755 "$SRC_DIR/speedtest-go" "$PREFIX/bin/speedtest-go"
-      else
-        echo "Error: speedtest-go binary not found in $SRC_DIR"
-        ls -la "$SRC_DIR"
-        exit 1
-      fi
+    - if: unix
+      then:
+        - mkdir -p "$PREFIX/bin"
+        - |
+          # Determine the correct source directory based on platform
+          case "${target_platform:-}" in
+            linux-64)      SRC_SUBDIR="linux-x86_64" ;;
+            linux-aarch64) SRC_SUBDIR="linux-aarch64" ;;
+            osx-64)        SRC_SUBDIR="osx-x86_64" ;;
+            osx-arm64)     SRC_SUBDIR="osx-arm64" ;;
+            *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+
+          BINARY_PATH="$SRC_DIR/$SRC_SUBDIR/speedtest-go"
+          if [ -f "$BINARY_PATH" ]; then
+            install -Dm755 "$BINARY_PATH" "$PREFIX/bin/speedtest-go"
+          else
+            # Fall back to looking in SRC_DIR directly
+            if [ -f "$SRC_DIR/speedtest-go" ]; then
+              install -Dm755 "$SRC_DIR/speedtest-go" "$PREFIX/bin/speedtest-go"
+            else
+              echo "Error: speedtest-go binary not found"
+              echo "Looking in: $BINARY_PATH"
+              echo "Also tried: $SRC_DIR/speedtest-go"
+              ls -la "$SRC_DIR"
+              exit 1
+            fi
+          fi
+    - if: win
+      then:
+        - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
+        - copy %SRC_DIR%\win-x86_64\speedtest-go.exe %PREFIX%\Library\bin\speedtest-go.exe
 
 tests:
   - script:
-      - which speedtest-go
-      - test -x $PREFIX/bin/speedtest-go
-      - speedtest-go --version
+      - if: unix
+        then:
+          - which speedtest-go
+          - test -x $PREFIX/bin/speedtest-go
+          - speedtest-go --version
+      - if: win
+        then:
+          - where speedtest-go
+          - speedtest-go --version
 
 about:
   homepage: https://github.com/showwin/speedtest-go
