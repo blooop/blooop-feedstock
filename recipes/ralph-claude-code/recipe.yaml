@@ -2,14 +2,14 @@ schema_version: 1
 
 package:
   name: ralph-claude-code
-  version: "0.9.9"
+  version: "0.10.0"
 
 source:
   git: https://github.com/frankbria/ralph-claude-code.git
-  rev: 509a9699a8c003dda8377be9f75e0af7f18ce94e
+  rev: 9b19d70e3551135ea3f3eb5cab79ebdb245b866e
 
 build:
-  number: 5
+  number: 2
   script:
     - if: unix
       then:
@@ -17,16 +17,26 @@ build:
         - mkdir -p "$PREFIX/share/ralph-claude-code"
         - mkdir -p "$PREFIX/share/ralph-claude-code/templates"
         - mkdir -p "$PREFIX/share/ralph-claude-code/lib"
+        # Install main executables (use cp + chmod for macOS compatibility)
         - cp "$SRC_DIR/install.sh" "$PREFIX/share/ralph-claude-code/install.sh"
         - cp "$SRC_DIR/ralph_loop.sh" "$PREFIX/share/ralph-claude-code/ralph_loop.sh"
         - cp "$SRC_DIR/ralph_monitor.sh" "$PREFIX/share/ralph-claude-code/ralph_monitor.sh"
         - cp "$SRC_DIR/ralph_import.sh" "$PREFIX/share/ralph-claude-code/ralph_import.sh"
         - cp "$SRC_DIR/setup.sh" "$PREFIX/share/ralph-claude-code/setup.sh"
         - cp "$SRC_DIR/create_files.sh" "$PREFIX/share/ralph-claude-code/create_files.sh"
+        - cp "$SRC_DIR/migrate_to_ralph_folder.sh" "$PREFIX/share/ralph-claude-code/migrate_to_ralph_folder.sh"
         - chmod 755 "$PREFIX/share/ralph-claude-code/"*.sh
-        - sed 's|\.\./templates/|$CONDA_PREFIX/share/ralph-claude-code/templates/|g' "$PREFIX/share/ralph-claude-code/setup.sh" > "$PREFIX/share/ralph-claude-code/setup.sh.tmp" && mv "$PREFIX/share/ralph-claude-code/setup.sh.tmp" "$PREFIX/share/ralph-claude-code/setup.sh" && chmod 755 "$PREFIX/share/ralph-claude-code/setup.sh"
+        # Patch setup.sh to check CONDA_PREFIX templates first, then fall back to defaults
+        # The upstream script checks ../templates and ~/.ralph/templates
+        # We add $CONDA_PREFIX/share/ralph-claude-code/templates/ as the first priority
+        - |
+          sed 's|if \[\[ -d "\.\./templates" \]\]; then|if [[ -n "$CONDA_PREFIX" \&\& -d "$CONDA_PREFIX/share/ralph-claude-code/templates" ]]; then\n    TEMPLATES_DIR="$CONDA_PREFIX/share/ralph-claude-code/templates"\nelif [[ -d "../templates" ]]; then|g' "$PREFIX/share/ralph-claude-code/setup.sh" > "$PREFIX/share/ralph-claude-code/setup.sh.tmp" && mv "$PREFIX/share/ralph-claude-code/setup.sh.tmp" "$PREFIX/share/ralph-claude-code/setup.sh" && chmod 755 "$PREFIX/share/ralph-claude-code/setup.sh"
+        # Copy templates and lib directories
         - cp -r "$SRC_DIR/templates/"* "$PREFIX/share/ralph-claude-code/templates/" || true
         - cp -r "$SRC_DIR/lib/"* "$PREFIX/share/ralph-claude-code/lib/" || true
+        # Strip trailing whitespace from templates to pass pre-commit hooks
+        - find "$PREFIX/share/ralph-claude-code/templates" -name "*.md" -exec sed -i 's/[[:space:]]*$//' {} \; || true
+        # Create wrapper scripts in bin that work with both conda activate and pixi global
         - |
           cat > "$PREFIX/bin/ralph" << 'EOF'
           #!/bin/bash
@@ -56,10 +66,19 @@ build:
           PREFIX_DIR="${CONDA_PREFIX:-$(dirname "$SCRIPT_DIR")}"
           exec "$PREFIX_DIR/share/ralph-claude-code/ralph_import.sh" "$@"
           EOF
-        - chmod +x "$PREFIX/bin/ralph" "$PREFIX/bin/ralph-monitor" "$PREFIX/bin/ralph-setup" "$PREFIX/bin/ralph-import"
+        - |
+          cat > "$PREFIX/bin/ralph-migrate" << 'EOF'
+          #!/bin/bash
+          SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          PREFIX_DIR="${CONDA_PREFIX:-$(dirname "$SCRIPT_DIR")}"
+          exec "$PREFIX_DIR/share/ralph-claude-code/migrate_to_ralph_folder.sh" "$@"
+          EOF
+        - chmod +x "$PREFIX/bin/ralph" "$PREFIX/bin/ralph-monitor" "$PREFIX/bin/ralph-setup" "$PREFIX/bin/ralph-import" "$PREFIX/bin/ralph-migrate"
 
 requirements:
   run:
+    # Note: bash is expected to be available on the system (standard unix tool)
+    # git and jq are required from conda-forge for consistent behavior
     - git
     - jq
 
@@ -68,10 +87,65 @@ tests:
       - if: unix
         then:
           - which ralph
+          - which ralph-monitor
+          - which ralph-setup
+          - which ralph-import
+          - which ralph-migrate
           - test -x $PREFIX/bin/ralph
+          - test -x $PREFIX/bin/ralph-monitor
+          - test -x $PREFIX/bin/ralph-setup
+          - test -x $PREFIX/bin/ralph-import
+          - test -x $PREFIX/bin/ralph-migrate
+          - bash -n $PREFIX/share/ralph-claude-code/ralph_loop.sh
+          - bash -n $PREFIX/share/ralph-claude-code/ralph_monitor.sh
+          - bash -n $PREFIX/share/ralph-claude-code/ralph_import.sh
+          - bash -n $PREFIX/share/ralph-claude-code/setup.sh
+          - bash -n $PREFIX/share/ralph-claude-code/migrate_to_ralph_folder.sh
+          # Verify all share scripts have execute permissions
+          - test -x $PREFIX/share/ralph-claude-code/ralph_loop.sh
+          - test -x $PREFIX/share/ralph-claude-code/ralph_monitor.sh
+          - test -x $PREFIX/share/ralph-claude-code/ralph_import.sh
+          - test -x $PREFIX/share/ralph-claude-code/setup.sh
+          - test -x $PREFIX/share/ralph-claude-code/migrate_to_ralph_folder.sh
+          # Verify templates are installed and setup.sh is patched for CONDA_PREFIX
+          - test -d $PREFIX/share/ralph-claude-code/templates
+          - test -f $PREFIX/share/ralph-claude-code/templates/PROMPT.md
+          - test -f $PREFIX/share/ralph-claude-code/templates/AGENT.md
+          - test -f $PREFIX/share/ralph-claude-code/templates/fix_plan.md
+          - grep -q 'CONDA_PREFIX/share/ralph-claude-code/templates' $PREFIX/share/ralph-claude-code/setup.sh
 
 about:
   homepage: https://github.com/frankbria/ralph-claude-code
   license: MIT
   license_family: MIT
-  summary: Autonomous AI development loop for Claude Code (legacy 0.9.9)
+  summary: Autonomous AI development loop for Claude Code with intelligent exit detection
+  description: |
+    Ralph is an autonomous AI development framework that enables continuous development
+    loops with Claude Code. It automates iterative improvements to projects with
+    intelligent safeguards against infinite loops and API overuse.
+
+    Key features:
+    - Autonomous loops that execute Claude Code repeatedly until completion
+    - Dual-condition exit detection requiring both completion indicators AND explicit EXIT_SIGNAL
+    - Session continuity preserving context across iterations
+    - Rate limiting with configurable hourly API call caps
+    - Circuit breaker preventing runaway loops through advanced error detection
+    - 5-hour API limit handling with user-prompted wait/exit options
+
+    Commands provided:
+    - ralph: Execute the autonomous development loop
+    - ralph-monitor: Real-time monitoring dashboard
+    - ralph-setup: Initialize new Ralph projects
+    - ralph-import: Convert PRD documents to Ralph format
+    - ralph-migrate: Migrate existing projects to .ralph/ subfolder structure
+
+    Requirements:
+    - Claude Code CLI (v2.0.76+)
+    - Bash shell environment
+    - tmux (optional, for integrated monitoring)
+  documentation: https://github.com/frankbria/ralph-claude-code#readme
+  repository: https://github.com/frankbria/ralph-claude-code
+
+extra:
+  recipe-maintainers:
+    - blooop
