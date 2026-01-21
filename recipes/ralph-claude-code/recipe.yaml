@@ -9,7 +9,7 @@ source:
   rev: 9b19d70e3551135ea3f3eb5cab79ebdb245b866e
 
 build:
-  number: 0
+  number: 1
   script:
     - if: unix
       then:
@@ -27,7 +27,8 @@ build:
         - cp "$SRC_DIR/migrate_to_ralph_folder.sh" "$PREFIX/share/ralph-claude-code/migrate_to_ralph_folder.sh"
         - chmod 755 "$PREFIX/share/ralph-claude-code/"*.sh
         # Patch setup.sh to use installed template paths instead of relative paths
-        - sed -i 's|\.\./templates/|$CONDA_PREFIX/share/ralph-claude-code/templates/|g' "$PREFIX/share/ralph-claude-code/setup.sh"
+        # Use temp file approach for cross-platform compatibility (sed -i differs on macOS)
+        - sed 's|\.\./templates/|$CONDA_PREFIX/share/ralph-claude-code/templates/|g' "$PREFIX/share/ralph-claude-code/setup.sh" > "$PREFIX/share/ralph-claude-code/setup.sh.tmp" && mv "$PREFIX/share/ralph-claude-code/setup.sh.tmp" "$PREFIX/share/ralph-claude-code/setup.sh"
         # Copy templates and lib directories
         - cp -r "$SRC_DIR/templates/"* "$PREFIX/share/ralph-claude-code/templates/" || true
         - cp -r "$SRC_DIR/lib/"* "$PREFIX/share/ralph-claude-code/lib/" || true

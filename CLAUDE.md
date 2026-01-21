@@ -306,6 +306,7 @@ rattler-build upload prefix -c blooop output/*.conda
 - **Conditional build scripts**: Use `if/then` blocks for platform-specific steps
 - **Security**: Never include secrets in recipes (they're bundled in the package)
 - **License families**: Use standard SPDX identifiers and families (MIT, APACHE, BSD, etc.)
+- **Never include `bash` as a dependency**: Bash is a standard Unix tool expected to be available on the system. Adding it as a conda dependency causes solver failures since there's no `bash` package in conda-forge. The same applies to other core system utilities.
 
 ### Platform Support Priority
 
@@ -490,6 +491,14 @@ fi
 ```
 
 ## Publishing and CI Verification Workflow
+
+**When the user says "publish"**: This means triggering the GitHub Actions release workflow using the `gh` CLI:
+```bash
+gh workflow run release-workflow.yml -f package=package-name -f force_build=true
+```
+Monitor the workflow progress with: `gh run watch <run-id> --exit-status`
+
+**After every publish, ALWAYS test the package in a Docker container** to verify it installs correctly from the live channel.
 
 **Critical principle:** Maximize local testing BEFORE publishing to the channel. Once published, packages are immediately available to users.
 
