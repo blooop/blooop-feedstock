@@ -9,7 +9,7 @@ source:
   rev: 9b19d70e3551135ea3f3eb5cab79ebdb245b866e
 
 build:
-  number: 1
+  number: 2
   script:
     - if: unix
       then:
@@ -26,9 +26,11 @@ build:
         - cp "$SRC_DIR/create_files.sh" "$PREFIX/share/ralph-claude-code/create_files.sh"
         - cp "$SRC_DIR/migrate_to_ralph_folder.sh" "$PREFIX/share/ralph-claude-code/migrate_to_ralph_folder.sh"
         - chmod 755 "$PREFIX/share/ralph-claude-code/"*.sh
-        # Patch setup.sh to use installed template paths instead of relative paths
-        # Use temp file approach for cross-platform compatibility (sed -i differs on macOS)
-        - sed 's|\.\./templates/|$CONDA_PREFIX/share/ralph-claude-code/templates/|g' "$PREFIX/share/ralph-claude-code/setup.sh" > "$PREFIX/share/ralph-claude-code/setup.sh.tmp" && mv "$PREFIX/share/ralph-claude-code/setup.sh.tmp" "$PREFIX/share/ralph-claude-code/setup.sh"
+        # Patch setup.sh to check CONDA_PREFIX templates first, then fall back to defaults
+        # The upstream script checks ../templates and ~/.ralph/templates
+        # We add $CONDA_PREFIX/share/ralph-claude-code/templates/ as the first priority
+        - |
+          sed 's|if \[\[ -d "\.\./templates" \]\]; then|if [[ -n "$CONDA_PREFIX" \&\& -d "$CONDA_PREFIX/share/ralph-claude-code/templates" ]]; then\n    TEMPLATES_DIR="$CONDA_PREFIX/share/ralph-claude-code/templates"\nelif [[ -d "../templates" ]]; then|g' "$PREFIX/share/ralph-claude-code/setup.sh" > "$PREFIX/share/ralph-claude-code/setup.sh.tmp" && mv "$PREFIX/share/ralph-claude-code/setup.sh.tmp" "$PREFIX/share/ralph-claude-code/setup.sh" && chmod 755 "$PREFIX/share/ralph-claude-code/setup.sh"
         # Copy templates and lib directories
         - cp -r "$SRC_DIR/templates/"* "$PREFIX/share/ralph-claude-code/templates/" || true
         - cp -r "$SRC_DIR/lib/"* "$PREFIX/share/ralph-claude-code/lib/" || true
@@ -97,6 +99,18 @@ tests:
           - bash -n $PREFIX/share/ralph-claude-code/ralph_import.sh
           - bash -n $PREFIX/share/ralph-claude-code/setup.sh
           - bash -n $PREFIX/share/ralph-claude-code/migrate_to_ralph_folder.sh
+          # Verify all share scripts have execute permissions
+          - test -x $PREFIX/share/ralph-claude-code/ralph_loop.sh
+          - test -x $PREFIX/share/ralph-claude-code/ralph_monitor.sh
+          - test -x $PREFIX/share/ralph-claude-code/ralph_import.sh
+          - test -x $PREFIX/share/ralph-claude-code/setup.sh
+          - test -x $PREFIX/share/ralph-claude-code/migrate_to_ralph_folder.sh
+          # Verify templates are installed and setup.sh is patched for CONDA_PREFIX
+          - test -d $PREFIX/share/ralph-claude-code/templates
+          - test -f $PREFIX/share/ralph-claude-code/templates/PROMPT.md
+          - test -f $PREFIX/share/ralph-claude-code/templates/AGENT.md
+          - test -f $PREFIX/share/ralph-claude-code/templates/fix_plan.md
+          - grep -q 'CONDA_PREFIX/share/ralph-claude-code/templates' $PREFIX/share/ralph-claude-code/setup.sh
 
 about:
   homepage: https://github.com/frankbria/ralph-claude-code
