@@ -2,14 +2,14 @@ schema_version: 1
 
 package:
   name: ralph-claude-code
-  version: "0.10.0"
+  version: "0.10.1"
 
 source:
   git: https://github.com/frankbria/ralph-claude-code.git
-  rev: 9b19d70e3551135ea3f3eb5cab79ebdb245b866e
+  rev: 019b8c738ab428a750824b885bdd2132749cf7b6
 
 build:
-  number: 2
+  number: 0
   script:
     - if: unix
       then:

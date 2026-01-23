@@ -15,7 +15,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 # Install packages globally with pixi
 pixi global install --channel https://prefix.dev/blooop claude-shim
 pixi global install --channel https://prefix.dev/blooop devpod
-pixi global install --channel https://prefix.dev/blooop ralph-claude-code
+pixi global install --channel https://prefix.dev/blooop --channel conda-forge ralph-claude-code
 pixi global install --channel https://prefix.dev/blooop speedtest-go
 ```
 
