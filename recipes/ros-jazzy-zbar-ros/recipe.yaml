@@ -8,7 +8,6 @@ package:
 source:
   git: https://github.com/mfinean/zbar_ros.git
   rev: 8269e7f1781affb94e51a601d807ce18a9895094
-  folder: zbar_ros
   target_directory: ros-jazzy-zbar-ros/src/work
 
 build:

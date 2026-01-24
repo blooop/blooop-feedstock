@@ -31,7 +31,7 @@ fi
 
 export SKIP_TESTING=ON
 
-WORK_DIR=$SRC_DIR/$PKG_NAME/src/work
+WORK_DIR=$SRC_DIR/$PKG_NAME/src/work/robot_calibration
 
 cmake \
     -G "Ninja" \
