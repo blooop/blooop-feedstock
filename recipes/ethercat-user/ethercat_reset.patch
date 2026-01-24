@@ -1,0 +1,46 @@
+diff --git a/include/ecrt.h b/include/ecrt.h
+index 3ab462fb..a35f5a3f 100644
+--- a/include/ecrt.h
++++ b/include/ecrt.h
+@@ -870,6 +870,12 @@ EC_PUBLIC_API int ecrt_master_get_slave(
+                                       information */
+         );
+
++EC_PUBLIC_API int ecrt_master_set_slave_state(
++        ec_master_t *master, /**< EtherCAT master */
++        uint16_t slave_position, /**< Slave position. */
++        ec_al_state_t al_state /**< Application-layer state. */
++        );
++
+ #ifndef __KERNEL__
+
+ /** Returns the proposed configuration of a slave's sync manager.
+diff --git a/lib/master.c b/lib/master.c
+index 2a9018e5..8d8b609e 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -314,6 +314,24 @@ int ecrt_master_get_slave(ec_master_t *master, uint16_t slave_position,
+     return 0;
+ }
+
++int ecrt_master_set_slave_state(ec_master_t *master, uint16_t slave_position,
++        ec_al_state_t slave_state)
++{
++    ec_ioctl_slave_state_t data;
++
++    data.slave_position = slave_position;
++    data.al_state = slave_state;
++    int ret;
++    ret = ioctl(master->fd, EC_IOCTL_SLAVE_STATE, &data);
++    if (EC_IOCTL_IS_ERROR(ret)) {
++        fprintf(stderr, "Failed to get slave info: %s\n",
++                strerror(EC_IOCTL_ERRNO(ret)));
++        return -EC_IOCTL_ERRNO(ret);
++    }
++    return 0;
++}
++
++
+ /****************************************************************************/
+
+ int ecrt_master_get_sync_manager(ec_master_t *master, uint16_t slave_position,

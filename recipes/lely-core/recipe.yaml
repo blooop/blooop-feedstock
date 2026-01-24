@@ -1,0 +1,71 @@
+schema_version: 1
+
+context:
+  version: "0.1.0"
+  commit: "637de61625c9e8af2b9598109d6fb0e3a2829ce6"
+
+package:
+  name: lely-core
+  version: ${{ version }}
+
+source:
+  git: https://gitlab.com/lely_industries/lely-core.git
+  rev: ${{ commit }}
+
+build:
+  number: 0
+  skip:
+    - not linux
+  script:
+    - |
+      # Suppress warnings-as-errors for code not updated for modern GCC
+      export CFLAGS="${CFLAGS:-} -Wno-error"
+      export CXXFLAGS="${CXXFLAGS:-} -Wno-error"
+
+      # ATOMIC_VAR_INIT was deprecated in C17 and removed in C23.
+      # Patch the header to define it if missing.
+      if ! grep -q "ifndef ATOMIC_VAR_INIT" include/lely/util/spscring.h; then
+          sed -i '/#include <lely\/libc\/stdatomic.h>/a \
+      #ifndef ATOMIC_VAR_INIT\
+      #define ATOMIC_VAR_INIT(value) (value)\
+      #endif' include/lely/util/spscring.h
+      fi
+
+      autoreconf -i
+      ./configure \
+          --prefix="$PREFIX" \
+          --disable-cython \
+          --disable-tests \
+          --disable-doc
+
+      make -j"${CPU_COUNT}"
+      make install
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - autoconf
+    - automake
+    - libtool
+    - make
+    - pkg-config
+
+tests:
+  - script:
+      - test -f $PREFIX/lib/liblely-can.so
+      - test -f $PREFIX/lib/liblely-co.so
+
+about:
+  homepage: https://gitlab.com/lely_industries/lely-core
+  license: Apache-2.0
+  license_family: APACHE
+  summary: Lely core libraries for CANopen
+  description: |
+    Lely core libraries providing a CANopen protocol stack implementation.
+    Used for communication with CANopen-compatible motor controllers and devices.
+  repository: https://gitlab.com/lely_industries/lely-core
+
+extra:
+  recipe-maintainers:
+    - blooop
