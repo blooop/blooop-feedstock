@@ -1,0 +1,78 @@
+schema_version: 1
+
+context:
+  version: "1.0.1"
+  git_ref: "feature/update-to-main"
+
+package:
+  name: libplaco
+  version: ${{ version }}
+
+source:
+  git: https://github.com/kinisi-robotics/placo.git
+  rev: ${{ git_ref }}
+
+build:
+  number: 0
+  skip:
+    - not linux
+  script:
+    - |
+      # Remove eigenpy dependency when building without Python bindings
+      sed -i 's/find_package(eigenpy REQUIRED)/# find_package(eigenpy REQUIRED) -- disabled for C++ only build/' CMakeLists.txt
+
+      mkdir build && cd build
+
+      cmake .. \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX="$PREFIX" \
+          -DCMAKE_PREFIX_PATH="$PREFIX" \
+          -DBUILD_PYTHON_BINDINGS=OFF \
+          -DBUILD_TESTING=OFF
+
+      ninja -j"${CPU_COUNT}"
+      ninja install
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - cmake >=3.22
+    - ninja
+    - pkg-config
+  host:
+    - libpinocchio >=3.5
+    - libcoal >=3.0
+    - eigen
+    - libboost-devel
+    - jsoncpp
+    - urdfdom
+    - eiquadprog
+  run:
+    - libpinocchio >=3.5
+    - libcoal >=3.0
+    - eigen
+    - libboost
+    - jsoncpp
+    - urdfdom
+    - eiquadprog
+
+tests:
+  - script:
+      - test -f $PREFIX/lib/liblibplaco.so
+
+about:
+  homepage: https://github.com/Rhoban/placo
+  license: MIT
+  license_family: MIT
+  summary: Placo robot planning library (C++ only, no Python bindings)
+  description: |
+    Placo is a robot planning library providing inverse kinematics,
+    dynamics, and trajectory optimization. This package builds the
+    C++ library only (without Python bindings).
+  repository: https://github.com/kinisi-robotics/placo
+
+extra:
+  recipe-maintainers:
+    - blooop
