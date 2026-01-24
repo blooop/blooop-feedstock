@@ -1,0 +1,58 @@
+schema_version: 1
+
+package:
+  name: eaik
+  version: "1.2.1"
+
+source:
+  - url: https://files.pythonhosted.org/packages/ab/e0/f13cc6f55e1db3cd9f02232a36ead5d785da1c43b6d9a5e7289cdf897d17/eaik-1.2.1.tar.gz
+    sha256: a4d6146aa16fc51751458ae3eec46ddbd8e58bc7795e647a3aa4691ee3bcc7f8
+
+build:
+  number: 0
+  script: |
+    export CPLUS_INCLUDE_PATH="${PREFIX}/include/eigen3:${PREFIX}/include:${CPLUS_INCLUDE_PATH}"
+    pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  build:
+    - cxx-compiler
+  host:
+    - python >=3.8
+    - pip
+    - setuptools
+    - pybind11 >=2.10.0
+    - pybind11-stubgen >=0.13.0
+    - numpy >=1.21.0
+    - eigen >=3.4
+  run:
+    - python >=3.8
+    - numpy >=1.21.0
+    - urchin >=0.0.27
+    - setuptools
+    - pybind11 >=2.10.0
+    - pybind11-stubgen >=0.13.0
+
+tests:
+  - python:
+      imports:
+        - eaik
+  - script:
+      - python -c "import eaik; print('eaik imported successfully')"
+
+about:
+  homepage: https://github.com/OstermD/EAIK
+  license: MIT
+  license_family: MIT
+  summary: Toolbox for Efficient Analytical Inverse Kinematics by Subproblem Decomposition
+  description: |
+    EAIK is a toolbox that proposes a method for automatic inverse kinematic derivation.
+    It exploits intersecting and parallel axes to remodel a manipulator's kinematic chain,
+    allowing for a hard-coded decomposition algorithm to solve its inverse kinematics by
+    employing pre-solved subproblems.
+  documentation: https://ostermd.github.io/EAIK/
+  repository: https://github.com/OstermD/EAIK
+
+extra:
+  recipe-maintainers:
+    - blooop

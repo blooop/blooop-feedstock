@@ -35,6 +35,7 @@ build:
       ./configure \
           --prefix="$PREFIX" \
           --disable-cython \
+          --disable-python \
           --disable-tests \
           --disable-doc
 
