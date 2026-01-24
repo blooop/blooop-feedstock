@@ -1,0 +1,60 @@
+schema_version: 1
+
+package:
+  name: open3d
+  version: "0.19.0"
+
+source:
+  - url: https://files.pythonhosted.org/packages/2b/95/3723e5ade77c234a1650db11cbe59fe25c4f5af6c224f8ea22ff088bb36a/open3d-0.19.0-cp312-cp312-manylinux_2_31_x86_64.whl
+    sha256: 01e4590dc2209040292ebe509542fbf2bf869ea60bcd9be7a3fe77b65bad3192
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - not x86_64
+  script: |
+    pip install *.whl --prefix="$PREFIX" --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python 3.12.*
+    - pip
+  run:
+    - python 3.12.*
+    - numpy >=1.21
+    - dash >=2.6.0
+    - configargparse
+    - ipywidgets >=8.0.4
+    - nbformat >=5.7.0
+    - addict
+    - pillow
+    - pyyaml
+    - scikit-learn
+    - matplotlib-base
+    - werkzeug >=2.2.3
+    - pandas
+    - tqdm
+    - pyquaternion
+
+tests:
+  - python:
+      imports:
+        - open3d
+
+about:
+  homepage: https://www.open3d.org
+  license: MIT
+  license_family: MIT
+  summary: Open3D - A Modern Library for 3D Data Processing
+  description: |
+    Open3D is an open-source library that supports rapid development of software
+    that deals with 3D data. The Open3D frontend exposes a set of carefully selected
+    data structures and algorithms in both C++ and Python. The backend is highly
+    optimized and is set up for parallelization.
+  documentation: https://www.open3d.org/docs
+  repository: https://github.com/isl-org/Open3D
+
+extra:
+  recipe-maintainers:
+    - blooop

@@ -1,0 +1,57 @@
+schema_version: 1
+
+package:
+  name: gripx
+  version: "0.0.19"
+
+source:
+  - url: https://files.pythonhosted.org/packages/2f/67/1fb5607c4026c10574f02243a30d72dd032524a2a0012a6cb1812a57b09c/gripx-0.0.19-py3-none-any.whl
+    sha256: 92fa8dcdecab8da6cef5325f2548f56f1db646d5561c8c28e50236e17c1c260e
+
+build:
+  number: 0
+  noarch: python
+  script: |
+    pip install *.whl --prefix="$PREFIX" --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python >=3.10,<3.13
+    - pip
+  run:
+    - python >=3.10,<3.13
+    - setuptools >=69.0.0
+    - numpy >=1.26.4
+    - scipy >=1.11.1
+    - pybullet >=3.2.6
+    - open3d >=0.17.0
+    - opencv >=4.10.0
+    - matplotlib-base >=3.3.4
+    # - pybullet-planning-eaa  # Not available in conda
+    - trimesh >=3.9.20
+    # - xatlas >=0.0.7  # Not available in conda
+    - transforms3d >=0.4.1
+    - strenum
+    - ipython >=8.37.0
+
+# Tests disabled - requires pybullet-planning-eaa which is not in conda
+# tests:
+#   - python:
+#       imports:
+#         - grip
+
+about:
+  homepage: https://github.com/danfergo/gripx
+  license: LicenseRef-Unspecified
+  license_family: Other
+  summary: Grip is a prototyping toolbox for manipulation research
+  description: |
+    Gripx is a Python-based prototyping toolbox for manipulation research.
+    It provides tools and utilities for working with robotic grasping and
+    manipulation tasks, including integration with PyBullet for simulation
+    and Open3D for point cloud processing.
+  repository: https://github.com/danfergo/gripx
+
+extra:
+  recipe-maintainers:
+    - blooop
