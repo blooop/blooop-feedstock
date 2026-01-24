@@ -6,6 +6,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 
 - **claude-shim** - Shim that downloads and runs the official [Claude Code CLI](https://github.com/anthropics/claude-code) from Anthropic
 - **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
+- **eaik** - Toolbox for Efficient Analytical Inverse Kinematics by Subproblem Decomposition (from [OstermD/EAIK](https://github.com/OstermD/EAIK))
 - **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection (from [frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code))
 - **speedtest-go** - CLI and Go API to test internet speed using speedtest.net (from [showwin/speedtest-go](https://github.com/showwin/speedtest-go))
 
@@ -15,6 +16,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 # Install packages globally with pixi
 pixi global install --channel https://prefix.dev/blooop claude-shim
 pixi global install --channel https://prefix.dev/blooop devpod
+pixi global install --channel https://prefix.dev/blooop --channel conda-forge eaik
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge ralph-claude-code
 pixi global install --channel https://prefix.dev/blooop speedtest-go
 ```
