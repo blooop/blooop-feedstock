@@ -1,0 +1,42 @@
+context:
+  version: "1.5.12"
+
+package:
+  name: ros-jazzy-orbbec-description
+  version: ${{ version }}
+
+source:
+  git: https://github.com/orbbec/OrbbecSDK_ROS2.git
+  rev: 863fb0025ba587a39f4a2c709c8999f353f065f0
+  target_directory: ros-jazzy-orbbec-description/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+
+tests:
+  - script:
+      - test -d $PREFIX/share/orbbec_description
+
+about:
+  homepage: https://github.com/orbbec/OrbbecSDK_ROS2
+  summary: "URDF descriptions for Orbbec cameras"
+  license: Apache-2.0

@@ -36,6 +36,17 @@ build-zbar-ros = "rattler-build build --recipe recipes/ros-jazzy-zbar-ros/recipe
 build-robot-calibration-msgs = "rattler-build build --recipe recipes/ros-jazzy-robot-calibration-msgs/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
 build-robot-calibration = "rattler-build build --recipe recipes/ros-jazzy-robot-calibration/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
 
+# Build ROS Jazzy hardware packages
+build-phantom-touch-msgs = "rattler-build build --recipe recipes/ros-jazzy-phantom-touch-msgs/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+build-phantom-touch-description = "rattler-build build --recipe recipes/ros-jazzy-phantom-touch-description/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+build-phantom-touch-control = "rattler-build build --recipe recipes/ros-jazzy-phantom-touch-control/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+build-orbbec-camera-msgs = "rattler-build build --recipe recipes/ros-jazzy-orbbec-camera-msgs/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+build-orbbec-description = "rattler-build build --recipe recipes/ros-jazzy-orbbec-description/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+build-orbbec-camera = "rattler-build build --recipe recipes/ros-jazzy-orbbec-camera/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+build-zed-components = "rattler-build build --recipe recipes/ros-jazzy-zed-components/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+build-zed-wrapper = "rattler-build build --recipe recipes/ros-jazzy-zed-wrapper/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+build-zed-ros2 = "rattler-build build --recipe recipes/ros-jazzy-zed-ros2/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
+
 # Build all packages
 build-all = { depends-on = ["build-shim", "build-ralph", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go"] }
 

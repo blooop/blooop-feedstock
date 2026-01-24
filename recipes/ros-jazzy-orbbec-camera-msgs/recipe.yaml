@@ -1,0 +1,48 @@
+context:
+  version: "1.5.12"
+
+package:
+  name: ros-jazzy-orbbec-camera-msgs
+  version: ${{ version }}
+
+source:
+  git: https://github.com/orbbec/OrbbecSDK_ROS2.git
+  rev: 863fb0025ba587a39f4a2c709c8999f353f065f0
+  target_directory: ros-jazzy-orbbec-camera-msgs/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-rosidl-default-generators
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-rosidl-default-runtime
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+
+tests:
+  - script:
+      - test -d $PREFIX/share/orbbec_camera_msgs
+
+about:
+  homepage: https://github.com/orbbec/OrbbecSDK_ROS2
+  summary: "Message definitions for Orbbec cameras"
+  license: Apache-2.0

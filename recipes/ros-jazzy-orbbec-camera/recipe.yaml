@@ -1,0 +1,86 @@
+context:
+  version: "1.5.12"
+
+package:
+  name: ros-jazzy-orbbec-camera
+  version: ${{ version }}
+
+source:
+  git: https://github.com/orbbec/OrbbecSDK_ROS2.git
+  rev: 863fb0025ba587a39f4a2c709c8999f353f065f0
+  target_directory: ros-jazzy-orbbec-camera/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-rclcpp
+    - ros-jazzy-rclcpp-components
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-std-srvs
+    - ros-jazzy-image-transport
+    - ros-jazzy-image-publisher
+    - ros-jazzy-cv-bridge
+    - ros-jazzy-camera-info-manager
+    - ros-jazzy-orbbec-camera-msgs
+    - ros-jazzy-tf2
+    - ros-jazzy-tf2-ros
+    - ros-jazzy-tf2-eigen
+    - ros-jazzy-tf2-sensor-msgs
+    - ros-jazzy-tf2-msgs
+    - ros-jazzy-diagnostic-updater
+    - ros-jazzy-diagnostic-msgs
+    - ros-jazzy-statistics-msgs
+    - ros-jazzy-backward-ros
+    - ros-jazzy-builtin-interfaces
+    - ros-jazzy-ament-index-cpp
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+    - eigen
+    - libopencv
+    - gflags
+    - glog
+    - nlohmann_json
+    - libgl
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-rclcpp
+    - ros-jazzy-rclcpp-components
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-std-srvs
+    - ros-jazzy-image-transport
+    - ros-jazzy-cv-bridge
+    - ros-jazzy-camera-info-manager
+    - ros-jazzy-orbbec-camera-msgs
+    - ros-jazzy-tf2
+    - ros-jazzy-tf2-ros
+    - ros-jazzy-diagnostic-updater
+    - ros-jazzy-backward-ros
+    - eigen
+    - libopencv
+    - gflags
+    - glog
+
+tests:
+  - script:
+      - test -d $PREFIX/share/orbbec_camera
+
+about:
+  homepage: https://github.com/orbbec/OrbbecSDK_ROS2
+  summary: "ROS 2 driver for Orbbec depth cameras (vendored SDK)"
+  license: Apache-2.0
