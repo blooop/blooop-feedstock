@@ -1,0 +1,45 @@
+schema_version: 1
+
+package:
+  name: xatlas
+  version: "0.0.11"
+
+source:
+  - url: https://files.pythonhosted.org/packages/f4/68/39e33ff980f60442c4294d3a4ce37000b2f2e439106f05b014f0d453c186/xatlas-0.0.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+    sha256: 19a0b0c0b1966d177e7ded15539091981c697cf8f9aee459eae9f9ecba919c07
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - not x86_64
+  script: |
+    pip install *.whl --prefix="$PREFIX" --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python 3.12.*
+    - pip
+  run:
+    - python 3.12.*
+    - numpy
+
+tests:
+  - python:
+      imports:
+        - xatlas
+
+about:
+  homepage: https://github.com/mworchel/xatlas-python
+  license: MIT
+  license_family: MIT
+  summary: Python bindings for xatlas
+  description: |
+    Python bindings for xatlas, a mesh UV unwrapping library.
+    xatlas is a small C++11 library for generating unique texture coordinates
+    from a mesh. It's an independent implementation of the Microsoft UVAtlas tool.
+  repository: https://github.com/mworchel/xatlas-python
+
+extra:
+  recipe-maintainers:
+    - blooop

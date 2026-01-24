@@ -27,18 +27,17 @@ requirements:
     - open3d >=0.17.0
     - opencv >=4.10.0
     - matplotlib-base >=3.3.4
-    # - pybullet-planning-eaa  # Not available in conda
+    - pybullet-planning-eaa
     - trimesh >=3.9.20
-    # - xatlas >=0.0.7  # Not available in conda
+    - xatlas >=0.0.7
     - transforms3d >=0.4.1
     - strenum
     - ipython >=8.37.0
 
-# Tests disabled - requires pybullet-planning-eaa which is not in conda
-# tests:
-#   - python:
-#       imports:
-#         - grip
+tests:
+  - python:
+      imports:
+        - grip
 
 about:
   homepage: https://github.com/danfergo/gripx

@@ -1,0 +1,45 @@
+schema_version: 1
+
+package:
+  name: pybullet-planning-eaa
+  version: "0.5.1"
+
+source:
+  - url: https://files.pythonhosted.org/packages/27/d9/c295793d0a7e889a84ef51102a2aa1b15708c23d5ced4f03071cad48a637/pybullet_planning_eaa-0.5.1-py2.py3-none-any.whl
+    sha256: fe9b9a84211745cd6fcb0f34c2c8202c3598c1ceb47046d28633570f3a15f226
+
+build:
+  number: 0
+  noarch: python
+  script: |
+    pip install *.whl --prefix="$PREFIX" --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+  run:
+    - python >=3.6
+    - pybullet
+    - numpy
+
+tests:
+  - python:
+      imports:
+        - pybullet_planning
+
+about:
+  homepage: https://github.com/yijiangh/pybullet_planning
+  license: MIT
+  license_family: MIT
+  summary: A suite of utility functions to facilitate robotic planning related research on the pybullet physics simulation engine
+  description: |
+    PyBullet Planning is a suite of utility functions designed to facilitate
+    robotic planning and motion planning research using the PyBullet physics
+    simulation engine. It provides various utilities for collision checking,
+    path planning, and kinematic operations.
+  repository: https://github.com/yijiangh/pybullet_planning
+
+extra:
+  recipe-maintainers:
+    - blooop
