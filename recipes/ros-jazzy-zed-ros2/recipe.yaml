@@ -7,7 +7,7 @@ package:
 
 source:
   git: https://github.com/stereolabs/zed-ros2-wrapper.git
-  rev: 01ffb64
+  rev: 01ffb64bd7ca02913f7ec7ba1f703108dcbddde8
   target_directory: ros-jazzy-zed-ros2/src/work
 
 build:

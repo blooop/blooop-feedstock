@@ -7,7 +7,7 @@ package:
 
 source:
   git: https://github.com/kinisi-robotics/phantom_touch_ros2.git
-  rev: 11efce0
+  rev: 2bf5b20f26071646423656915506e7c18fa97c07
   target_directory: ros-jazzy-phantom-touch-control/src/work
 
 build:
