@@ -1,0 +1,78 @@
+context:
+  version: "5.1.0"
+
+package:
+  name: ros-jazzy-zed-components
+  version: ${{ version }}
+
+source:
+  git: https://github.com/stereolabs/zed-ros2-wrapper.git
+  rev: 01ffb64bd7ca02913f7ec7ba1f703108dcbddde8
+  target_directory: ros-jazzy-zed-components/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-ament-cmake-auto
+    - ros-jazzy-rclcpp
+    - ros-jazzy-rclcpp-components
+    - ros-jazzy-rcutils
+    - ros-jazzy-builtin-interfaces
+    - ros-jazzy-std-msgs
+    - ros-jazzy-std-srvs
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-stereo-msgs
+    - ros-jazzy-geometry-msgs
+    - ros-jazzy-nav-msgs
+    - ros-jazzy-rosgraph-msgs
+    - ros-jazzy-tf2
+    - ros-jazzy-tf2-ros
+    - ros-jazzy-tf2-geometry-msgs
+    - ros-jazzy-image-transport
+    - ros-jazzy-diagnostic-updater
+    - ros-jazzy-diagnostic-msgs
+    - ros-jazzy-visualization-msgs
+    - ros-jazzy-shape-msgs
+    - ros-jazzy-backward-ros
+    - ros-jazzy-robot-localization
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+    - eigen
+    - libopencv
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-rclcpp
+    - ros-jazzy-rclcpp-components
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-geometry-msgs
+    - ros-jazzy-nav-msgs
+    - ros-jazzy-tf2
+    - ros-jazzy-tf2-ros
+    - ros-jazzy-image-transport
+    - ros-jazzy-diagnostic-updater
+    - ros-jazzy-backward-ros
+    - ros-jazzy-robot-localization
+    - libopencv
+
+tests:
+  - script:
+      - test -d $PREFIX/share/zed_components
+
+about:
+  homepage: https://github.com/stereolabs/zed-ros2-wrapper
+  summary: "ROS 2 ZED camera components (requires ZED SDK + CUDA on system)"
+  license: MIT

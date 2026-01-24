@@ -1,0 +1,53 @@
+context:
+  version: "4.0.0"
+  commit: "bugfix/cartesian_planning_collision_avoidance"
+
+package:
+  name: ros-jazzy-pymoveit2
+  version: ${{ version }}
+
+source:
+  git: https://github.com/kinisi-robotics/pymoveit2.git
+  rev: ${{ commit }}
+  target_directory: ros-jazzy-pymoveit2/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-ament-cmake-python
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-action-msgs
+    - ros-jazzy-control-msgs
+    - ros-jazzy-geometry-msgs
+    - ros-jazzy-moveit-msgs
+    - ros-jazzy-rclpy
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-shape-msgs
+    - ros-jazzy-std-srvs
+    - ros-jazzy-trajectory-msgs
+
+tests:
+  - script:
+      - python -c "import pymoveit2; print('pymoveit2 imported successfully')"
+
+about:
+  homepage: https://github.com/kinisi-robotics/pymoveit2
+  summary: "Kinisi fork of pymoveit2 - Python interface for MoveIt 2 (branch: bugfix/cartesian_planning_collision_avoidance)"
+  license: BSD-3-Clause

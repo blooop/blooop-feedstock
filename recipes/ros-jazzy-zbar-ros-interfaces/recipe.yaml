@@ -1,0 +1,46 @@
+context:
+  version: "0.7.0"
+
+package:
+  name: ros-jazzy-zbar-ros-interfaces
+  version: ${{ version }}
+
+source:
+  git: https://github.com/mfinean/zbar_ros.git
+  rev: 8269e7f1781affb94e51a601d807ce18a9895094
+  target_directory: ros-jazzy-zbar-ros-interfaces/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-rosidl-default-generators
+    - ros-jazzy-vision-msgs
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-vision-msgs
+    - ros-jazzy-rosidl-default-runtime
+
+tests:
+  - script:
+      - test -d $PREFIX/share/zbar_ros_interfaces
+
+about:
+  homepage: https://github.com/mfinean/zbar_ros
+  summary: "Interfaces for zbar_ros barcode/QR detection"
+  license: BSD-3-Clause

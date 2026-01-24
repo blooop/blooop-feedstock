@@ -1,0 +1,59 @@
+context:
+  version: "0.1.0"
+
+package:
+  name: ros-jazzy-phantom-touch-control
+  version: ${{ version }}
+
+source:
+  git: https://github.com/kinisi-robotics/phantom_touch_ros2.git
+  rev: 2bf5b20f26071646423656915506e7c18fa97c07
+  target_directory: ros-jazzy-phantom-touch-control/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-rclcpp
+    - ros-jazzy-rclcpp-components
+    - ros-jazzy-std-msgs
+    - ros-jazzy-geometry-msgs
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-phantom-touch-msgs
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+    - boost
+    - eigen
+    - range-v3
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-rclcpp
+    - ros-jazzy-rclcpp-components
+    - ros-jazzy-std-msgs
+    - ros-jazzy-geometry-msgs
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-phantom-touch-msgs
+    - boost
+    - eigen
+
+tests:
+  - script:
+      - test -f $PREFIX/lib/libphantom_touch_control_node.so
+
+about:
+  homepage: https://github.com/kinisi-robotics/phantom_touch_ros2
+  summary: "ROS 2 driver for 3D Systems Phantom Touch haptic device (requires OpenHaptics SDK)"
+  license: BSD-3-Clause

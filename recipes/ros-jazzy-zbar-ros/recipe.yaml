@@ -1,0 +1,54 @@
+context:
+  version: "0.7.0"
+
+package:
+  name: ros-jazzy-zbar-ros
+  version: ${{ version }}
+
+source:
+  git: https://github.com/mfinean/zbar_ros.git
+  rev: 8269e7f1781affb94e51a601d807ce18a9895094
+  target_directory: ros-jazzy-zbar-ros/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-rclcpp
+    - ros-jazzy-cv-bridge
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-zbar-ros-interfaces
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+    - zbar
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-rclcpp
+    - ros-jazzy-cv-bridge
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-zbar-ros-interfaces
+    - zbar
+
+tests:
+  - script:
+      - test -d $PREFIX/share/zbar_ros
+
+about:
+  homepage: https://github.com/mfinean/zbar_ros
+  summary: "ROS wrapper for Zbar barcode/QR code reader library"
+  license: BSD-3-Clause

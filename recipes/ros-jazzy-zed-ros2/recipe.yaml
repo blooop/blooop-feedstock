@@ -1,0 +1,45 @@
+context:
+  version: "5.1.0"
+
+package:
+  name: ros-jazzy-zed-ros2
+  version: ${{ version }}
+
+source:
+  git: https://github.com/stereolabs/zed-ros2-wrapper.git
+  rev: 01ffb64bd7ca02913f7ec7ba1f703108dcbddde8
+  target_directory: ros-jazzy-zed-ros2/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-ament-cmake-auto
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-zed-components
+    - ros-jazzy-zed-wrapper
+
+tests:
+  - script:
+      - test -d $PREFIX/share/zed_ros2
+
+about:
+  homepage: https://github.com/stereolabs/zed-ros2-wrapper
+  summary: "ROS 2 ZED camera meta-package with launch files"
+  license: MIT
