@@ -11,7 +11,7 @@ source:
   target_directory: ros-jazzy-phantom-touch-control/src/work
 
 build:
-  number: 0
+  number: 1
   script: build_ament_cmake.sh
 
 requirements:
@@ -34,7 +34,7 @@ requirements:
     - ros-jazzy-phantom-touch-msgs
     - ros-jazzy-ros-environment
     - ros-jazzy-ros-workspace
-    - boost
+    - libboost-devel
     - eigen
     - range-v3
   run:
@@ -46,8 +46,6 @@ requirements:
     - ros-jazzy-geometry-msgs
     - ros-jazzy-sensor-msgs
     - ros-jazzy-phantom-touch-msgs
-    - boost
-    - eigen
 
 tests:
   - script:
