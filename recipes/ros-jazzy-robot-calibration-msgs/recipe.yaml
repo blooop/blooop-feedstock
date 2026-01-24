@@ -1,0 +1,53 @@
+context:
+  version: "0.10.0"
+
+package:
+  name: ros-jazzy-robot-calibration-msgs
+  version: ${{ version }}
+
+source:
+  git: https://github.com/kinisi-robotics/robot_calibration.git
+  rev: feature/ros_segfault
+  folder: robot_calibration_msgs
+  target_directory: ros-jazzy-robot-calibration-msgs/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-rosidl-default-generators
+    - ros-jazzy-action-msgs
+    - ros-jazzy-builtin-interfaces
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-action-msgs
+    - ros-jazzy-builtin-interfaces
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-rosidl-default-runtime
+
+tests:
+  - script:
+      - test -d $PREFIX/share/robot_calibration_msgs
+
+about:
+  homepage: https://github.com/kinisi-robotics/robot_calibration
+  summary: "Kinisi fork - Messages for calibrating a robot (branch: feature/ros_segfault)"
+  license: Apache-2.0

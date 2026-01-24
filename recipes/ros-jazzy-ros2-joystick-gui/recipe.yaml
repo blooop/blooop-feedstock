@@ -1,0 +1,47 @@
+context:
+  version: "0.0.1"
+
+package:
+  name: ros-jazzy-ros2-joystick-gui
+  version: ${{ version }}
+
+source:
+  git: https://github.com/foiegreis/ros2_joystick_gui.git
+  rev: ecf527e342c11361aad8159d444794ef65d10882
+  target_directory: ros-jazzy-ros2-joystick-gui/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - pkg-config
+  host:
+    - python
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-rclcpp
+    - ros-jazzy-geometry-msgs
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+    - qt-main
+    - libopengl-devel
+    - libgl-devel
+  run:
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-rclcpp
+    - ros-jazzy-geometry-msgs
+    - qt-main
+
+tests:
+  - script:
+      - test -f $PREFIX/lib/libros2_joystick_gui.so || test -f $PREFIX/lib/ros2_joystick_gui/ros2_joystick_gui || echo "Binary check"
+
+about:
+  homepage: https://github.com/foiegreis/ros2_joystick_gui
+  summary: "A joystick GUI for ROS2 using C++ and Qt5"
+  license: Apache-2.0

@@ -1,0 +1,99 @@
+context:
+  version: "0.10.0"
+
+package:
+  name: ros-jazzy-robot-calibration
+  version: ${{ version }}
+
+source:
+  git: https://github.com/kinisi-robotics/robot_calibration.git
+  rev: feature/ros_segfault
+  folder: robot_calibration
+  target_directory: ros-jazzy-robot-calibration/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-rclcpp
+    - ros-jazzy-rclcpp-action
+    - ros-jazzy-camera-calibration-parsers
+    - ros-jazzy-control-msgs
+    - ros-jazzy-cv-bridge
+    - ros-jazzy-geometry-msgs
+    - ros-jazzy-geometric-shapes
+    - ros-jazzy-kdl-parser
+    - ros-jazzy-moveit-msgs
+    - ros-jazzy-nav-msgs
+    - ros-jazzy-pluginlib
+    - ros-jazzy-robot-calibration-msgs
+    - ros-jazzy-rosbag2-cpp
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-tf2-geometry-msgs
+    - ros-jazzy-tf2-ros
+    - ros-jazzy-tinyxml2-vendor
+    - ros-jazzy-visualization-msgs
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+    - eigen
+    - ceres-solver
+    - gflags
+    - suitesparse
+    - blas-devel
+    - orocos-kdl
+    - libboost-devel
+    - libprotobuf
+    - yaml-cpp
+    - tinyxml2
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-rclcpp
+    - ros-jazzy-rclcpp-action
+    - ros-jazzy-camera-calibration-parsers
+    - ros-jazzy-control-msgs
+    - ros-jazzy-cv-bridge
+    - ros-jazzy-geometry-msgs
+    - ros-jazzy-geometric-shapes
+    - ros-jazzy-kdl-parser
+    - ros-jazzy-moveit-msgs
+    - ros-jazzy-nav-msgs
+    - ros-jazzy-pluginlib
+    - ros-jazzy-robot-calibration-msgs
+    - ros-jazzy-rosbag2-cpp
+    - ros-jazzy-sensor-msgs
+    - ros-jazzy-std-msgs
+    - ros-jazzy-tf2-geometry-msgs
+    - ros-jazzy-tf2-ros
+    - ros-jazzy-tinyxml2-vendor
+    - ros-jazzy-visualization-msgs
+    - ceres-solver
+    - gflags
+    - suitesparse
+    - orocos-kdl
+    - libboost
+    - libprotobuf
+    - yaml-cpp
+    - tinyxml2
+
+tests:
+  - script:
+      - test -d $PREFIX/share/robot_calibration
+
+about:
+  homepage: https://github.com/kinisi-robotics/robot_calibration
+  summary: "Kinisi fork - Robot calibration tools (branch: feature/ros_segfault)"
+  license: Apache-2.0
