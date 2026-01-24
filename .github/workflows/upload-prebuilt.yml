@@ -1,0 +1,45 @@
+name: Upload Pre-built Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag containing pre-built .conda artifacts'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p output
+          gh release download "${{ github.event.inputs.tag }}" \
+            --repo ${{ github.repository }} \
+            --pattern "*.conda" \
+            --dir output/
+          echo "Downloaded artifacts:"
+          ls -la output/
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          run-install: false
+
+      - name: Upload to prefix.dev
+        env:
+          PIXI_TOKEN: ${{ secrets.PIXI_TOKEN }}
+        run: |
+          for pkg in $(find output -type f -name "*.conda"); do
+            echo "Uploading ${pkg}"
+            pixi exec rattler-build upload prefix \
+              -c blooop \
+              --api-key "$PIXI_TOKEN" \
+              "${pkg}" || echo "Failed or already exists: ${pkg}"
+          done

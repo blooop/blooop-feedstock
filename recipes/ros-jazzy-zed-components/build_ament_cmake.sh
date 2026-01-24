@@ -22,8 +22,9 @@ export PYTHON_INSTALL_DIR=`python -c "import os;print(os.path.relpath(os.environ
 echo "Using PYTHON_INSTALL_DIR: $PYTHON_INSTALL_DIR"
 
 if [[ $target_platform =~ linux.* ]]; then
-    export CFLAGS="${CFLAGS} -D__STDC_FORMAT_MACROS=1"
-    export CXXFLAGS="${CXXFLAGS} -D__STDC_FORMAT_MACROS=1"
+    export CFLAGS="${CFLAGS} -D__STDC_FORMAT_MACROS=1 -I/usr/local/zed/include -I/usr/local/cuda/include"
+    export CXXFLAGS="${CXXFLAGS} -D__STDC_FORMAT_MACROS=1 -I/usr/local/zed/include -I/usr/local/cuda/include"
+    export LDFLAGS="${LDFLAGS} -L/usr/local/zed/lib -L/usr/local/cuda/lib64"
     ln -s $GCC ${BUILD_PREFIX}/bin/gcc
     ln -s $GXX ${BUILD_PREFIX}/bin/g++
 fi
