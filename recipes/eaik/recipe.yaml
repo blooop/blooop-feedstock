@@ -9,7 +9,7 @@ source:
     sha256: a4d6146aa16fc51751458ae3eec46ddbd8e58bc7795e647a3aa4691ee3bcc7f8
 
 build:
-  number: 0
+  number: 1
   script: |
     export CPLUS_INCLUDE_PATH="${PREFIX}/include/eigen3:${PREFIX}/include:${CPLUS_INCLUDE_PATH}"
     pip install . -v --no-deps --no-build-isolation
@@ -18,7 +18,7 @@ requirements:
   build:
     - cxx-compiler
   host:
-    - python >=3.8
+    - python 3.12.*
     - pip
     - setuptools
     - pybind11 >=2.10.0
@@ -26,7 +26,7 @@ requirements:
     - numpy >=1.21.0
     - eigen >=3.4
   run:
-    - python >=3.8
+    - python 3.12.*
     - numpy >=1.21.0
     - urchin >=0.0.27
     - setuptools
