@@ -1,0 +1,57 @@
+context:
+  version: "2.12.4"
+  commit: "1c4587aad3df9e659571f9044e2b28226ab6af1b"
+
+package:
+  name: ros-jazzy-moveit-ros-control-interface
+  version: ${{ version }}
+
+source:
+  git: https://github.com/moveit/moveit2.git
+  rev: ${{ commit }}
+  target_directory: ros-jazzy-moveit-ros-control-interface/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-controller-manager-msgs
+    - ros-jazzy-moveit-common
+    - ros-jazzy-moveit-core
+    - ros-jazzy-moveit-simple-controller-manager
+    - ros-jazzy-pluginlib
+    - ros-jazzy-rclcpp-action
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-trajectory-msgs
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-controller-manager-msgs
+    - ros-jazzy-moveit-common
+    - ros-jazzy-moveit-core
+    - ros-jazzy-moveit-simple-controller-manager
+    - ros-jazzy-pluginlib
+    - ros-jazzy-rclcpp-action
+    - ros-jazzy-trajectory-msgs
+
+tests:
+  - script:
+      - test -f $PREFIX/lib/libmoveit_ros_control_interface_plugin.so
+
+about:
+  homepage: https://github.com/moveit/moveit2
+  summary: "ros_control controller manager interface for MoveIt - ROS 2 Jazzy"
+  license: BSD-3-Clause

@@ -1,0 +1,45 @@
+context:
+  version: "2.0.2"
+  commit: "d8d54abda51f10554501854a744f21fd5b63daf6"
+
+package:
+  name: ros-jazzy-trac-ik
+  version: ${{ version }}
+
+source:
+  git: https://bitbucket.org/traclabs/trac_ik.git
+  rev: ${{ commit }}
+  target_directory: ros-jazzy-trac-ik/src/work
+
+build:
+  number: 0
+  script: build_ament_cmake.sh
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - cmake
+    - ninja
+    - python
+    - pkg-config
+  host:
+    - python
+    - pip
+    - ros-jazzy-ament-cmake
+    - ros-jazzy-ros-environment
+    - ros-jazzy-ros-workspace
+  run:
+    - python
+    - ros-jazzy-ros-workspace
+    - ros-jazzy-trac-ik-lib
+    - ros-jazzy-trac-ik-kinematics-plugin
+
+tests:
+  - script:
+      - test -d $PREFIX/share/trac_ik
+
+about:
+  homepage: https://bitbucket.org/traclabs/trac_ik
+  summary: "TRAC-IK metapackage for ROS 2 Jazzy"
+  license: BSD-3-Clause
