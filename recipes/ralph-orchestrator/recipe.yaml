@@ -28,7 +28,8 @@ build:
     - if: unix
       then:
         - mkdir -p "$PREFIX/bin"
-        - install -Dm755 "$SRC_DIR/ralph" "$PREFIX/bin/ralph"
+        - cp "$SRC_DIR/ralph" "$PREFIX/bin/ralph"
+        - chmod 755 "$PREFIX/bin/ralph"
 
 tests:
   - script:
