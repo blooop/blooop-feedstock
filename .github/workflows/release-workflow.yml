@@ -220,6 +220,26 @@ jobs:
             fi
           fi
 
+          # Check pkl
+          if [ -d "recipes/pkl" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "pkl" ]); then
+            echo "Checking pkl for updates..."
+
+            # Get current version from recipe
+            CURRENT=$(grep -A 3 'package:' recipes/pkl/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            # Get latest version from GitHub releases API (pkl uses bare version numbers, no v prefix)
+            LATEST=$(curl -s https://api.github.com/repos/apple/pkl/releases/latest | jq -r '.tag_name // empty' || echo "")
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: pkl $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "pkl", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "pkl is up to date"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix
