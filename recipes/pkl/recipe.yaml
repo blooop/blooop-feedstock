@@ -1,0 +1,67 @@
+schema_version: 1
+
+package:
+  name: pkl
+  version: "0.30.2"
+
+source:
+  - url: https://github.com/apple/pkl/releases/download/0.30.2/pkl-linux-amd64  # [linux and x86_64]
+    sha256: 474e5137d60a9e2320fde19a526f42c36d8e9d3b245139d59a9b8dff85283c76  # [linux and x86_64]
+  - url: https://github.com/apple/pkl/releases/download/0.30.2/pkl-linux-aarch64  # [linux and aarch64]
+    sha256: 8da3ae65104eb7058e35dc4a9fe46bd8ece2b6faf4b65d0b1054cadb2ede0246  # [linux and aarch64]
+  - url: https://github.com/apple/pkl/releases/download/0.30.2/pkl-macos-amd64  # [osx and x86_64]
+    sha256: 5f62ae7a7a34c15b3a83af17bda8e6b98516953f383a492340d4aa090caaa6d9  # [osx and x86_64]
+  - url: https://github.com/apple/pkl/releases/download/0.30.2/pkl-macos-aarch64  # [osx and arm64]
+    sha256: f1db44c0f6f859aee88c9d7d272f2371ae40ac95ec9957ae78eff51665158e04  # [osx and arm64]
+  - url: https://github.com/apple/pkl/releases/download/0.30.2/pkl-windows-amd64.exe  # [win]
+    sha256: 19e92aa59bcf4e54963b6e3b419af7e1b939f5793b44f4a08d60bab1217106f4  # [win]
+
+build:
+  number: 0
+  script:
+    - if: unix
+      then:
+        - mkdir -p "$PREFIX/bin"
+        - |
+          case "${target_platform:-}" in
+            linux-64)      SRC_FILE="pkl-linux-amd64" ;;
+            linux-aarch64) SRC_FILE="pkl-linux-aarch64" ;;
+            osx-64)        SRC_FILE="pkl-macos-amd64" ;;
+            osx-arm64)     SRC_FILE="pkl-macos-aarch64" ;;
+            *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+          install -Dm755 "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/pkl"
+    - if: win
+      then:
+        - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
+        - copy %SRC_DIR%\pkl-windows-amd64.exe %PREFIX%\Library\bin\pkl.exe
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - which pkl
+          - test -x $PREFIX/bin/pkl
+          - pkl --version
+      - if: win
+        then:
+          - where pkl
+          - pkl --version
+
+about:
+  homepage: https://pkl-lang.org
+  license: Apache-2.0
+  license_family: APACHE
+  summary: A configuration as code language with rich validation and tooling
+  description: |
+    Pkl is a configuration-as-code language designed with built-in validation
+    and comprehensive tooling support. It enables developers to define
+    configurations programmatically with strong type checking and validation
+    capabilities. Pkl can generate configuration in multiple formats including
+    JSON, YAML, XML, and property files.
+  documentation: https://pkl-lang.org/main/current/
+  repository: https://github.com/apple/pkl
+
+extra:
+  recipe-maintainers:
+    - blooop
