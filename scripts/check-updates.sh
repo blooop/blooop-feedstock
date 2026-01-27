@@ -47,11 +47,39 @@ check_package() {
             # claude-shim is versioned independently - no upstream to check
             echo "   ✅ claude-shim is versioned independently (no upstream version to check)"
             ;;
+        "ralph-orchestrator")
+            check_ralph_orchestrator "$current_version"
+            ;;
         *)
             echo "   ⚠️  No update checker implemented for $package_name"
             ;;
     esac
 }
+
+# Check ralph-orchestrator for updates
+check_ralph_orchestrator() {
+    local current_version=$1
+
+    # Fetch latest version from GitHub releases
+    local latest_version=$(curl -s "https://api.github.com/repos/mikeyobrien/ralph-orchestrator/releases/latest" 2>/dev/null | grep -m1 '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/')
+
+    if [ -z "$latest_version" ]; then
+        echo "   ❌ Failed to fetch latest version"
+        return 1
+    fi
+
+    echo "   Latest version: $latest_version"
+
+    if [ "$current_version" != "$latest_version" ]; then
+        echo "   🆕 UPDATE AVAILABLE: $current_version → $latest_version"
+        echo ""
+        echo "   To update, run:"
+        echo "   pixi run update-ralph-orchestrator"
+        echo ""
+        UPDATES_FOUND=$((UPDATES_FOUND + 1))
+    else
+        echo "   ✅ Up to date"
+    fi
 
 # Main execution
 echo "Scanning recipes directory..."

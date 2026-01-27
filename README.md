@@ -9,6 +9,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **eaik** - Toolbox for Efficient Analytical Inverse Kinematics by Subproblem Decomposition (from [OstermD/EAIK](https://github.com/OstermD/EAIK))
 - **pkl** - A configuration as code language with rich validation and tooling (from [apple/pkl](https://github.com/apple/pkl))
 - **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection (from [frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code))
+- **ralph-orchestrator** - Hat-based orchestration framework that keeps AI agents in a loop until done (from [mikeyobrien/ralph-orchestrator](https://github.com/mikeyobrien/ralph-orchestrator))
 - **speedtest-go** - CLI and Go API to test internet speed using speedtest.net (from [showwin/speedtest-go](https://github.com/showwin/speedtest-go))
 
 ### 🚀 Quick Install
@@ -20,6 +21,7 @@ pixi global install --channel https://prefix.dev/blooop devpod
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge eaik
 pixi global install --channel https://prefix.dev/blooop pkl
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge ralph-claude-code
+pixi global install --channel https://prefix.dev/blooop ralph-orchestrator
 pixi global install --channel https://prefix.dev/blooop speedtest-go
 ```
 
