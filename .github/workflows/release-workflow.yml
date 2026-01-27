@@ -240,6 +240,26 @@ jobs:
             fi
           fi
 
+          # Check ralph-orchestrator
+          if [ -d "recipes/ralph-orchestrator" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "ralph-orchestrator" ]); then
+            echo "Checking ralph-orchestrator for updates..."
+
+            # Get current version from recipe
+            CURRENT=$(grep -A 3 'package:' recipes/ralph-orchestrator/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            # Get latest version from GitHub releases API
+            LATEST=$(curl -s https://api.github.com/repos/mikeyobrien/ralph-orchestrator/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/' || echo "")
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: ralph-orchestrator $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "ralph-orchestrator", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "ralph-orchestrator is up to date"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix
