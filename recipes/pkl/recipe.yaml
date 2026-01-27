@@ -30,7 +30,8 @@ build:
             osx-arm64)     SRC_FILE="pkl-macos-aarch64" ;;
             *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
           esac
-          install -Dm755 "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/pkl"
+          cp "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/pkl"
+          chmod 755 "$PREFIX/bin/pkl"
     - if: win
       then:
         - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
