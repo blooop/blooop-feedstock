@@ -1,0 +1,56 @@
+schema_version: 1
+
+package:
+  name: envoy
+  version: "1.37.0"
+
+source:
+  - url: https://github.com/envoyproxy/envoy/releases/download/v1.37.0/envoy-1.37.0-linux-x86_64  # [linux and x86_64]
+    sha256: 0a5729ee4e980d346ebcee80f18e7efe5232b91141bb4c776ec3adcca786e60c  # [linux and x86_64]
+  - url: https://github.com/envoyproxy/envoy/releases/download/v1.37.0/envoy-1.37.0-linux-aarch_64  # [linux and aarch64]
+    sha256: f4a12ac9211bc0ee77c8dda869722b6d28a1e9d9b62cdb97ec8f20de8200fa28  # [linux and aarch64]
+
+build:
+  number: 0
+  script:
+    - if: unix
+      then:
+        - mkdir -p "$PREFIX/bin"
+        - |
+          case "${target_platform:-}" in
+            linux-64)      SRC_FILE="envoy-1.37.0-linux-x86_64" ;;
+            linux-aarch64) SRC_FILE="envoy-1.37.0-linux-aarch_64" ;;
+            *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+          install -Dm755 "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/envoy"
+
+requirements:
+  run:
+    - __glibc >=2.17  # [linux]
+
+tests:
+  - script:
+      - which envoy
+      - test -x $PREFIX/bin/envoy
+      - envoy --version
+
+about:
+  homepage: https://www.envoyproxy.io/
+  license: Apache-2.0
+  license_family: APACHE
+  summary: Cloud-native high-performance edge/middle/service proxy
+  description: |
+    Envoy is an open source edge and service proxy, designed for cloud-native
+    applications. Originally built at Lyft, Envoy is a high performance C++
+    distributed proxy designed for single services and applications, as well as
+    a communication bus and universal data plane designed for large microservice
+    service mesh architectures. Built on the learnings of solutions such as NGINX,
+    HAProxy, hardware load balancers, and cloud load balancers, Envoy runs alongside
+    every application and abstracts the network by providing common features in a
+    platform-agnostic manner.
+  documentation: https://www.envoyproxy.io/docs/envoy/latest/
+  repository: https://github.com/envoyproxy/envoy
+
+extra:
+  recipe-maintainers:
+    - blooop
