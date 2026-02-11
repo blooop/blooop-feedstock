@@ -260,6 +260,23 @@ jobs:
             fi
           fi
 
+          # Check krill (Rust source build - no releases, uses commit-based versioning)
+          if [ -d "recipes/krill" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "krill" ]); then
+            echo "Checking krill..."
+
+            # Get current version from recipe
+            CURRENT=$(grep -A 3 'package:' recipes/krill/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            # krill is built from source at a specific commit - only build on force_build
+            if [ "${{ github.event.inputs.force_build }}" == "true" ]; then
+              echo "Force build requested for krill $CURRENT"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "krill", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
+            else
+              echo "krill - no build requested (use force_build to rebuild)"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix
