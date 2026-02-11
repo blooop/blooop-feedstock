@@ -2,7 +2,7 @@ schema_version: 1
 
 package:
   name: claude-shim
-  version: "0.3.0"
+  version: "0.3.1"
 
 source:
   - path: claude-shim.sh
@@ -55,9 +55,9 @@ about:
     Behavior:
     - If Claude is already installed via the official installer (~/.local/bin/claude),
       the shim defers to it, ensuring compatibility with existing installations.
-    - If no official installation exists, the shim downloads the latest Claude Code
-      on first run.
-    - The shim auto-updates to the latest version when available.
+    - If no official installation exists, the shim downloads the stable Claude Code
+      release on first run.
+    - The shim auto-updates to the latest stable version when available.
     - Supports Docker caching: mount ~/.claude or ~/.cache to persist downloads
       across container runs.
     - Self-healing: automatically detects and repairs corrupted cached binaries.

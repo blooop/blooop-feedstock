@@ -15,7 +15,7 @@ debug() {
     fi
 }
 
-debug "Shim version: 0.3.0"
+debug "Shim version: 0.3.1"
 debug "HOME=$HOME"
 debug "CONDA_PREFIX=${CONDA_PREFIX:-unset}"
 
@@ -175,7 +175,7 @@ get_installed_version() {
 
 # Get latest version from GCS
 get_latest_version() {
-    download "$GCS_BUCKET/latest" 2>/dev/null || echo ""
+    download "$GCS_BUCKET/stable" 2>/dev/null || echo ""
 }
 
 # Install Claude Code binary
