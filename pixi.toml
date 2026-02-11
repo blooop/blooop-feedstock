@@ -30,6 +30,9 @@ build-devpod-prerelease = "rattler-build build --recipe recipes/devpod-prereleas
 # Build speedtest-go
 build-speedtest-go = "rattler-build build --recipe recipes/speedtest-go/recipe.yaml --output-dir output"
 
+# Build krill
+build-krill = "rattler-build build --recipe recipes/krill/recipe.yaml --output-dir output"
+
 # Build ROS Jazzy packages
 build-pymoveit2 = "rattler-build build --recipe recipes/ros-jazzy-pymoveit2/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
 build-ros2-joystick-gui = "rattler-build build --recipe recipes/ros-jazzy-ros2-joystick-gui/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"

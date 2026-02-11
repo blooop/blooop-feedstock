@@ -1,0 +1,64 @@
+schema_version: 1
+
+package:
+  name: krill
+  version: "0.1.0"
+
+source:
+  - url: https://github.com/Zero-Robotics/krill/archive/3a009e2e7452e1478fa9d35b5367867ada674257.tar.gz
+    sha256: b034c5dad028eb18f117f3e39cc1fe055cc3eb2043cedad262d43d02af4c2755
+
+build:
+  number: 0
+  script:
+    - if: unix
+      then:
+        - cargo build --release --package krill-cli
+        - mkdir -p "$PREFIX/bin"
+        - install -Dm755 target/release/krill "$PREFIX/bin/krill"
+    - if: win
+      then:
+        - cargo build --release --package krill-cli
+        - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
+        - copy target\release\krill.exe %PREFIX%\Library\bin\krill.exe
+
+requirements:
+  build:
+    - rust >=1.75
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - which krill
+          - test -x $PREFIX/bin/krill
+          - krill --help
+      - if: win
+        then:
+          - where krill
+          - krill --help
+
+about:
+  homepage: https://github.com/Zero-Robotics/krill
+  license: Apache-2.0
+  license_family: APACHE
+  summary: Professional-grade DAG-based process orchestrator for robotics systems
+  description: |
+    Krill is a professional-grade DAG-based process orchestrator for robotics systems.
+    It manages complex service dependencies with safety-first orchestration, cascading
+    failure handling, critical service protection, and a real-time monitoring UI
+    designed for robots.
+
+    Unlike ROS2 launch or Docker Compose, Krill emphasizes:
+    - Safety-first orchestration with cascading failures
+    - Critical service protection
+    - Real-time monitoring UI designed for robots
+    - Client SDKs in Rust, Python, and C++
+
+    Built in Rust for performance and reliability.
+  documentation: https://github.com/Zero-Robotics/krill#readme
+  repository: https://github.com/Zero-Robotics/krill
+
+extra:
+  recipe-maintainers:
+    - blooop
