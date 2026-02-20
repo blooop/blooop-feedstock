@@ -1,0 +1,62 @@
+schema_version: 1
+
+package:
+  name: dune3d
+  version: "1.4.0"
+
+source:
+  - path: dune3d-shim.sh
+
+build:
+  number: 0
+  script:
+    - mkdir -p $PREFIX/bin
+    - cp $SRC_DIR/dune3d-shim.sh $PREFIX/bin/dune3d
+    - chmod +x $PREFIX/bin/dune3d
+
+requirements:
+  run: []
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - which dune3d
+          - test -x $PREFIX/bin/dune3d
+          - bash -n $PREFIX/bin/dune3d
+          - dune3d --shim-version
+
+about:
+  homepage: https://dune3d.org
+  license: GPL-3.0-only
+  license_family: GPL
+  summary: Flatpak shim for Dune 3D - parametric 3D CAD application
+  description: |
+    This package provides a shim that installs and runs Dune 3D via Flatpak.
+    Dune 3D is a parametric 3D CAD application that supports STEP import/export,
+    fillets, chamfers, and is designed for creating 3D-printed enclosures for
+    electronics projects.
+
+    Behavior:
+    - If dune3d is already installed as a system package, the shim defers to it.
+    - Otherwise, on first run, the shim installs Dune 3D from Flathub via Flatpak.
+    - Requires flatpak to be installed on the system.
+
+    This package does NOT redistribute Dune 3D. It installs from Flathub
+    (org.dune3d.dune3d) on first run.
+
+    Key features of Dune 3D:
+    - Parametric 3D modeling with constraints
+    - STEP and DXF import/export
+    - Fillets and chamfers
+    - Built on Open CASCADE geometry kernel
+    - GTK4-based user interface
+
+    Requires: flatpak (system package)
+    Linux only.
+  documentation: https://docs.dune3d.org
+  repository: https://github.com/dune3d/dune3d
+
+extra:
+  recipe-maintainers:
+    - blooop
