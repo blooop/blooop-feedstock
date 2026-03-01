@@ -443,7 +443,7 @@ jobs:
 
       - name: Upload build artifact
         if: steps.build.outputs.success == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: conda-${{ matrix.package }}-${{ matrix.platform }}
           path: output/${{ matrix.platform }}/*.conda
