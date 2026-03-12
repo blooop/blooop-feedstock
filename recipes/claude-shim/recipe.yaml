@@ -2,7 +2,7 @@ schema_version: 1
 
 package:
   name: claude-shim
-  version: "0.4.0"
+  version: "0.5.0"
 
 source:
   - path: claude-shim.sh

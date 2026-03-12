@@ -15,7 +15,7 @@ debug() {
     fi
 }
 
-debug "Shim version: 0.4.0"
+debug "Shim version: 0.5.0"
 debug "HOME=$HOME"
 debug "CONDA_PREFIX=${CONDA_PREFIX:-unset}"
 
@@ -79,6 +79,18 @@ determine_install_dir() {
     echo "${CONDA_PREFIX:-${PREFIX:-$HOME/.pixi/envs/default}}/opt/claude-code"
 }
 
+# Run a command with a timeout (portable: Linux timeout, macOS perl fallback)
+run_with_timeout() {
+    local seconds="$1"
+    shift
+    if command -v timeout &> /dev/null; then
+        timeout "$seconds" "$@"
+    else
+        # macOS/BSD fallback using perl alarm
+        perl -e 'alarm shift; exec @ARGV' "$seconds" "$@"
+    fi
+}
+
 # Validate that a Claude binary works correctly
 # Returns 0 if valid, 1 if invalid/corrupted
 validate_binary() {
@@ -90,9 +102,22 @@ validate_binary() {
         return 1
     fi
 
-    # Run with --version and check output contains "Claude Code"
+    # Fast path: file too small to be a real binary (<1MB = likely corrupted)
+    local file_size=0
+    if command -v stat &> /dev/null; then
+        # Try GNU stat first, then BSD stat
+        file_size=$(stat -c %s "$binary" 2>/dev/null || stat -f %z "$binary" 2>/dev/null || echo "0")
+    elif command -v wc &> /dev/null; then
+        file_size=$(wc -c < "$binary" 2>/dev/null || echo "0")
+    fi
+    if [ "$file_size" -lt 1048576 ]; then
+        debug "Binary too small (${file_size} bytes), likely corrupted"
+        return 1
+    fi
+
+    # Run with --version (15s timeout) and check output contains "Claude Code"
     local version_output
-    version_output=$("$binary" --version 2>&1) || true
+    version_output=$(run_with_timeout 15 "$binary" --version 2>&1) || true
 
     if echo "$version_output" | grep -q "Claude Code"; then
         debug "Binary validation passed: $version_output"
@@ -153,27 +178,72 @@ detect_platform() {
     echo "$platform"
 }
 
-# Download function
+# Download function with timeout support
+# Usage: download <url> <output> [max_time_seconds]
+# max_time defaults to 30s for metadata, pass 600 for large binaries
 download() {
     local url="$1"
     local output="$2"
+    local max_time="${3:-30}"
 
     if command -v curl &> /dev/null; then
         if [ -n "$output" ]; then
-            curl -fsSL -o "$output" "$url"
+            curl -fsSL --connect-timeout 10 --max-time "$max_time" -o "$output" "$url"
         else
-            curl -fsSL "$url"
+            curl -fsSL --connect-timeout 10 --max-time "$max_time" "$url"
         fi
     elif command -v wget &> /dev/null; then
         if [ -n "$output" ]; then
-            wget -q -O "$output" "$url"
+            wget -q --connect-timeout=10 --read-timeout="$max_time" -O "$output" "$url"
         else
-            wget -q -O - "$url"
+            wget -q --connect-timeout=10 --read-timeout="$max_time" -O - "$url"
         fi
     else
         echo "Error: Neither curl nor wget found" >&2
         return 1
     fi
+}
+
+# Download with progress bar for large foreground downloads
+# Usage: download_large <url> <output> [max_time_seconds]
+download_large() {
+    local url="$1"
+    local output="$2"
+    local max_time="${3:-600}"
+
+    if command -v curl &> /dev/null; then
+        curl -fSL --connect-timeout 10 --max-time "$max_time" --progress-bar -o "$output" "$url"
+    elif command -v wget &> /dev/null; then
+        wget --connect-timeout=10 --read-timeout="$max_time" --show-progress -O "$output" "$url" 2>&1
+    else
+        echo "Error: Neither curl nor wget found" >&2
+        return 1
+    fi
+}
+
+# Retry wrapper for download functions
+# Usage: download_with_retry <max_retries> <delay> <download_func> [args...]
+download_with_retry() {
+    local max_retries="$1"
+    local delay="$2"
+    local func="$3"
+    shift 3
+
+    local attempt=1
+    while [ "$attempt" -le "$max_retries" ]; do
+        if "$func" "$@"; then
+            return 0
+        fi
+        if [ "$attempt" -lt "$max_retries" ]; then
+            debug "Download attempt $attempt/$max_retries failed, retrying in ${delay}s..."
+            sleep "$delay"
+            delay=$((delay * 2))
+        else
+            debug "Download failed after $max_retries attempts"
+        fi
+        attempt=$((attempt + 1))
+    done
+    return 1
 }
 
 # Get installed version
@@ -183,9 +253,9 @@ get_installed_version() {
     fi
 }
 
-# Get latest version from GCS
+# Get latest version from GCS (30s timeout, 3 retries)
 get_latest_version() {
-    download "$GCS_BUCKET/stable" 2>/dev/null || echo ""
+    download_with_retry 3 2 download "$GCS_BUCKET/stable" "" 30 2>/dev/null || echo ""
 }
 
 # Check if a staged update is ready to apply
@@ -210,11 +280,25 @@ apply_staged_update() {
     return 1
 }
 
-# Remove incomplete staging directory (crashed/killed background download)
+# Remove incomplete staging directory only if older than 15 minutes
+# Avoids killing an actively running background download
 clean_stale_staging() {
     if [ -d "$STAGING_DIR" ] && [ ! -f "$STAGING_COMPLETE" ]; then
-        debug "Cleaning stale staging directory"
-        rm -rf "$STAGING_DIR"
+        local dir_age_seconds=0
+        local now
+        now=$(date +%s)
+        # GNU stat: -c %Y, BSD/macOS stat: -f %m
+        local dir_mtime
+        dir_mtime=$(stat -c %Y "$STAGING_DIR" 2>/dev/null || stat -f %m "$STAGING_DIR" 2>/dev/null || echo "0")
+        if [ "$dir_mtime" -gt 0 ]; then
+            dir_age_seconds=$((now - dir_mtime))
+        fi
+        if [ "$dir_age_seconds" -ge 900 ]; then
+            debug "Cleaning stale staging directory (${dir_age_seconds}s old)"
+            rm -rf "$STAGING_DIR"
+        else
+            debug "Staging directory exists but is recent (${dir_age_seconds}s old), leaving it"
+        fi
     fi
 }
 
@@ -257,8 +341,8 @@ background_update() {
     # Create staging directory
     mkdir -p "$STAGING_DIR"
 
-    # Download binary to staging
-    if ! download "$GCS_BUCKET/$version/$platform/claude" "$STAGING_BINARY"; then
+    # Download binary to staging (600s timeout, 2 retries)
+    if ! download_with_retry 2 2 download "$GCS_BUCKET/$version/$platform/claude" "$STAGING_BINARY" 600; then
         debug "Background download failed"
         rm -rf "$STAGING_DIR"
         return 1
@@ -266,7 +350,7 @@ background_update() {
 
     # Verify checksum if possible
     local manifest_json expected_checksum actual_checksum
-    manifest_json=$(download "$GCS_BUCKET/$version/manifest.json" 2>/dev/null || echo "")
+    manifest_json=$(download_with_retry 2 2 download "$GCS_BUCKET/$version/manifest.json" "" 30 2>/dev/null || echo "")
 
     if [ -n "$manifest_json" ]; then
         if command -v jq &> /dev/null; then
@@ -324,15 +408,15 @@ install_claude_code() {
     tmp_binary=$(mktemp)
     trap "rm -f '$tmp_binary'" EXIT
 
-    # Download the binary
-    if ! download "$GCS_BUCKET/$version/$platform/claude" "$tmp_binary"; then
+    # Download the binary (600s timeout, 3 retries, with progress bar)
+    if ! download_with_retry 3 2 download_large "$GCS_BUCKET/$version/$platform/claude" "$tmp_binary" 600; then
         echo "Download failed. Please check your internet connection." >&2
         exit 1
     fi
 
     # Verify checksum if jq is available
     local manifest_json expected_checksum actual_checksum
-    manifest_json=$(download "$GCS_BUCKET/$version/manifest.json" 2>/dev/null || echo "")
+    manifest_json=$(download_with_retry 2 2 download "$GCS_BUCKET/$version/manifest.json" "" 30 2>/dev/null || echo "")
 
     if [ -n "$manifest_json" ]; then
         if command -v jq &> /dev/null; then
@@ -383,6 +467,47 @@ install_claude_code() {
     echo ""
 }
 
+# Concurrency lock to prevent parallel installs from corrupting each other
+LOCKFILE="$INSTALL_DIR/.lock"
+
+acquire_lock() {
+    mkdir -p "$INSTALL_DIR"
+    # Use noclobber for portable atomic file creation
+    if (set -C; echo $$ > "$LOCKFILE") 2>/dev/null; then
+        debug "Lock acquired (pid $$)"
+        return 0
+    fi
+    # Check if the lock holder is still alive
+    local lock_pid
+    lock_pid=$(cat "$LOCKFILE" 2>/dev/null || echo "")
+    if [ -n "$lock_pid" ] && kill -0 "$lock_pid" 2>/dev/null; then
+        debug "Lock held by active process $lock_pid, waiting..."
+        # Wait up to 120s for the other process to finish
+        local waited=0
+        while [ "$waited" -lt 120 ] && kill -0 "$lock_pid" 2>/dev/null; do
+            sleep 2
+            waited=$((waited + 2))
+        done
+        if kill -0 "$lock_pid" 2>/dev/null; then
+            debug "Lock holder $lock_pid still running after ${waited}s, giving up"
+            return 1
+        fi
+    fi
+    # Stale lock from a dead process — reclaim it
+    debug "Removing stale lock (pid ${lock_pid:-unknown})"
+    rm -f "$LOCKFILE"
+    if (set -C; echo $$ > "$LOCKFILE") 2>/dev/null; then
+        debug "Lock acquired after stale cleanup (pid $$)"
+        return 0
+    fi
+    return 1
+}
+
+release_lock() {
+    rm -f "$LOCKFILE"
+    debug "Lock released"
+}
+
 # Main logic
 PLATFORM=$(detect_platform)
 if [ "$PLATFORM" = "unsupported" ]; then
@@ -402,24 +527,54 @@ clean_stale_staging
 if [ ! -f "$REAL_BINARY" ]; then
     # Case A: No binary -- synchronous install (first run)
     debug "Binary not found, need fresh install"
-    LATEST_VERSION=$(get_latest_version)
-    if [ -z "$LATEST_VERSION" ]; then
-        echo "Error: Cannot fetch latest version and no local installation found." >&2
-        exit 1
+    if ! acquire_lock; then
+        # Another process is installing — wait and check if binary appeared
+        if [ -f "$REAL_BINARY" ]; then
+            debug "Binary appeared after waiting for lock, proceeding"
+        else
+            echo "Error: Another installation is in progress. Please try again." >&2
+            exit 1
+        fi
+    else
+        trap 'release_lock' EXIT
+        # Re-check after acquiring lock (another process may have finished)
+        if [ ! -f "$REAL_BINARY" ]; then
+            LATEST_VERSION=$(get_latest_version)
+            if [ -z "$LATEST_VERSION" ]; then
+                echo "Error: Cannot fetch latest version and no local installation found." >&2
+                release_lock
+                exit 1
+            fi
+            save_version_check "$LATEST_VERSION"
+            install_claude_code "$LATEST_VERSION" "$PLATFORM" "false"
+        fi
+        release_lock
+        trap - EXIT
     fi
-    save_version_check "$LATEST_VERSION"
-    install_claude_code "$LATEST_VERSION" "$PLATFORM" "false"
 elif ! validate_binary "$REAL_BINARY"; then
     # Case B: Corrupted binary -- synchronous repair
     echo "Cached binary appears corrupted, will re-download..."
-    rm -f "$REAL_BINARY" "$VERSION_FILE"
-    LATEST_VERSION=$(get_latest_version)
-    if [ -z "$LATEST_VERSION" ]; then
-        echo "Error: Cannot fetch latest version and no local installation found." >&2
-        exit 1
+    if ! acquire_lock; then
+        if [ -f "$REAL_BINARY" ] && validate_binary "$REAL_BINARY"; then
+            debug "Binary was repaired by another process"
+        else
+            echo "Error: Another installation is in progress. Please try again." >&2
+            exit 1
+        fi
+    else
+        trap 'release_lock' EXIT
+        rm -f "$REAL_BINARY" "$VERSION_FILE"
+        LATEST_VERSION=$(get_latest_version)
+        if [ -z "$LATEST_VERSION" ]; then
+            echo "Error: Cannot fetch latest version and no local installation found." >&2
+            release_lock
+            exit 1
+        fi
+        save_version_check "$LATEST_VERSION"
+        install_claude_code "$LATEST_VERSION" "$PLATFORM" "true"
+        release_lock
+        trap - EXIT
     fi
-    save_version_check "$LATEST_VERSION"
-    install_claude_code "$LATEST_VERSION" "$PLATFORM" "true"
 else
     # Case C: Valid binary -- check for updates in background
     INSTALLED_VERSION=$(get_installed_version)
