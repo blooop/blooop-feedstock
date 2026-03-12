@@ -222,6 +222,22 @@ else
     log_info "Skipping ralph-claude-code test (package not in channel)"
 fi
 
+# Test: Try to install forgit if available
+log_info "Checking if forgit is available..."
+if curl -sLf "${CHANNEL}/noarch/repodata.json" 2>/dev/null | grep -q '"forgit-'; then
+    log_info "Installing forgit package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" --channel conda-forge forgit 2>&1; then
+        log_pass "forgit installation"
+        run_test "git-forgit binary exists" "which git-forgit"
+        run_test "git-forgit runs" "git-forgit help"
+    else
+        log_fail "forgit installation"
+    fi
+else
+    log_info "Skipping forgit test (package not in channel)"
+fi
+
 # Test: Try to install speedtest-go if available
 log_info "Checking if speedtest-go package is available..."
 if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"speedtest-go-'; then

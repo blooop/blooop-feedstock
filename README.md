@@ -7,6 +7,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **claude-shim** - Shim that downloads and runs the official [Claude Code CLI](https://github.com/anthropics/claude-code) from Anthropic
 - **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
 - **eaik** - Toolbox for Efficient Analytical Inverse Kinematics by Subproblem Decomposition (from [OstermD/EAIK](https://github.com/OstermD/EAIK))
+- **forgit** - A utility tool powered by fzf for using git interactively (from [wfxr/forgit](https://github.com/wfxr/forgit))
 - **krill** - Professional-grade DAG-based process orchestrator for robotics systems (from [Zero-Robotics/krill](https://github.com/Zero-Robotics/krill))
 - **pkl** - A configuration as code language with rich validation and tooling (from [apple/pkl](https://github.com/apple/pkl))
 - **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection (from [frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code))
@@ -20,6 +21,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 pixi global install --channel https://prefix.dev/blooop claude-shim
 pixi global install --channel https://prefix.dev/blooop devpod
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge eaik
+pixi global install --channel https://prefix.dev/blooop --channel conda-forge forgit
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge krill
 pixi global install --channel https://prefix.dev/blooop pkl
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge ralph-claude-code
