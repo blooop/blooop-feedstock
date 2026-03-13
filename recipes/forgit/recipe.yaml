@@ -9,11 +9,14 @@ source:
   sha256: df16e3ca5da44724d2712f26e6df3190c43fa35e0f6d0e48da055fa426f9aa36
 
 build:
-  number: 0
+  number: 1
   noarch: generic
   script:
     - mkdir -p "$PREFIX/bin"
     - install -Dm755 bin/git-forgit "$PREFIX/bin/git-forgit"
+    # Symlink so plugin.sh can find bin/git-forgit relative to its own directory
+    - mkdir -p "$PREFIX/share/forgit/bin"
+    - ln -sf ../../../bin/git-forgit "$PREFIX/share/forgit/bin/git-forgit"
     # Shell plugin files
     - mkdir -p "$PREFIX/share/forgit"
     - cp forgit.plugin.zsh "$PREFIX/share/forgit/"
@@ -42,6 +45,7 @@ tests:
       - test -x $PREFIX/bin/git-forgit
       - test -f $PREFIX/share/forgit/forgit.plugin.zsh
       - test -f $PREFIX/share/forgit/forgit.plugin.sh
+      - test -L $PREFIX/share/forgit/bin/git-forgit
       - test -f $PREFIX/share/bash-completion/completions/git-forgit
       - test -f $PREFIX/share/zsh/site-functions/_git-forgit
 
