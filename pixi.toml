@@ -30,6 +30,9 @@ build-devpod-prerelease = "rattler-build build --recipe recipes/devpod-prereleas
 # Build speedtest-go
 build-speedtest-go = "rattler-build build --recipe recipes/speedtest-go/recipe.yaml --output-dir output"
 
+# Build forgit
+build-forgit = "rattler-build build --recipe recipes/forgit/recipe.yaml --output-dir output"
+
 # Build krill
 build-krill = "rattler-build build --recipe recipes/krill/recipe.yaml --output-dir output"
 
@@ -50,7 +53,7 @@ build-zed-wrapper = "rattler-build build --recipe recipes/ros-jazzy-zed-wrapper/
 build-zed-ros2 = "rattler-build build --recipe recipes/ros-jazzy-zed-ros2/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
 
 # Build all packages
-build-all = { depends-on = ["build-shim", "build-ralph", "build-ralph-orchestrator", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go"] }
+build-all = { depends-on = ["build-shim", "build-ralph", "build-ralph-orchestrator", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go", "build-forgit"] }
 
 # Check for updates across all packages
 check-updates = "bash scripts/check-updates.sh"
