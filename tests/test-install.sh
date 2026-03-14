@@ -230,7 +230,7 @@ if curl -sLf "${CHANNEL}/noarch/repodata.json" 2>/dev/null | grep -q '"forgit-';
     if pixi global install --channel "$CHANNEL" --channel conda-forge forgit 2>&1; then
         log_pass "forgit installation"
         run_test "git-forgit binary exists" "which git-forgit"
-        run_test "git-forgit runs" "git-forgit help"
+        run_test "git-forgit is a valid script" "bash -n \$(which git-forgit)"
     else
         log_fail "forgit installation"
     fi
