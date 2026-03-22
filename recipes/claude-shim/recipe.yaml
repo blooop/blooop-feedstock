@@ -2,7 +2,7 @@ schema_version: 1
 
 package:
   name: claude-shim
-  version: "0.5.0"
+  version: "0.6.0"
 
 source:
   - path: claude-shim.sh
@@ -44,35 +44,21 @@ about:
   homepage: https://claude.ai/
   license: LicenseRef-Proprietary
   license_family: Proprietary
-  summary: Claude Code installer shim - downloads and runs the official Claude Code CLI
+  summary: Claude Code installer shim - ensures Claude Code CLI is installed and runs it
   description: |
-    This package provides a shim that downloads and runs the official Claude Code
-    CLI from Anthropic. It exposes the following commands:
+    This package provides a shim that ensures the official Claude Code CLI from
+    Anthropic is installed, then runs it. It exposes the following commands:
     - 'claude' - the main Claude Code CLI
     - 'cld' - shortcut for 'claude --dangerously-skip-permissions'
     - 'cldr' - shortcut for 'claude --dangerously-skip-permissions --resume'
 
     Behavior:
-    - If Claude is already installed via the official installer (~/.local/bin/claude),
-      the shim defers to it, ensuring compatibility with existing installations.
-    - If no official installation exists, the shim downloads the stable Claude Code
-      release on first run.
-    - Updates are downloaded in the background so you can start working immediately.
-    - The new version is swapped in on the next invocation.
-    - Supports Docker caching: mount ~/.claude or ~/.cache to persist downloads
-      across container runs.
-    - Self-healing: automatically detects and repairs corrupted cached binaries.
+    - If Claude is already installed (~/.local/bin/claude), the shim runs it directly.
+    - Otherwise, it installs Claude Code via the official installer (claude.ai/install.sh).
+    - Claude Code handles its own auto-updates after installation.
 
-    Cache directory priority:
-    1. ~/.claude/cache/claude-code (if ~/.claude exists)
-    2. ~/.cache/claude-code (if ~/.cache exists)
-    3. ${CONDA_PREFIX}/opt/claude-code (fallback)
-
-    This package does NOT redistribute Claude Code to comply with licensing
-    requirements. It only downloads from Anthropic's official distribution servers.
-
-    Claude Code is a CLI tool that provides AI-powered coding assistance
-    from Anthropic's Claude AI models.
+    This package does NOT redistribute Claude Code. It uses Anthropic's official
+    installer script.
   documentation: https://docs.anthropic.com/en/docs/claude-code
   repository: https://github.com/anthropics/claude-code
 
