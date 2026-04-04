@@ -2,25 +2,25 @@ schema_version: 1
 
 package:
   name: ralph-orchestrator
-  version: "2.8.1"
+  version: "2.9.0"
 
 source:
   - if: linux and x86_64
     then:
-      url: https://github.com/mikeyobrien/ralph-orchestrator/releases/download/v2.8.1/ralph-cli-x86_64-unknown-linux-gnu.tar.xz
-      sha256: 75b7db3ffc24644c3762307701c1b208c3b49035f7c9146a84b174b450544d84
+      url: https://github.com/mikeyobrien/ralph-orchestrator/releases/download/v2.9.0/ralph-cli-x86_64-unknown-linux-gnu.tar.xz
+      sha256: b7ffdd40c2aaab90293c9c3f25992449ed651c5c53215e41ae848a113dfa17c8
   - if: linux and aarch64
     then:
-      url: https://github.com/mikeyobrien/ralph-orchestrator/releases/download/v2.8.1/ralph-cli-aarch64-unknown-linux-gnu.tar.xz
-      sha256: cab9b7058893bdba26d91599a14ec39e867f8b5c9796bc131a46ae5e94317514
+      url: https://github.com/mikeyobrien/ralph-orchestrator/releases/download/v2.9.0/ralph-cli-aarch64-unknown-linux-gnu.tar.xz
+      sha256: 035c6982be0aa7c04a714b904a18162759b079dcb0fa0b4d5d818aa51d63f33f
   - if: osx and x86_64
     then:
-      url: https://github.com/mikeyobrien/ralph-orchestrator/releases/download/v2.8.1/ralph-cli-x86_64-apple-darwin.tar.xz
-      sha256: af4395204dbdc17ccaee08f51aa44ff221846a7dd27735107714a11fa118a246
+      url: https://github.com/mikeyobrien/ralph-orchestrator/releases/download/v2.9.0/ralph-cli-x86_64-apple-darwin.tar.xz
+      sha256: c1f40cba8237c9bb766e1afaf3d08033a7022a173d47529146e0f121e6b86e8a
   - if: osx and arm64
     then:
-      url: https://github.com/mikeyobrien/ralph-orchestrator/releases/download/v2.8.1/ralph-cli-aarch64-apple-darwin.tar.xz
-      sha256: 2eb332ef9353f6e70ca7f61042e92939b2b076ee4bae82f04a2def10d18d9f4b
+      url: https://github.com/mikeyobrien/ralph-orchestrator/releases/download/v2.9.0/ralph-cli-aarch64-apple-darwin.tar.xz
+      sha256: 686c2d2df6f4c399e59121f113624ae60fd8c973d68c60fd55be6a1dcda6f373
 
 build:
   number: 0
