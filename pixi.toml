@@ -1,5 +1,6 @@
 [workspace]
 name = "blooop-feedstock"
+version = "1.0.0"
 description = "Feedstock for blooop conda channel"
 authors = ["blooop <your-email@example.com>"]
 channels = ["https://prefix.dev/blooop", "conda-forge"]
