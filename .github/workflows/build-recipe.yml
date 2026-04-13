@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Build conda package
-        uses: prefix-dev/rattler-build-action@v0.2.34
+        uses: prefix-dev/rattler-build-action@v0.2.36
         with:
           recipe-path: recipes/${{ github.event.inputs.recipe }}/recipe.yaml
           build-args: --channel conda-forge --channel https://prefix.dev/blooop --channel https://prefix.dev/robostack-jazzy
