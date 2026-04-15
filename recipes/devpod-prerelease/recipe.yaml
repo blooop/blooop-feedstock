@@ -2,22 +2,22 @@ schema_version: 1
 
 package:
   name: devpod-prerelease
-  version: "0.21.1"
+  version: "0.22.1"
 
 source:
   # NOTE: Using skevetter's fork of devpod from https://github.com/skevetter/devpod/releases
   # This package tracks PRE-RELEASE versions (prerelease: true in GitHub)
   # For stable releases, use the 'devpod' package instead
-  - url: https://github.com/skevetter/devpod/releases/download/v0.21.1/devpod-linux-amd64  # [linux and x86_64]
-    sha256: c0d9470230fd03b04d4d7ef1bcb83526901483371ab6db3c93ea1fa90d644eaf  # [linux and x86_64]
-  - url: https://github.com/skevetter/devpod/releases/download/v0.21.1/devpod-linux-arm64  # [linux and aarch64]
-    sha256: 0038fd0b06d32a0224fa670ae3d5eea929d0c093dc01a5441383282245c735da  # [linux and aarch64]
-  - url: https://github.com/skevetter/devpod/releases/download/v0.21.1/devpod-darwin-amd64  # [osx and x86_64]
-    sha256: 893ad18ac063f65eb6f7d11bc34d4536a50b5085757825ce8c01f121cc22576c  # [osx and x86_64]
-  - url: https://github.com/skevetter/devpod/releases/download/v0.21.1/devpod-darwin-arm64  # [osx and arm64]
-    sha256: da4216197301703cce10d623799317070786e76d05321af6bb26a9f155bb3308  # [osx and arm64]
-  - url: https://github.com/skevetter/devpod/releases/download/v0.21.1/devpod-windows-amd64.exe  # [win]
-    sha256: a6dcf24bfc8784553312a7bd524b3298eb8347703b0ad2cb38737e32f29d9157  # [win]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.22.1/devpod-linux-amd64  # [linux and x86_64]
+    sha256: c523522719d35d158a5636741bd5c90b2e9c43211574a22c7cbf0be460b6b0a7  # [linux and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.22.1/devpod-linux-arm64  # [linux and aarch64]
+    sha256: 52b8f42d4c9be529adebbcf5c04806e7e6b4fddc31b44cc444d82c941fd46402  # [linux and aarch64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.22.1/devpod-darwin-amd64  # [osx and x86_64]
+    sha256: 98948aaf3aa763801cd5c238796b9df72d7aee4138543dda63be82158fe983c1  # [osx and x86_64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.22.1/devpod-darwin-arm64  # [osx and arm64]
+    sha256: cdc490f12e3421f08292482db8ef9e85501e6287c9f845ee49e2677032cd9945  # [osx and arm64]
+  - url: https://github.com/skevetter/devpod/releases/download/v0.22.1/devpod-windows-amd64.exe  # [win]
+    sha256: 664fbb49392a04fd1c724f5838a45b97cc89fa06197f84a30d1be7baeaf5e490  # [win]
 
 build:
   number: 0
