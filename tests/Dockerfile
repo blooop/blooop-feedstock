@@ -5,7 +5,17 @@ ARG BASE_IMAGE=ghcr.io/prefix-dev/pixi:latest
 FROM ${BASE_IMAGE}
 
 # Install curl (needed by claude-shim to download binary)
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && \
+# Retry apt-get to tolerate transient mirror/network failures in CI
+RUN set -eux; \
+    ok=0; \
+    for i in 1 2 3 4 5; do \
+        if apt-get update && apt-get install -y --no-install-recommends curl ca-certificates; then \
+            ok=1; break; \
+        fi; \
+        echo "apt-get attempt $i failed, retrying in 10s..."; \
+        sleep 10; \
+    done; \
+    [ "$ok" = "1" ] || { echo "apt-get failed after 5 attempts"; exit 1; }; \
     rm -rf /var/lib/apt/lists/*
 
 # Set up working directory
