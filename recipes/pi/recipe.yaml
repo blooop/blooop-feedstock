@@ -1,0 +1,91 @@
+schema_version: 1
+
+package:
+  name: pi
+  version: "0.71.1"
+
+# Tarballs all extract to a pi/ subdir internally, so use target_directory to avoid conflicts.
+# rattler-build downloads all sources regardless of selectors; build script picks the right one.
+source:
+  - url: https://github.com/badlogic/pi-mono/releases/download/v0.71.1/pi-linux-x64.tar.gz
+    sha256: e49d2d764999a5e9b0c9c55dd227a0e6ac6fd1229d5516bc51d3b9e85198c4cb
+    target_directory: linux-64
+  - url: https://github.com/badlogic/pi-mono/releases/download/v0.71.1/pi-linux-arm64.tar.gz
+    sha256: 46a6fd9433211a16f34f884d4eacaf158a7911c510be56a639d7f4e9273949b1
+    target_directory: linux-aarch64
+  - url: https://github.com/badlogic/pi-mono/releases/download/v0.71.1/pi-darwin-x64.tar.gz
+    sha256: cb5f7c478106e62a7be6e2e404c3a866068db665bc2e689c506b434b5ac7dbe5
+    target_directory: osx-64
+  - url: https://github.com/badlogic/pi-mono/releases/download/v0.71.1/pi-darwin-arm64.tar.gz
+    sha256: 335f34851384a483084501d111af538a702f060bf2729d2ea0e2d1b339ff7f9d
+    target_directory: osx-arm64
+  - url: https://github.com/badlogic/pi-mono/releases/download/v0.71.1/pi-windows-x64.zip
+    sha256: 04910d5ce4132dfc0ae2a78f75061f2f8a46a8e6916c0cb2e717f7c937fb1004
+    target_directory: win-64
+
+build:
+  number: 0
+  dynamic_linking:
+    binary_relocation: false
+  script:
+    - if: unix
+      then:
+        - mkdir -p "$PREFIX/bin" "$PREFIX/lib/pi"
+        - |
+          case "${target_platform:-}" in
+            linux-64)      SRC_FOLDER="linux-64" ;;
+            linux-aarch64) SRC_FOLDER="linux-aarch64" ;;
+            osx-64)        SRC_FOLDER="osx-64" ;;
+            osx-arm64)     SRC_FOLDER="osx-arm64" ;;
+            *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+          # Install all runtime files to lib/pi/ (Bun looks up package.json relative to binary)
+          cp -r "$SRC_DIR/$SRC_FOLDER/." "$PREFIX/lib/pi/"
+          chmod 755 "$PREFIX/lib/pi/pi"
+          # Wrapper resolves its own location at runtime — safe for any install prefix
+          printf '#!/bin/sh\n_D="$(cd "$(dirname "$0")" && pwd -P)"\nexec "$_D/../lib/pi/pi" "$@"\n' > "$PREFIX/bin/pi"
+          chmod 755 "$PREFIX/bin/pi"
+    - if: win
+      then:
+        - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
+        - if not exist %PREFIX%\Library\lib\pi mkdir %PREFIX%\Library\lib\pi
+        - xcopy /E /I /Y %SRC_DIR%\win-64\ %PREFIX%\Library\lib\pi\
+        - |
+          echo @echo off > %PREFIX%\Library\bin\pi.bat
+          echo "%PREFIX%\Library\lib\pi\pi.exe" %* >> %PREFIX%\Library\bin\pi.bat
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - which pi
+          - test -x $PREFIX/bin/pi
+          - pi --version || pi --help
+      - if: win
+        then:
+          - where pi
+          - pi --version
+
+about:
+  homepage: https://pi.dev
+  license: MIT
+  license_family: MIT
+  summary: AI agent toolkit — coding agent CLI, unified LLM API, TUI & web UI libraries
+  description: |
+    Pi is a minimal terminal-based AI coding agent. Run `pi` interactively and it
+    gives the model tools: read, write, edit, bash. Supports 20+ LLM providers
+    (Anthropic, OpenAI, Google Gemini, Azure, DeepSeek, Groq, and more) via
+    subscription login or API key.
+
+    Key features:
+    - Interactive coding agent with file read/write/edit and bash execution
+    - Unified LLM API supporting 20+ providers
+    - TUI and web UI libraries for building custom interfaces
+    - Extensible via TypeScript skills, prompt templates, and themes
+    - Four modes: interactive, print/JSON, RPC, and SDK for embedding
+    - Self-contained binary — no runtime required
+  repository: https://github.com/badlogic/pi-mono
+
+extra:
+  recipe-maintainers:
+    - blooop
