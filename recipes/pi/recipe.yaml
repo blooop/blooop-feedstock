@@ -24,7 +24,7 @@ source:
     target_directory: win-64
 
 build:
-  number: 0
+  number: 1
   dynamic_linking:
     binary_relocation: false
   script:
@@ -42,9 +42,10 @@ build:
           # Install all runtime files to lib/pi/ (Bun looks up package.json relative to binary)
           cp -r "$SRC_DIR/$SRC_FOLDER/." "$PREFIX/lib/pi/"
           chmod 755 "$PREFIX/lib/pi/pi"
-          # Wrapper resolves its own location at runtime — safe for any install prefix
-          printf '#!/bin/sh\n_D="$(cd "$(dirname "$0")" && pwd -P)"\nexec "$_D/../lib/pi/pi" "$@"\n' > "$PREFIX/bin/pi"
-          chmod 755 "$PREFIX/bin/pi"
+          # Write version so the wrapper knows what's installed for `pi update`
+          echo "$PKG_VERSION" > "$PREFIX/lib/pi/.version"
+          # Wrapper intercepts `pi update` to download new releases in-place
+          install -Dm755 "$RECIPE_DIR/pi-wrapper.sh" "$PREFIX/bin/pi"
     - if: win
       then:
         - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
