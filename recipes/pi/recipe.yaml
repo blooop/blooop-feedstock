@@ -45,7 +45,7 @@ build:
           # Write version so the wrapper knows what's installed for `pi update`
           echo "$PKG_VERSION" > "$PREFIX/lib/pi/.version"
           # Wrapper intercepts `pi update` to download new releases in-place
-          install -Dm755 "$RECIPE_DIR/pi-wrapper.sh" "$PREFIX/bin/pi"
+          install -m755 "$RECIPE_DIR/pi-wrapper.sh" "$PREFIX/bin/pi"
     - if: win
       then:
         - if not exist %PREFIX%\Library\bin mkdir %PREFIX%\Library\bin
