@@ -25,6 +25,31 @@ _detect_asset() {
     esac
 }
 
+_http_get() {
+    URL="$1"
+    if command -v curl >/dev/null 2>&1; then
+        curl -sfL "$URL"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO- "$URL"
+    else
+        echo "error: pi update requires curl or wget in PATH" >&2
+        exit 1
+    fi
+}
+
+_download_file() {
+    URL="$1"
+    OUT="$2"
+    if command -v curl >/dev/null 2>&1; then
+        curl -fSL --progress-bar -o "$OUT" "$URL"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO "$OUT" "$URL"
+    else
+        echo "error: pi update requires curl or wget in PATH" >&2
+        exit 1
+    fi
+}
+
 if [ "$1" = "update" ]; then
     ASSET=$(_detect_asset)
     if [ -z "$ASSET" ]; then
@@ -33,7 +58,7 @@ if [ "$1" = "update" ]; then
     fi
 
     CURRENT=$(cat "$VERSION_FILE" 2>/dev/null || echo "")
-    LATEST=$(curl -sf "https://api.github.com/repos/badlogic/pi-mono/releases/latest" \
+    LATEST=$(_http_get "https://api.github.com/repos/badlogic/pi-mono/releases/latest" \
         | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
 
     if [ -z "$LATEST" ]; then
@@ -50,7 +75,7 @@ if [ "$1" = "update" ]; then
     URL="https://github.com/badlogic/pi-mono/releases/download/v${LATEST}/${ASSET}"
     TMP=$(mktemp -d)
     trap "rm -rf '$TMP'" EXIT INT TERM
-    curl -fSL --progress-bar -o "$TMP/pi.tar.gz" "$URL"
+    _download_file "$URL" "$TMP/pi.tar.gz"
     mkdir -p "$TMP/extracted"
     tar -xzf "$TMP/pi.tar.gz" -C "$TMP/extracted" --strip-components=1
     cp -r "$TMP/extracted/." "$INSTALL_DIR/"
