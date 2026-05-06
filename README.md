@@ -24,6 +24,7 @@ pixi global install --channel https://prefix.dev/blooop devpod
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge eaik
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge forgit
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge krill
+pixi global install --channel https://prefix.dev/blooop pi
 pixi global install --channel https://prefix.dev/blooop pkl
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge ralph-claude-code
 pixi global install --channel https://prefix.dev/blooop ralph-orchestrator
@@ -112,6 +113,8 @@ Use `pixi run <task>` to execute these tasks:
 |------|-------------|
 | `build-shim` | Build claude-shim package |
 | `build-ralph` | Build ralph-claude-code package |
+| `build-pi` | Build pi package |
+| `update-pi` | Update pi recipe to latest upstream release |
 | `build-all` | Build all packages |
 | `check-updates` | Check all packages for available updates |
 | `test-shim` | Test claude-shim package |

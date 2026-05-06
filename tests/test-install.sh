@@ -254,6 +254,23 @@ else
     log_info "Skipping speedtest-go test (package not in channel)"
 fi
 
+# Test: Try to install pi if available
+log_info "Checking if pi package is available..."
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"pi-'; then
+    log_info "Installing pi package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" pi 2>&1; then
+        log_pass "pi package installation"
+        run_test "pi binary exists" "which pi"
+        run_test "pi version check" "pi --version"
+        run_test "pi self-update command works" "pi update"
+    else
+        log_fail "pi package installation"
+    fi
+else
+    log_info "Skipping pi test (package not in channel)"
+fi
+
 # Note: Dependency resolution is implicitly tested by the installation tests above
 # If a package has unresolvable dependencies, the installation will fail
 

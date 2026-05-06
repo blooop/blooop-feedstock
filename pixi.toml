@@ -30,6 +30,10 @@ build-devpod-prerelease = "rattler-build build --recipe recipes/devpod-prereleas
 # Build speedtest-go
 build-speedtest-go = "rattler-build build --recipe recipes/speedtest-go/recipe.yaml --output-dir output"
 
+# Build/update pi
+build-pi = "rattler-build build --recipe recipes/pi/recipe.yaml --output-dir output"
+update-pi = "python scripts/update-pi.py"
+
 # Build forgit
 build-forgit = "rattler-build build --recipe recipes/forgit/recipe.yaml --output-dir output"
 
