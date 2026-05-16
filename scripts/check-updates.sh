@@ -50,10 +50,35 @@ check_package() {
         "ralph-orchestrator")
             check_ralph_orchestrator "$current_version"
             ;;
+        "uhk-agent")
+            check_github_release "UltimateHackingKeyboard/agent" "$current_version"
+            ;;
         *)
             echo "   ⚠️  No update checker implemented for $package_name"
             ;;
     esac
+}
+
+# Generic GitHub release version checker
+check_github_release() {
+    local repo=$1
+    local current_version=$2
+
+    local latest_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" 2>/dev/null | grep -m1 '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/')
+
+    if [ -z "$latest_version" ]; then
+        echo "   ❌ Failed to fetch latest version from $repo"
+        return 1
+    fi
+
+    echo "   Latest version: $latest_version"
+
+    if [ "$current_version" != "$latest_version" ]; then
+        echo "   🆕 UPDATE AVAILABLE: $current_version → $latest_version"
+        UPDATES_FOUND=$((UPDATES_FOUND + 1))
+    else
+        echo "   ✅ Up to date"
+    fi
 }
 
 # Check ralph-orchestrator for updates

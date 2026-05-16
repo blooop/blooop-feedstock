@@ -295,6 +295,24 @@ jobs:
             fi
           fi
 
+          # Check uhk-agent
+          if [ -d "recipes/uhk-agent" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "uhk-agent" ]); then
+            echo "Checking uhk-agent for updates..."
+
+            CURRENT=$(grep -A 3 'package:' recipes/uhk-agent/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            LATEST=$(curl -s https://api.github.com/repos/UltimateHackingKeyboard/agent/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/' || echo "")
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: uhk-agent $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "uhk-agent", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "uhk-agent is up to date"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix
