@@ -7,27 +7,64 @@ package:
 source:
   - url: https://github.com/UltimateHackingKeyboard/agent/releases/download/v10.0.0/UHK.Agent-10.0.0-linux-x86_64.AppImage  # [linux and x86_64]
     sha256: 14b12e5534339c34ebcc92ca1a6a6355e7210af070610ae8f08f34bd884327b7  # [linux and x86_64]
-    file_name: uhk-agent.AppImage  # [linux and x86_64]
+    file_name: uhk-agent-x86_64.AppImage  # [linux and x86_64]
   - url: https://github.com/UltimateHackingKeyboard/agent/releases/download/v10.0.0/UHK.Agent-10.0.0-linux-arm64.AppImage  # [linux and aarch64]
     sha256: 42eeefbef69cac3d0ad9af5043ae0a31f5c734018e92ffefdb7571598c896fc2  # [linux and aarch64]
-    file_name: uhk-agent.AppImage  # [linux and aarch64]
+    file_name: uhk-agent-arm64.AppImage  # [linux and aarch64]
 
 build:
-  number: 0
+  number: 1
   dynamic_linking:
     binary_relocation: false
   script:
     - if: unix
       then:
+        - |
+          case "${target_platform:-}" in
+            linux-64)      APPIMAGE="uhk-agent-x86_64.AppImage" ;;
+            linux-aarch64) APPIMAGE="uhk-agent-arm64.AppImage" ;;
+            *) echo "Unsupported: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+        - |
+          # Find the squashfs offset from the ELF header (avoids needing to execute the AppImage)
+          OFFSET=$(python -c "
+          import struct
+          with open('$SRC_DIR/$APPIMAGE', 'rb') as f:
+              f.seek(40)
+              e_shoff = struct.unpack('<Q', f.read(8))[0]
+              f.seek(58)
+              e_shentsize = struct.unpack('<H', f.read(2))[0]
+              e_shnum = struct.unpack('<H', f.read(2))[0]
+              print(e_shoff + e_shentsize * e_shnum)
+          ")
+          echo "Extracting squashfs at offset $OFFSET"
+          unsquashfs -offset "$OFFSET" -d "$SRC_DIR/extracted" "$SRC_DIR/$APPIMAGE"
+        - mkdir -p "$PREFIX/lib/uhk-agent"
+        - cp -a "$SRC_DIR/extracted/." "$PREFIX/lib/uhk-agent/"
         - mkdir -p "$PREFIX/bin"
-        - cp "$SRC_DIR/uhk-agent.AppImage" "$PREFIX/bin/uhk-agent"
+        - |
+          cat > "$PREFIX/bin/uhk-agent" << 'WRAPPER'
+          #!/bin/bash
+          APPDIR="$(dirname "$(dirname "$(readlink -f "$0")")")/lib/uhk-agent"
+          export PATH="${APPDIR}:${PATH}"
+          export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
+          export XDG_DATA_DIRS="${APPDIR}/usr/share/:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+          export GSETTINGS_SCHEMA_DIR="${APPDIR}/usr/share/glib-2.0/schemas:${GSETTINGS_SCHEMA_DIR}"
+          exec "$APPDIR/uhk-agent" "$@"
+          WRAPPER
         - chmod 755 "$PREFIX/bin/uhk-agent"
+
+requirements:
+  build:
+    - python
+    - squashfs-tools
 
 tests:
   - script:
       - if: unix
         then:
           - test -x $PREFIX/bin/uhk-agent
+          - test -x $PREFIX/lib/uhk-agent/uhk-agent
 
 about:
   homepage: https://ultimatehackingkeyboard.github.io/agent/
@@ -38,9 +75,6 @@ about:
     UHK Agent is the official configuration application for the Ultimate Hacking
     Keyboard. It allows users to customize key mappings, create macros, configure
     LED behavior, and update firmware on their UHK hardware.
-
-    This package installs the AppImage binary for Linux. It requires libfuse2 to
-    run and may need the --no-sandbox flag on some systems.
   documentation: https://github.com/UltimateHackingKeyboard/agent/wiki
   repository: https://github.com/UltimateHackingKeyboard/agent
 
