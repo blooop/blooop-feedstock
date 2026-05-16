@@ -41,6 +41,7 @@ When given a repo URL like `https://github.com/owner/repo`, use WebFetch and Web
 - **Go Binary:** `go.mod` file, often provides cross-platform binaries
 - **Rust Binary:** `Cargo.toml` file, check for GitHub Releases
 - **npm Package:** `package.json`, available on npmjs.com
+- **Electron AppImage:** GitHub Releases with `.AppImage` files (e.g., `App-1.0.0-linux-x86_64.AppImage`). Electron/TypeScript projects with `electron-builder` config.
 - **Generic Source Build:** `Makefile`, `CMakeLists.txt`, or build scripts
 
 ### Step 2: Create the Recipe
@@ -168,6 +169,103 @@ extra:
     - blooop
 ```
 
+**Electron AppImage Template (Linux only):**
+
+Electron apps distributed as `.AppImage` files require special handling:
+- AppImages need FUSE/libfuse2 at runtime, which most systems lack — so we **extract the squashfs at build time** instead of installing the raw AppImage
+- Electron expects `chrome-sandbox` to be SUID root (mode 4755), which conda can't set — so the wrapper passes `--no-sandbox`
+- `binary_relocation: false` is required to prevent patchelf from corrupting the Electron binary
+- Use unique `file_name` per architecture because rattler-build downloads ALL sources regardless of selectors, and duplicate names cause the wrong arch to overwrite the right one
+- The squashfs offset is computed from the ELF section header (not by scanning for `hsqs` magic, which finds false positives in ELF data)
+- `squashfs-tools` and `python` are build dependencies for extraction
+
+```yaml
+schema_version: 1
+
+package:
+  name: package-name
+  version: "X.Y.Z"
+
+source:
+  - url: https://github.com/owner/repo/releases/download/vX.Y.Z/App-X.Y.Z-linux-x86_64.AppImage  # [linux and x86_64]
+    sha256: <hash>  # [linux and x86_64]
+    file_name: app-x86_64.AppImage  # [linux and x86_64]
+  - url: https://github.com/owner/repo/releases/download/vX.Y.Z/App-X.Y.Z-linux-arm64.AppImage  # [linux and aarch64]
+    sha256: <hash>  # [linux and aarch64]
+    file_name: app-arm64.AppImage  # [linux and aarch64]
+
+build:
+  number: 0
+  dynamic_linking:
+    binary_relocation: false
+  script:
+    - if: unix
+      then:
+        - |
+          case "${target_platform:-}" in
+            linux-64)      APPIMAGE="app-x86_64.AppImage" ;;
+            linux-aarch64) APPIMAGE="app-arm64.AppImage" ;;
+            *) echo "Unsupported: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+        - |
+          # Find squashfs offset from ELF section headers (don't scan for hsqs magic — false positives)
+          OFFSET=$(python -c "
+          import struct
+          with open('$SRC_DIR/$APPIMAGE', 'rb') as f:
+              f.seek(40)
+              e_shoff = struct.unpack('<Q', f.read(8))[0]
+              f.seek(58)
+              e_shentsize = struct.unpack('<H', f.read(2))[0]
+              e_shnum = struct.unpack('<H', f.read(2))[0]
+              print(e_shoff + e_shentsize * e_shnum)
+          ")
+          echo "Extracting squashfs at offset $OFFSET"
+          unsquashfs -offset "$OFFSET" -d "$SRC_DIR/extracted" "$SRC_DIR/$APPIMAGE"
+        - mkdir -p "$PREFIX/lib/package-name"
+        - cp -a "$SRC_DIR/extracted/." "$PREFIX/lib/package-name/"
+        - mkdir -p "$PREFIX/bin"
+        - |
+          cat > "$PREFIX/bin/package-name" << 'WRAPPER'
+          #!/bin/bash
+          APPDIR="$(dirname "$(dirname "$(readlink -f "$0")")")/lib/package-name"
+          export PATH="${APPDIR}:${PATH}"
+          export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
+          export XDG_DATA_DIRS="${APPDIR}/usr/share/:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+          export GSETTINGS_SCHEMA_DIR="${APPDIR}/usr/share/glib-2.0/schemas:${GSETTINGS_SCHEMA_DIR}"
+          exec "$APPDIR/binary-name" --no-sandbox "$@"
+          WRAPPER
+        - chmod 755 "$PREFIX/bin/package-name"
+
+requirements:
+  build:
+    - python
+    - squashfs-tools
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - test -x $PREFIX/bin/package-name
+          - test -x $PREFIX/lib/package-name/binary-name
+
+about:
+  homepage: https://github.com/owner/repo
+  license: LICENSE-TYPE
+  license_family: LICENSE_FAMILY
+  summary: Brief description
+  description: |
+    Detailed description
+  repository: https://github.com/owner/repo
+
+extra:
+  recipe-maintainers:
+    - blooop
+```
+
+**Notes on the wrapper script:** The `APPDIR` line resolves relative to the wrapper's own location (`bin/` → up to env root → `lib/package-name/`). The `binary-name` in the `exec` line is the actual Electron executable inside the extracted AppImage (check with `ls squashfs-root/` after extraction — it's usually the lowercase project name). The `AppRun` script from the original AppImage shows which env vars are needed.
+
+**Testing Electron AppImage packages:** These are GUI apps so `--version` usually doesn't work. Use `timeout 5 package-name 2>&1 | head -10` to verify the app starts without crashing. Always test locally before publishing.
+
 ### Step 3: Calculate SHA256 Hashes
 
 For each download URL, calculate the SHA256 hash:
@@ -289,6 +387,22 @@ rattler-build upload prefix -c blooop output/*.conda
 
 **Strategy:** Create installer shim like claude-shim (see recipes/claude-shim/)
 
+### Electron AppImage (GUI Desktop Apps)
+**Indicators:**
+- GitHub Releases with `.AppImage` files
+- `electron-builder` in `package.json` or `devDependencies`
+- TypeScript/JavaScript project with `electron` dependency
+- Large release assets (100MB+) — Electron bundles Chromium
+
+**Strategy:** Extract squashfs at build time using `unsquashfs`, install to `lib/<pkg>/`, wrapper script with `--no-sandbox`. Linux-only (macOS DMG and Windows EXE installers don't map to conda). See uhk-agent recipe and the Electron AppImage Template above.
+
+**Key pitfalls:**
+1. Raw AppImage install fails at runtime without libfuse2 ("Exec format error")
+2. `--appimage-extract` during build fails — both arch files downloaded and wrong one may overwrite
+3. Electron SUID sandbox crash without `--no-sandbox`
+4. patchelf corrupts Electron binaries — must use `binary_relocation: false`
+5. Scanning for `hsqs` magic finds false positives in ELF data — use ELF section header offset instead
+
 ### Source Builds
 **Indicators:**
 - `Makefile`, `CMakeLists.txt`, `configure` script
@@ -307,6 +421,8 @@ rattler-build upload prefix -c blooop output/*.conda
 - **Security**: Never include secrets in recipes (they're bundled in the package)
 - **License families**: Use standard SPDX identifiers and families (MIT, APACHE, BSD, etc.)
 - **Never include `bash` as a dependency**: Bash is a standard Unix tool expected to be available on the system. Adding it as a conda dependency causes solver failures since there's no `bash` package in conda-forge. The same applies to other core system utilities.
+- **rattler-build downloads ALL sources regardless of selectors**: Line selectors (`# [linux and x86_64]`) only control which source is *used*, not which is *downloaded*. All source entries are fetched. If two entries have the same `file_name`, the last one overwrites the first. **Always use unique `file_name` values per architecture** (e.g., `app-x86_64.bin`, `app-arm64.bin`) and select the right one in the build script via `$target_platform`.
+- **`binary_relocation: false` for Electron/Bun/Deno binaries**: patchelf corrupts self-contained runtime binaries. Always disable it for these package types.
 
 ### Platform Support Priority
 
@@ -509,7 +625,11 @@ Before pushing to trigger publication, ensure ALL of these pass:
 1. Recipe syntax validates: `pixi run lint-recipes`
 2. Package builds successfully: `rattler-build build --recipe recipes/package-name/recipe.yaml --output-dir output`
 3. Recipe tests pass: `rattler-build test --recipe recipes/package-name/recipe.yaml`
-4. Binary/module works locally: `package-name --version`
+4. **Actually install and run the package locally** (build tests only check files exist — runtime failures like missing FUSE, sandbox crashes, and wrong-arch binaries only surface when you run it):
+   ```bash
+   pixi global install --channel file://$(pwd)/output --channel conda-forge package-name
+   package-name --version  # or for GUI apps: timeout 5 package-name 2>&1 | head -10
+   ```
 5. **Docker installation test passes** (clean environment verification):
    ```bash
    docker run --rm \
