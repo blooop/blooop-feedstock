@@ -329,11 +329,23 @@ jobs:
             {"runner": "macos-14", "platform": "osx-arm64"}
           ]'
 
-          # Build the full matrix: each package × each platform
+          # Per-package platform overrides (default: all platforms)
+          # Packages not listed here are built for all platforms above
+          PACKAGE_PLATFORMS='{
+            "uhk-agent": ["linux-64", "linux-aarch64"],
+            "envoy": ["linux-64", "linux-aarch64"]
+          }'
+
+          # Build the full matrix: each package × supported platforms
           if [ "$UPDATES" != "[]" ]; then
-            # Create combined matrix entries
-            MATRIX_INCLUDE=$(echo "$UPDATES" | jq -c --argjson platforms "$PLATFORMS" '
+            MATRIX_INCLUDE=$(echo "$UPDATES" | jq -c \
+              --argjson platforms "$PLATFORMS" \
+              --argjson pkg_plats "$PACKAGE_PLATFORMS" '
               [.[] as $pkg | $platforms[] as $plat |
+                select(
+                  ($pkg_plats[$pkg.package] == null) or
+                  ([$pkg_plats[$pkg.package][] | select(. == $plat.platform)] | length > 0)
+                ) |
                 {
                   package: $pkg.package,
                   current: $pkg.current,
@@ -479,7 +491,7 @@ jobs:
 
       - name: Upload build artifact
         if: steps.build.outputs.success == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: conda-${{ matrix.package }}-${{ matrix.platform }}
           path: output/${{ matrix.platform }}/*.conda
@@ -502,7 +514,7 @@ jobs:
           pixi-version: latest
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           pattern: conda-*
