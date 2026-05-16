@@ -13,7 +13,7 @@ source:
     file_name: uhk-agent-arm64.AppImage  # [linux and aarch64]
 
 build:
-  number: 1
+  number: 2
   dynamic_linking:
     binary_relocation: false
   script:
@@ -50,7 +50,7 @@ build:
           export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
           export XDG_DATA_DIRS="${APPDIR}/usr/share/:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
           export GSETTINGS_SCHEMA_DIR="${APPDIR}/usr/share/glib-2.0/schemas:${GSETTINGS_SCHEMA_DIR}"
-          exec "$APPDIR/uhk-agent" "$@"
+          exec "$APPDIR/uhk-agent" --no-sandbox "$@"
           WRAPPER
         - chmod 755 "$PREFIX/bin/uhk-agent"
 
