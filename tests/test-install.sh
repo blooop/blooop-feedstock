@@ -271,6 +271,22 @@ else
     log_info "Skipping pi test (package not in channel)"
 fi
 
+# Test: Try to install uhk-agent if available
+log_info "Checking if uhk-agent is available..."
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"uhk-agent-'; then
+    log_info "Installing uhk-agent package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" uhk-agent 2>&1; then
+        log_pass "uhk-agent installation"
+        run_test "uhk-agent wrapper exists" "which uhk-agent"
+        run_test "uhk-agent binary exists" "test -x \$HOME/.pixi/envs/uhk-agent/lib/uhk-agent/uhk-agent"
+    else
+        log_fail "uhk-agent installation"
+    fi
+else
+    log_info "Skipping uhk-agent test (package not in channel)"
+fi
+
 # Note: Dependency resolution is implicitly tested by the installation tests above
 # If a package has unresolvable dependencies, the installation will fail
 
