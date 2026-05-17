@@ -56,6 +56,9 @@ build-zed-components = "rattler-build build --recipe recipes/ros-jazzy-zed-compo
 build-zed-wrapper = "rattler-build build --recipe recipes/ros-jazzy-zed-wrapper/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
 build-zed-ros2 = "rattler-build build --recipe recipes/ros-jazzy-zed-ros2/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
 
+# Build zjsh
+build-zjsh = "rattler-build build --recipe recipes/zjsh/recipe.yaml --output-dir output"
+
 # Build all packages
 build-all = { depends-on = ["build-shim", "build-ralph", "build-ralph-orchestrator", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go", "build-forgit"] }
 

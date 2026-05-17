@@ -287,6 +287,22 @@ else
     log_info "Skipping uhk-agent test (package not in channel)"
 fi
 
+# Test: Try to install zjsh if available
+log_info "Checking if zjsh is available..."
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"zjsh-'; then
+    log_info "Installing zjsh package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" zjsh 2>&1; then
+        log_pass "zjsh installation"
+        run_test "zjsh binary exists" "which zjsh"
+        run_test "zjsh doctor runs" "zjsh doctor || true"
+    else
+        log_fail "zjsh installation"
+    fi
+else
+    log_info "Skipping zjsh test (package not in channel)"
+fi
+
 # Note: Dependency resolution is implicitly tested by the installation tests above
 # If a package has unresolvable dependencies, the installation will fail
 

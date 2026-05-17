@@ -1,0 +1,42 @@
+schema_version: 1
+
+package:
+  name: zjsh
+  version: "0.2.0"
+
+source:
+  url: https://github.com/saweima12/zjsh/archive/refs/tags/v0.2.0.tar.gz
+  sha256: 2931dfb2bce17b5008f611aadc3ab20b7bd1dbaceb906e1e4a55d9e02d06e6aa
+
+build:
+  number: 0
+  script:
+    - if: unix
+      then:
+        - go build -o "$PREFIX/bin/zjsh" ./cmd/zjsh
+
+requirements:
+  build:
+    - go >=1.24
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - test -x $PREFIX/bin/zjsh
+          - zjsh doctor || true
+
+about:
+  homepage: https://github.com/saweima12/zjsh
+  license: NOASSERTION
+  summary: A sesh-like zellij launcher for projects, sessions, and zoxide paths
+  description: |
+    zjsh is a selector-focused launcher for zellij sessions and projects.
+    It aggregates configured projects, live zellij sessions, resurrectable
+    sessions, and zoxide paths into a single fuzzy-selectable workflow.
+    Works with fzf, gum, or other selector tools.
+  repository: https://github.com/saweima12/zjsh
+
+extra:
+  recipe-maintainers:
+    - blooop
