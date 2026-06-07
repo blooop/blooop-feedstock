@@ -7,6 +7,14 @@ PASSED=0
 FAILED=0
 TESTS_RUN=0
 
+# Map current architecture to the conda platform name used in channel URLs,
+# so availability probes hit the same repodata that pixi will install from.
+case "$(uname -m)" in
+    x86_64|amd64) PLATFORM="linux-64" ;;
+    aarch64|arm64) PLATFORM="linux-aarch64" ;;
+    *) PLATFORM="linux-64" ;;
+esac
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -56,7 +64,7 @@ echo ""
 run_test "pixi is available" "pixi --version"
 
 # Test 2: Channel is accessible
-run_test "Channel is accessible" "curl -sLf '${CHANNEL}/linux-64/repodata.json' -o /dev/null"
+run_test "Channel is accessible" "curl -sLf '${CHANNEL}/${PLATFORM}/repodata.json' -o /dev/null"
 
 # Test 3: Install claude-shim package
 log_info "Installing claude-shim package..."
@@ -190,7 +198,7 @@ test_corrupted_binary_recovery
 
 # Test: Try to install devpod if available
 log_info "Checking if devpod package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
+if curl -sLf "${CHANNEL}/${PLATFORM}/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
     log_info "Installing devpod package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" devpod 2>&1; then
@@ -205,7 +213,7 @@ fi
 
 # Test: Try to install ralph-claude-code if available
 log_info "Checking if ralph-claude-code package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"ralph-claude-code-'; then
+if curl -sLf "${CHANNEL}/${PLATFORM}/repodata.json" 2>/dev/null | grep -q '"ralph-claude-code-'; then
     log_info "Installing ralph-claude-code package..."
     ((TESTS_RUN++))
     # Note: ralph-claude-code requires git and jq from conda-forge
@@ -240,7 +248,7 @@ fi
 
 # Test: Try to install speedtest-go if available
 log_info "Checking if speedtest-go package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"speedtest-go-'; then
+if curl -sLf "${CHANNEL}/${PLATFORM}/repodata.json" 2>/dev/null | grep -q '"speedtest-go-'; then
     log_info "Installing speedtest-go package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" speedtest-go 2>&1; then
@@ -256,7 +264,7 @@ fi
 
 # Test: Try to install pi if available
 log_info "Checking if pi package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"pi-'; then
+if curl -sLf "${CHANNEL}/${PLATFORM}/repodata.json" 2>/dev/null | grep -q '"pi-'; then
     log_info "Installing pi package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" pi 2>&1; then
@@ -273,7 +281,7 @@ fi
 
 # Test: Try to install uhk-agent if available
 log_info "Checking if uhk-agent is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"uhk-agent-'; then
+if curl -sLf "${CHANNEL}/${PLATFORM}/repodata.json" 2>/dev/null | grep -q '"uhk-agent-'; then
     log_info "Installing uhk-agent package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" uhk-agent 2>&1; then
@@ -289,7 +297,7 @@ fi
 
 # Test: Try to install zjsh if available
 log_info "Checking if zjsh is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"zjsh-'; then
+if curl -sLf "${CHANNEL}/${PLATFORM}/repodata.json" 2>/dev/null | grep -q '"zjsh-'; then
     log_info "Installing zjsh package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" zjsh 2>&1; then
