@@ -1,0 +1,72 @@
+schema_version: 1
+
+package:
+  name: isd
+  version: "0.6.1"
+
+source:
+  # PyPI project is named "isd-tui" (naming clash on PyPI), but the CLI is "isd"
+  - url: https://files.pythonhosted.org/packages/49/10/bcb5c7659c62519cc48efb513cbf0d9511323e0ead3349fe5d415d0bdf95/isd_tui-0.6.1.tar.gz
+    sha256: 048012c6f455a95658e0b3422da30e24578db6756ed4540f34e70c27504008e1
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python >=3.11
+    - pip
+    - hatchling
+  run:
+    - python >=3.11
+    - textual >=3.0.0
+    - pfzy >=0.3.4
+    - pydantic >=2.10.4
+    - pydantic-settings >=2.7.0
+    - xdg-base-dirs >=6.0.0
+    - pyyaml >=6.0
+    - types-pyyaml >=6.0.12
+
+tests:
+  - python:
+      imports:
+        - isd_tui
+  - script:
+      # isd is a Textual TUI: it ignores --help and launches the full
+      # interactive UI, so we can't run it in a non-TTY test environment.
+      # Just verify both console-script entry points are installed.
+      - if: unix
+        then:
+          - which isd
+          - which isd-tui
+          - test -f $PREFIX/bin/isd
+          - test -f $PREFIX/bin/isd-tui
+
+about:
+  homepage: https://github.com/kainctl/isd
+  license: GPL-3.0-or-later
+  license_family: GPL
+  summary: Interactive systemd — a better way to work with systemd units
+  description: |
+    isd (interactive systemd) is a keyboard-focused terminal user interface
+    (TUI) that simplifies managing systemd units on Linux.
+
+    Key features:
+    - Fuzzy search for system and user units
+    - Auto-refreshing previews of unit status and logs
+    - Smart sudo handling for privileged operations
+    - Quick switching between system and user units
+    - Open unit output in a pager or editor
+    - Extensive command palette with configurable keybindings
+    - Theme support and YAML configuration with auto-complete
+
+    The PyPI distribution is named "isd-tui" due to a naming clash, but the
+    project and its executable are both called "isd".
+  documentation: https://kainctl.github.io/isd/
+  repository: https://github.com/kainctl/isd
+
+extra:
+  recipe-maintainers:
+    - blooop

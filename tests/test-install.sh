@@ -238,6 +238,23 @@ else
     log_info "Skipping forgit test (package not in channel)"
 fi
 
+# Test: Try to install isd if available
+log_info "Checking if isd is available..."
+if curl -sLf "${CHANNEL}/noarch/repodata.json" 2>/dev/null | grep -q '"isd-'; then
+    log_info "Installing isd package..."
+    ((TESTS_RUN++))
+    # Note: isd is a noarch Python package needing deps from conda-forge
+    if pixi global install --channel "$CHANNEL" --channel conda-forge isd 2>&1; then
+        log_pass "isd installation"
+        run_test "isd binary exists" "which isd"
+        run_test "isd-tui binary exists" "which isd-tui"
+    else
+        log_fail "isd installation"
+    fi
+else
+    log_info "Skipping isd test (package not in channel)"
+fi
+
 # Test: Try to install speedtest-go if available
 log_info "Checking if speedtest-go package is available..."
 if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"speedtest-go-'; then
