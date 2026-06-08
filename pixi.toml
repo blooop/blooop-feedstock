@@ -40,6 +40,9 @@ build-forgit = "rattler-build build --recipe recipes/forgit/recipe.yaml --output
 # Build krill
 build-krill = "rattler-build build --recipe recipes/krill/recipe.yaml --output-dir output"
 
+# Build isd
+build-isd = "rattler-build build --recipe recipes/isd/recipe.yaml --output-dir output"
+
 # Build ROS Jazzy packages
 build-pymoveit2 = "rattler-build build --recipe recipes/ros-jazzy-pymoveit2/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
 build-ros2-joystick-gui = "rattler-build build --recipe recipes/ros-jazzy-ros2-joystick-gui/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
