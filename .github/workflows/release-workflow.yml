@@ -557,20 +557,29 @@ jobs:
           echo "Downloaded artifacts:"
           find artifacts -type f -name "*.conda" | head -50
 
-          # Move all packages to output directory with proper structure.
-          # The output/<platform>/ dir name is cosmetic — prefix.dev routes each
-          # package by its own metadata (noarch packages go to the noarch subdir),
+          # Move all packages into per-platform subdirs. The subdir name is
+          # cosmetic (prefix.dev routes each package by its embedded metadata),
           # but separating by platform avoids filename collisions between builds.
-          for pkg in artifacts/conda-*/*.conda; do
-            if [ -f "$pkg" ]; then
-              # Extract platform from the artifact directory name
-              artifact_name=$(dirname "$pkg" | xargs basename)
-              platform=$(echo "$artifact_name" | sed 's/conda-[^-]*-//')
-
-              mkdir -p "output/$platform"
-              cp "$pkg" "output/$platform/"
-              echo "Copied $pkg to output/$platform/"
+          #
+          # download-artifact creates artifacts/<artifact-name>/<file> when
+          # multiple artifacts match, but flattens to artifacts/<file> when only
+          # one matches (e.g. a noarch package restricted to a single platform).
+          # Handle both layouts.
+          shopt -s nullglob
+          for pkg in artifacts/conda-*/*.conda artifacts/*.conda; do
+            [ -f "$pkg" ] || continue
+            dir=$(dirname "$pkg")
+            if [ "$dir" != "artifacts" ]; then
+              # artifacts/conda-<package>-<platform>/<file>
+              platform=$(basename "$dir" | sed 's/conda-[^-]*-//')
+            else
+              # Flattened single artifact — only noarch packages are restricted
+              # to one platform, so park it under noarch (routing is by metadata).
+              platform="noarch"
             fi
+            mkdir -p "output/$platform"
+            cp "$pkg" "output/$platform/"
+            echo "Copied $pkg to output/$platform/"
           done
 
           echo ""
