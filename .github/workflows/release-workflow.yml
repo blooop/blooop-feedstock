@@ -174,6 +174,26 @@ jobs:
             fi
           fi
 
+          # Check isd (PyPI package: isd-tui)
+          if [ -d "recipes/isd" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "isd" ]); then
+            echo "Checking isd for updates..."
+
+            # Get current version from recipe
+            CURRENT=$(grep -A 3 'package:' recipes/isd/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            # Get latest version from PyPI (project is named isd-tui)
+            LATEST=$(curl -s https://pypi.org/pypi/isd-tui/json | jq -r '.info.version // empty')
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: isd $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "isd", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "isd is up to date"
+            fi
+          fi
+
           # Check devpod-prerelease
           if [ -d "recipes/devpod-prerelease" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "devpod-prerelease" ]); then
             echo "Checking devpod-prerelease for updates..."
@@ -333,7 +353,8 @@ jobs:
           # Packages not listed here are built for all platforms above
           PACKAGE_PLATFORMS='{
             "uhk-agent": ["linux-64", "linux-aarch64"],
-            "envoy": ["linux-64", "linux-aarch64"]
+            "envoy": ["linux-64", "linux-aarch64"],
+            "isd": ["linux-64"]
           }'
 
           # Build the full matrix: each package × supported platforms
@@ -494,7 +515,11 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: conda-${{ matrix.package }}-${{ matrix.platform }}
-          path: output/${{ matrix.platform }}/*.conda
+          # noarch packages land in output/noarch/, not output/<platform>/
+          path: |
+            output/${{ matrix.platform }}/*.conda
+            output/noarch/*.conda
+          if-no-files-found: error
           retention-days: 7
 
   # =============================================================================
@@ -526,17 +551,19 @@ jobs:
           echo "Downloaded artifacts:"
           find artifacts -type f -name "*.conda" | head -50
 
-          # Move all packages to output directory with proper structure
-          for pkg in artifacts/conda-*/*.conda; do
-            if [ -f "$pkg" ]; then
-              # Extract platform from the artifact directory name
-              artifact_name=$(dirname "$pkg" | xargs basename)
-              platform=$(echo "$artifact_name" | sed 's/conda-[^-]*-//')
+          # Move all packages to output directory with proper structure.
+          # find (not a flat glob) so noarch packages nested under the artifact
+          # dir (artifacts/conda-<pkg>-<plat>/noarch/*.conda) are also captured.
+          # The output/<platform>/ dir name is cosmetic — prefix.dev routes each
+          # package by its own metadata (noarch packages go to the noarch subdir).
+          for pkg in $(find artifacts -type f -name "*.conda"); do
+            # Artifact dir name is conda-<package>-<platform>
+            artifact_name=$(echo "$pkg" | sed -E 's#^artifacts/(conda-[^/]+)/.*#\1#')
+            platform=$(echo "$artifact_name" | sed 's/conda-[^-]*-//')
 
-              mkdir -p "output/$platform"
-              cp "$pkg" "output/$platform/"
-              echo "Copied $pkg to output/$platform/"
-            fi
+            mkdir -p "output/$platform"
+            cp "$pkg" "output/$platform/"
+            echo "Copied $pkg to output/$platform/"
           done
 
           echo ""
@@ -634,7 +661,7 @@ jobs:
             echo ""
             echo "Checking $PACKAGE $LATEST..."
 
-            for platform in linux-64 linux-aarch64 osx-64 osx-arm64; do
+            for platform in noarch linux-64 linux-aarch64 osx-64 osx-arm64; do
               if curl -sL "https://prefix.dev/blooop/$platform/repodata.json" | grep -q "\"$PACKAGE-$LATEST"; then
                 echo "  $platform: available"
               else
