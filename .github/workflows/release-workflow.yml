@@ -501,9 +501,16 @@ jobs:
             echo "Build succeeded"
             echo "success=true" >> $GITHUB_OUTPUT
 
-            # List built packages
+            # Stage built packages into a flat dir. rattler-build writes
+            # platform packages to output/<platform>/ but noarch packages to
+            # output/noarch/, so collect from wherever they landed. Keeping the
+            # artifact flat preserves the conda-<pkg>-<platform> artifact-name
+            # dir on download, which the organize step relies on.
+            mkdir -p staging
+            find output -name "*.conda" -exec cp {} staging/ \;
+
             echo "Built packages:"
-            find output -name "*.conda" -o -name "*.tar.bz2" | head -20
+            find staging -name "*.conda" | head -20
           else
             echo "Build failed for ${{ matrix.platform }}"
             echo "success=false" >> $GITHUB_OUTPUT
@@ -515,10 +522,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: conda-${{ matrix.package }}-${{ matrix.platform }}
-          # noarch packages land in output/noarch/, not output/<platform>/
-          path: |
-            output/${{ matrix.platform }}/*.conda
-            output/noarch/*.conda
+          # staging/ holds the built package(s), flattened from output/<platform>/
+          # or output/noarch/ — see the build step above.
+          path: staging/*.conda
           if-no-files-found: error
           retention-days: 7
 
@@ -552,18 +558,19 @@ jobs:
           find artifacts -type f -name "*.conda" | head -50
 
           # Move all packages to output directory with proper structure.
-          # find (not a flat glob) so noarch packages nested under the artifact
-          # dir (artifacts/conda-<pkg>-<plat>/noarch/*.conda) are also captured.
           # The output/<platform>/ dir name is cosmetic — prefix.dev routes each
-          # package by its own metadata (noarch packages go to the noarch subdir).
-          for pkg in $(find artifacts -type f -name "*.conda"); do
-            # Artifact dir name is conda-<package>-<platform>
-            artifact_name=$(echo "$pkg" | sed -E 's#^artifacts/(conda-[^/]+)/.*#\1#')
-            platform=$(echo "$artifact_name" | sed 's/conda-[^-]*-//')
+          # package by its own metadata (noarch packages go to the noarch subdir),
+          # but separating by platform avoids filename collisions between builds.
+          for pkg in artifacts/conda-*/*.conda; do
+            if [ -f "$pkg" ]; then
+              # Extract platform from the artifact directory name
+              artifact_name=$(dirname "$pkg" | xargs basename)
+              platform=$(echo "$artifact_name" | sed 's/conda-[^-]*-//')
 
-            mkdir -p "output/$platform"
-            cp "$pkg" "output/$platform/"
-            echo "Copied $pkg to output/$platform/"
+              mkdir -p "output/$platform"
+              cp "$pkg" "output/$platform/"
+              echo "Copied $pkg to output/$platform/"
+            fi
           done
 
           echo ""
