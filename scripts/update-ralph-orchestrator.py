@@ -16,9 +16,10 @@ GITHUB_REPO = "mikeyobrien/ralph-orchestrator"
 RECIPE_PATH = Path("recipes/ralph-orchestrator/recipe.yaml")
 
 # Mapping of platform conditions to release asset names
+# Upstream publishes statically-linked musl builds for Linux (no glibc variant).
 PLATFORM_ASSETS = {
-    "linux and x86_64": "ralph-cli-x86_64-unknown-linux-gnu.tar.xz",
-    "linux and aarch64": "ralph-cli-aarch64-unknown-linux-gnu.tar.xz",
+    "linux and x86_64": "ralph-cli-x86_64-unknown-linux-musl.tar.xz",
+    "linux and aarch64": "ralph-cli-aarch64-unknown-linux-musl.tar.xz",
     "osx and x86_64": "ralph-cli-x86_64-apple-darwin.tar.xz",
     "osx and arm64": "ralph-cli-aarch64-apple-darwin.tar.xz",
 }
