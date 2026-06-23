@@ -13,7 +13,6 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **pi** - AI agent toolkit — coding agent CLI with 20+ LLM provider support, TUI & web UI libraries (from [badlogic/pi-mono](https://github.com/badlogic/pi-mono))
 - **pkl** - A configuration as code language with rich validation and tooling (from [apple/pkl](https://github.com/apple/pkl))
 - **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection (from [frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code))
-- **ralph-orchestrator** - Hat-based orchestration framework that keeps AI agents in a loop until done (from [mikeyobrien/ralph-orchestrator](https://github.com/mikeyobrien/ralph-orchestrator))
 - **speedtest-go** - CLI and Go API to test internet speed using speedtest.net (from [showwin/speedtest-go](https://github.com/showwin/speedtest-go))
 - **uhk-agent** - Configuration application for the Ultimate Hacking Keyboard (from [UltimateHackingKeyboard/agent](https://github.com/UltimateHackingKeyboard/agent))
 - **zjsh** - A sesh-like zellij launcher for projects, sessions, and zoxide paths (from [saweima12/zjsh](https://github.com/saweima12/zjsh))
@@ -31,7 +30,6 @@ pixi global install --channel https://prefix.dev/blooop --channel conda-forge kr
 pixi global install --channel https://prefix.dev/blooop pi
 pixi global install --channel https://prefix.dev/blooop pkl
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge ralph-claude-code
-pixi global install --channel https://prefix.dev/blooop ralph-orchestrator
 pixi global install --channel https://prefix.dev/blooop speedtest-go
 pixi global install --channel https://prefix.dev/blooop uhk-agent
 pixi global install --channel https://prefix.dev/blooop zjsh

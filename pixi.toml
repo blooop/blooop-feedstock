@@ -18,8 +18,6 @@ build-shim-macos = "rattler-build build --recipe recipes/claude-shim/recipe.yaml
 build-shim-windows = "rattler-build build --recipe recipes/claude-shim/recipe.yaml --target-platform win-64 --output-dir output"
 
 build-ralph = "rattler-build build --recipe recipes/ralph-claude-code/recipe.yaml --output-dir output"
-build-ralph-orchestrator = "rattler-build build --recipe recipes/ralph-orchestrator/recipe.yaml --output-dir output"
-update-ralph-orchestrator = "python scripts/update-ralph-orchestrator.py"
 
 # Build iterfzf
 build-iterfzf = "rattler-build build --recipe recipes/iterfzf/recipe.yaml --output-dir output"
@@ -63,7 +61,7 @@ build-zed-ros2 = "rattler-build build --recipe recipes/ros-jazzy-zed-ros2/recipe
 build-zjsh = "rattler-build build --recipe recipes/zjsh/recipe.yaml --output-dir output"
 
 # Build all packages
-build-all = { depends-on = ["build-shim", "build-ralph", "build-ralph-orchestrator", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go", "build-forgit"] }
+build-all = { depends-on = ["build-shim", "build-ralph", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go", "build-forgit"] }
 
 # Check for updates across all packages
 check-updates = "bash scripts/check-updates.sh"
