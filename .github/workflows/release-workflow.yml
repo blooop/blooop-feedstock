@@ -122,38 +122,6 @@ jobs:
             fi
           fi
 
-          # Check ralph-claude-code
-          if [ -d "recipes/ralph-claude-code" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "ralph-claude-code" ]); then
-            echo "Checking ralph-claude-code for updates..."
-
-            # Get current version from recipe
-            CURRENT=$(grep -A 3 'package:' recipes/ralph-claude-code/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
-            echo "Current version: $CURRENT"
-
-            # Get latest version from GitHub releases API
-            LATEST=$(curl -s https://api.github.com/repos/frankbria/ralph-claude-code/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/' || echo "")
-
-            # If no releases, fall back to checking tags
-            if [ -z "$LATEST" ]; then
-              echo "No releases found, checking git tags..."
-              LATEST=$(curl -s https://api.github.com/repos/frankbria/ralph-claude-code/tags | jq -r '.[0].name // empty' | sed 's/^v//')
-            fi
-
-            # If still no version, use current for force build
-            if [ -z "$LATEST" ]; then
-              LATEST="$CURRENT"
-            fi
-
-            echo "Latest version: $LATEST"
-
-            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
-              echo "Update found: ralph-claude-code $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
-              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "ralph-claude-code", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
-            else
-              echo "ralph-claude-code is up to date"
-            fi
-          fi
-
           # Check iterfzf (PyPI package)
           if [ -d "recipes/iterfzf" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "iterfzf" ]); then
             echo "Checking iterfzf for updates..."
@@ -402,22 +370,6 @@ jobs:
                 echo "Updated claude-shim version to $LATEST"
               else
                 echo "claude-shim version unchanged ($CURRENT)"
-              fi
-            elif [ "$PACKAGE" == "ralph-claude-code" ]; then
-              if [ "$CURRENT" != "$LATEST" ]; then
-                # Get latest commit hash from main branch
-                LATEST_COMMIT=$(curl -s https://api.github.com/repos/frankbria/ralph-claude-code/commits/main | jq -r '.sha')
-                echo "Latest commit: $LATEST_COMMIT"
-
-                # Update version
-                sed -i 's/version: "'$CURRENT'"/version: "'$LATEST'"/' recipes/ralph-claude-code/recipe.yaml
-
-                # Update git rev
-                sed -i "s/rev: .*/rev: $LATEST_COMMIT/" recipes/ralph-claude-code/recipe.yaml
-
-                echo "Updated ralph-claude-code to $LATEST (commit: ${LATEST_COMMIT:0:8})"
-              else
-                echo "ralph-claude-code version unchanged ($CURRENT)"
               fi
             else
               # Use update script for other packages

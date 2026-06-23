@@ -203,25 +203,6 @@ else
     log_info "Skipping devpod test (package not in channel)"
 fi
 
-# Test: Try to install ralph-claude-code if available
-log_info "Checking if ralph-claude-code package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"ralph-claude-code-'; then
-    log_info "Installing ralph-claude-code package..."
-    ((TESTS_RUN++))
-    # Note: ralph-claude-code requires git and jq from conda-forge
-    if pixi global install --channel "$CHANNEL" --channel conda-forge ralph-claude-code 2>&1; then
-        log_pass "ralph-claude-code package installation"
-        run_test "ralph binary exists" "which ralph"
-        run_test "ralph-monitor binary exists" "which ralph-monitor"
-        run_test "ralph-setup binary exists" "which ralph-setup"
-        run_test "ralph --help works" "ralph --help"
-    else
-        log_fail "ralph-claude-code package installation"
-    fi
-else
-    log_info "Skipping ralph-claude-code test (package not in channel)"
-fi
-
 # Test: Try to install forgit if available
 log_info "Checking if forgit is available..."
 if curl -sLf "${CHANNEL}/noarch/repodata.json" 2>/dev/null | grep -q '"forgit-'; then

@@ -12,7 +12,6 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **krill** - Professional-grade DAG-based process orchestrator for robotics systems (from [Zero-Robotics/krill](https://github.com/Zero-Robotics/krill))
 - **pi** - AI agent toolkit — coding agent CLI with 20+ LLM provider support, TUI & web UI libraries (from [badlogic/pi-mono](https://github.com/badlogic/pi-mono))
 - **pkl** - A configuration as code language with rich validation and tooling (from [apple/pkl](https://github.com/apple/pkl))
-- **ralph-claude-code** - Autonomous AI development loop for Claude Code with intelligent exit detection (from [frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code))
 - **speedtest-go** - CLI and Go API to test internet speed using speedtest.net (from [showwin/speedtest-go](https://github.com/showwin/speedtest-go))
 - **uhk-agent** - Configuration application for the Ultimate Hacking Keyboard (from [UltimateHackingKeyboard/agent](https://github.com/UltimateHackingKeyboard/agent))
 - **zjsh** - A sesh-like zellij launcher for projects, sessions, and zoxide paths (from [saweima12/zjsh](https://github.com/saweima12/zjsh))
@@ -29,7 +28,6 @@ pixi global install --channel https://prefix.dev/blooop --channel conda-forge is
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge krill
 pixi global install --channel https://prefix.dev/blooop pi
 pixi global install --channel https://prefix.dev/blooop pkl
-pixi global install --channel https://prefix.dev/blooop --channel conda-forge ralph-claude-code
 pixi global install --channel https://prefix.dev/blooop speedtest-go
 pixi global install --channel https://prefix.dev/blooop uhk-agent
 pixi global install --channel https://prefix.dev/blooop zjsh
@@ -86,10 +84,8 @@ blooop-feedstock/
 ├── recipes/
 │   ├── claude-shim/
 │   │   └── recipe.yaml              # Claude shim conda recipe
-│   ├── devpod/
-│   │   └── recipe.yaml              # DevPod conda recipe (from skevetter fork)
-│   └── ralph-claude-code/
-│       └── recipe.yaml              # Ralph autonomous development loop
+│   └── devpod/
+│       └── recipe.yaml              # DevPod conda recipe (from skevetter fork)
 ├── scripts/
 │   ├── check-updates.sh             # Check all packages for updates
 │   ├── upload-to-prefix.sh          # Upload packages to prefix.dev
@@ -116,7 +112,6 @@ Use `pixi run <task>` to execute these tasks:
 | Task | Description |
 |------|-------------|
 | `build-shim` | Build claude-shim package |
-| `build-ralph` | Build ralph-claude-code package |
 | `build-pi` | Build pi package |
 | `update-pi` | Update pi recipe to latest upstream release |
 | `build-all` | Build all packages |
