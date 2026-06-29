@@ -528,32 +528,61 @@ jobs:
           failed=0
           skipped=0
 
+          # prefix.dev occasionally returns transient errors (e.g. a flaky
+          # 401 Unauthorized or 5xx) on an otherwise-valid upload, so retry
+          # each package a few times with backoff before giving up. A single
+          # transient blip must not fail the whole release.
+          max_attempts=4
+
           for pkg in output/*/*.conda; do
             if [ -f "$pkg" ]; then
               echo ""
               echo "Uploading $(basename "$pkg")..."
 
-              if pixi run rattler-build upload prefix \
-                --skip-existing \
-                --channel blooop \
-                --api-key "$PIXI_TOKEN" \
-                "$pkg" 2>&1; then
-                echo "Upload succeeded"
-                uploaded=$((uploaded + 1))
-              else
-                # Check if it was skipped (already exists)
-                if pixi run rattler-build upload prefix \
+              attempt=1
+              status="failed"
+              while [ "$attempt" -le "$max_attempts" ]; do
+                if out=$(pixi run rattler-build upload prefix \
                   --skip-existing \
                   --channel blooop \
                   --api-key "$PIXI_TOKEN" \
-                  "$pkg" 2>&1 | grep -q "already exists"; then
+                  "$pkg" 2>&1); then
+                  echo "$out"
+                  status="uploaded"
+                  break
+                fi
+
+                echo "$out"
+
+                # Already-published packages are not a failure.
+                if echo "$out" | grep -q "already exists"; then
+                  status="skipped"
+                  break
+                fi
+
+                echo "Attempt $attempt/$max_attempts failed"
+                if [ "$attempt" -lt "$max_attempts" ]; then
+                  sleep_secs=$((attempt * 15))
+                  echo "Retrying in ${sleep_secs}s..."
+                  sleep "$sleep_secs"
+                fi
+                attempt=$((attempt + 1))
+              done
+
+              case "$status" in
+                uploaded)
+                  echo "Upload succeeded"
+                  uploaded=$((uploaded + 1))
+                  ;;
+                skipped)
                   echo "Package already exists, skipped"
                   skipped=$((skipped + 1))
-                else
-                  echo "Upload failed"
+                  ;;
+                *)
+                  echo "Upload failed after $max_attempts attempts"
                   failed=$((failed + 1))
-                fi
-              fi
+                  ;;
+              esac
             fi
           done
 
