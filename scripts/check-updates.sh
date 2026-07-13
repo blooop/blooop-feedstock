@@ -50,6 +50,11 @@ check_package() {
         "uhk-agent")
             check_github_release "UltimateHackingKeyboard/agent" "$current_version"
             ;;
+        "codex")
+            # codex ships as a bootstrap shim that installs latest Codex on first
+            # run and self-updates thereafter - no upstream version to track here
+            echo "   ✅ codex is a self-updating bootstrap shim (no upstream version to check)"
+            ;;
         *)
             echo "   ⚠️  No update checker implemented for $package_name"
             ;;
