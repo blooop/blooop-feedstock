@@ -15,14 +15,40 @@ When the user provides a GitHub repository URL, you will:
 **User provides:** `https://github.com/owner/repo`
 
 **You automatically:**
-1. Fetch the repository metadata and latest release information
-2. Determine package type (binary release, Python package, compiled source, etc.)
-3. Create `recipes/{package-name}/recipe.yaml` with proper configuration
-4. Build the package locally using `pixi run` tasks
-5. Test the package installation and basic functionality
-6. Commit and push to trigger channel publication
+1. **Check whether the tool is already packaged on conda-forge** — if it is, use that instead of adding a duplicate to blooop (see Step 0)
+2. Fetch the repository metadata and latest release information
+3. Determine package type (binary release, Python package, compiled source, etc.)
+4. Create `recipes/{package-name}/recipe.yaml` with proper configuration
+5. Build the package locally using `pixi run` tasks
+6. Test the package installation and basic functionality
+7. Commit and push to trigger channel publication
 
 ## Automated Package Addition Workflow
+
+### Step 0: Check for an Existing Package (DO THIS FIRST)
+
+Before writing any recipe, check whether the tool is **already packaged on conda-forge**
+(or any other channel the user's install would include). blooop packages are installed
+alongside conda-forge, so a duplicate is almost never what you want.
+
+```bash
+# Check conda-forge for a package named <name> (check both arch and noarch subdirs)
+curl -sL https://conda.anaconda.org/conda-forge/linux-64/repodata.json | grep -o '"<name>-[0-9][^"]*\.conda"' | tail
+curl -sL https://conda.anaconda.org/conda-forge/noarch/repodata.json  | grep -o '"<name>-[0-9][^"]*\.conda"' | tail
+# ...or query the metadata directly:
+curl -sL https://api.anaconda.org/package/conda-forge/<name>
+```
+
+**If conda-forge already ships it, do NOT add a same-named package to blooop.** It creates a
+channel-priority collision: users must include conda-forge anyway (for dependencies), so
+depending on channel order they may silently get the wrong package. Instead, tell the user to
+install it from conda-forge directly.
+
+Only add a blooop recipe when **one** of these holds:
+- The tool is **not** on conda-forge (or not for the platforms you need), **or**
+- You are intentionally shipping something *different* (a prerelease, a fork, or a shim with
+  different behavior) — in which case give it a **distinct name** (e.g. `foo-shim`,
+  `foo-prerelease`) so it never collides with the conda-forge package.
 
 ### Step 1: Analyze the GitHub Repository
 
@@ -976,6 +1002,7 @@ This ensures users can easily find the upstream project for each package.
 When user provides a GitHub URL, you must:
 
 **Analysis Phase:**
+- [ ] **Check conda-forge for an existing package** — if present, redirect the user there instead of adding a duplicate (Step 0)
 - [ ] Fetch repository metadata (name, description, license)
 - [ ] Find latest release version
 - [ ] Identify package type (binary, Python, source build, etc.)
