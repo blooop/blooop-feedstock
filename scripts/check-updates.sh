@@ -47,6 +47,10 @@ check_package() {
             # claude-shim is versioned independently - no upstream to check
             echo "   ✅ claude-shim is versioned independently (no upstream version to check)"
             ;;
+        "codex-shim")
+            # codex-shim installs the latest Codex on first run and self-updates - no upstream version to track
+            echo "   ✅ codex-shim is a self-updating bootstrap shim (no upstream version to check)"
+            ;;
         "uhk-agent")
             check_github_release "UltimateHackingKeyboard/agent" "$current_version"
             ;;

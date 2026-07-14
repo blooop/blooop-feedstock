@@ -252,6 +252,30 @@ else
     log_info "Skipping speedtest-go test (package not in channel)"
 fi
 
+# Test: Try to install codex-shim if available
+# codex-shim is a bootstrap shim exposing `codex`; running it triggers a network
+# install of the real Codex, so we only verify the shim installs and is valid here.
+log_info "Checking if codex-shim package is available..."
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"codex-shim-'; then
+    log_info "Installing codex-shim package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" --channel conda-forge codex-shim 2>&1; then
+        log_pass "codex-shim package installation"
+        run_test "codex command exists" "which codex"
+        run_test "codex command is executable" "test -x \$(which codex)"
+        CODEX_ENV_SCRIPT="$HOME/.pixi/envs/codex-shim/bin/codex"
+        if [ -f "$CODEX_ENV_SCRIPT" ]; then
+            run_test "codex shim has valid syntax" "bash -n '$CODEX_ENV_SCRIPT'"
+        else
+            log_info "Skipping shim syntax check (env script not found)"
+        fi
+    else
+        log_fail "codex-shim package installation"
+    fi
+else
+    log_info "Skipping codex-shim test (package not in channel)"
+fi
+
 # Test: Try to install pi if available
 log_info "Checking if pi package is available..."
 if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"pi-'; then
