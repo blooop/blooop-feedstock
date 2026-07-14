@@ -252,25 +252,6 @@ else
     log_info "Skipping speedtest-go test (package not in channel)"
 fi
 
-# Test: Try to install codex if available
-# codex is a bootstrap shim; running it triggers a network install of the real
-# Codex, so we only verify the shim is installed and syntactically valid here.
-log_info "Checking if codex package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"codex-'; then
-    log_info "Installing codex package..."
-    ((TESTS_RUN++))
-    if pixi global install --channel "$CHANNEL" codex 2>&1; then
-        log_pass "codex package installation"
-        run_test "codex command exists" "which codex"
-        run_test "codex command is executable" "test -x \$(which codex)"
-        run_test "codex shim has valid syntax" "bash -n \$(which codex)"
-    else
-        log_fail "codex package installation"
-    fi
-else
-    log_info "Skipping codex test (package not in channel)"
-fi
-
 # Test: Try to install pi if available
 log_info "Checking if pi package is available..."
 if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"pi-'; then

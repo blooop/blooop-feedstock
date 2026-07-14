@@ -102,25 +102,6 @@ jobs:
             fi
           fi
 
-          # Check codex (bootstrap shim - versioned independently; only force_build or version triggers a build)
-          if [ -d "recipes/codex" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "codex" ]); then
-            echo "Checking codex..."
-
-            CURRENT=$(grep -A 3 'package:' recipes/codex/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
-            echo "Current version: $CURRENT"
-
-            if [ -n "${{ github.event.inputs.version }}" ]; then
-              LATEST="${{ github.event.inputs.version }}"
-              echo "Using custom version: $LATEST"
-              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "codex", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
-            elif [ "${{ github.event.inputs.force_build }}" == "true" ]; then
-              echo "Force build requested for codex $CURRENT"
-              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "codex", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
-            else
-              echo "codex - no build requested (use force_build or specify version)"
-            fi
-          fi
-
           # Check devpod
           if [ -d "recipes/devpod" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "devpod" ]); then
             echo "Checking devpod for updates..."
@@ -383,13 +364,12 @@ jobs:
 
             echo "Updating $PACKAGE from $CURRENT to $LATEST..."
 
-            if [ "$PACKAGE" == "claude-shim" ] || [ "$PACKAGE" == "codex" ]; then
-              # Independently-versioned shims: bump the recipe only if the version actually changed
+            if [ "$PACKAGE" == "claude-shim" ]; then
               if [ "$CURRENT" != "$LATEST" ]; then
-                sed -i 's/version: "'$CURRENT'"/version: "'$LATEST'"/' recipes/$PACKAGE/recipe.yaml
-                echo "Updated $PACKAGE version to $LATEST"
+                sed -i 's/version: "'$CURRENT'"/version: "'$LATEST'"/' recipes/claude-shim/recipe.yaml
+                echo "Updated claude-shim version to $LATEST"
               else
-                echo "$PACKAGE version unchanged ($CURRENT)"
+                echo "claude-shim version unchanged ($CURRENT)"
               fi
             else
               # Use update script for other packages
