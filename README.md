@@ -22,7 +22,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 ```bash
 # Install packages globally with pixi
 pixi global install --channel https://prefix.dev/blooop claude-shim
-pixi global install --channel https://prefix.dev/blooop codex
+pixi global install --channel https://prefix.dev/blooop --channel conda-forge codex
 pixi global install --channel https://prefix.dev/blooop devpod
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge eaik
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge forgit
