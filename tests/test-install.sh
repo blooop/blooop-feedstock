@@ -276,6 +276,30 @@ else
     log_info "Skipping codex-shim test (package not in channel)"
 fi
 
+# Test: Try to install opencode-shim if available
+# opencode-shim is a bootstrap shim exposing `opencode`; running it triggers a network
+# install of the real opencode, so we only verify the shim installs and is valid here.
+log_info "Checking if opencode-shim package is available..."
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"opencode-shim-'; then
+    log_info "Installing opencode-shim package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" --channel conda-forge opencode-shim 2>&1; then
+        log_pass "opencode-shim package installation"
+        run_test "opencode command exists" "which opencode"
+        run_test "opencode command is executable" "test -x \$(which opencode)"
+        OPENCODE_ENV_SCRIPT="$HOME/.pixi/envs/opencode-shim/bin/opencode"
+        if [ -f "$OPENCODE_ENV_SCRIPT" ]; then
+            run_test "opencode shim has valid syntax" "bash -n '$OPENCODE_ENV_SCRIPT'"
+        else
+            log_info "Skipping shim syntax check (env script not found)"
+        fi
+    else
+        log_fail "opencode-shim package installation"
+    fi
+else
+    log_info "Skipping opencode-shim test (package not in channel)"
+fi
+
 # Test: Try to install pi if available
 log_info "Checking if pi package is available..."
 if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"pi-'; then

@@ -121,6 +121,25 @@ jobs:
             fi
           fi
 
+          # Check opencode-shim (bootstrap shim - versioned independently; only force_build or version triggers a build)
+          if [ -d "recipes/opencode-shim" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "opencode-shim" ]); then
+            echo "Checking opencode-shim..."
+
+            CURRENT=$(grep -A 3 'package:' recipes/opencode-shim/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            if [ -n "${{ github.event.inputs.version }}" ]; then
+              LATEST="${{ github.event.inputs.version }}"
+              echo "Using custom version: $LATEST"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "opencode-shim", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            elif [ "${{ github.event.inputs.force_build }}" == "true" ]; then
+              echo "Force build requested for opencode-shim $CURRENT"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "opencode-shim", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
+            else
+              echo "opencode-shim - no build requested (use force_build or specify version)"
+            fi
+          fi
+
           # Check devpod
           if [ -d "recipes/devpod" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "devpod" ]); then
             echo "Checking devpod for updates..."

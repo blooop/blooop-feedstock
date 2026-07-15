@@ -1,0 +1,68 @@
+schema_version: 1
+
+package:
+  name: opencode-shim
+  # Versioned independently of opencode itself: this package ships a bootstrap shim,
+  # not the opencode binary. The shim installs the latest official opencode on first
+  # run and opencode self-updates thereafter (`opencode upgrade`), so there is no
+  # upstream version to track. opencode is not on conda-forge; the `-shim` suffix
+  # simply signals this is a bootstrap installer, not a redistributed binary.
+  version: "0.1.0"
+
+source:
+  - path: opencode-shim.sh
+
+build:
+  number: 0
+  script:
+    - mkdir -p $PREFIX/bin
+    - cp $SRC_DIR/opencode-shim.sh $PREFIX/bin/opencode
+    - chmod +x $PREFIX/bin/opencode
+
+requirements:
+  run:
+    # Needed to fetch the official installer on first run.
+    - curl
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - which opencode
+          - test -x $PREFIX/bin/opencode
+          - bash -n $PREFIX/bin/opencode  # syntax check (running it would trigger the network install)
+
+about:
+  homepage: https://opencode.ai
+  license: MIT
+  license_family: MIT
+  summary: Bootstrap installer for opencode, the open source AI coding agent (exposes the `opencode` command)
+  description: |
+    opencode is an open source AI coding agent that runs in your terminal.
+
+    This package provides a thin bootstrap shim, installed as `opencode`. On first
+    run it performs opencode's official install into ~/.opencode — exactly what
+    `curl -fsSL https://opencode.ai/install | bash` produces — and then hands off to
+    it. Because the real install is what actually runs, every install-aware feature
+    behaves natively:
+
+    - `opencode upgrade` updates opencode in place (managed entirely by opencode)
+    - the installer auto-selects the right build for your platform (glibc/musl,
+      AVX2/baseline, x86_64/arm64)
+
+    It always bootstraps the latest opencode release and opencode self-updates
+    thereafter, so this package is versioned independently and never needs
+    re-publishing when opencode releases a new version.
+
+    This shim does NOT redistribute opencode; it downloads the official binary on
+    first use. It is named `opencode-shim` to signal that it is a bootstrap
+    installer rather than a redistributed binary.
+
+    Env vars: OPENCODE_VERSION (pin first-run version),
+    OPENCODE_INSTALLER_URL (override installer), DEBUG_SHIM=1 (diagnostics).
+  documentation: https://opencode.ai/docs/
+  repository: https://github.com/anomalyco/opencode
+
+extra:
+  recipe-maintainers:
+    - blooop
