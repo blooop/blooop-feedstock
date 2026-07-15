@@ -7,7 +7,7 @@ package:
   # run and opencode self-updates thereafter (`opencode upgrade`), so there is no
   # upstream version to track. opencode is not on conda-forge; the `-shim` suffix
   # simply signals this is a bootstrap installer, not a redistributed binary.
-  version: "0.1.0"
+  version: "0.1.1"
 
 source:
   - path: opencode-shim.sh
@@ -58,8 +58,13 @@ about:
     first use. It is named `opencode-shim` to signal that it is a bootstrap
     installer rather than a redistributed binary.
 
+    On first run it resolves the latest release via a github.com redirect rather
+    than the rate-limited GitHub API, so installs do not fail with "Failed to fetch
+    version information" when the unauthenticated API budget is exhausted.
+
     Env vars: OPENCODE_VERSION (pin first-run version),
-    OPENCODE_INSTALLER_URL (override installer), DEBUG_SHIM=1 (diagnostics).
+    OPENCODE_INSTALLER_URL (override installer), OPENCODE_REPO (override the repo
+    used to resolve the latest version), DEBUG_SHIM=1 (diagnostics).
   documentation: https://opencode.ai/docs/
   repository: https://github.com/anomalyco/opencode
 
