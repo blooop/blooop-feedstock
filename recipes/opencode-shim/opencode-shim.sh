@@ -51,6 +51,37 @@ debug "OPENCODE_BIN=$OPENCODE_BIN"
 debug "INSTALLER_URL=$INSTALLER_URL"
 debug "OPENCODE_VERSION=${OPENCODE_VERSION:-<latest>}"
 
+# Verify we can actually write opencode's install location BEFORE invoking the
+# installer. The installer hardcodes $HOME/.opencode/bin and does a plain `mkdir -p`
+# there; if that directory already exists but is owned by someone else (e.g. a
+# root-owned ~/.opencode left behind by a prior `sudo opencode`, or a container that
+# ran opencode as root with the home directory mounted), the installer aborts with a
+# raw "mkdir: Permission denied" and this shim would otherwise mislead the user with
+# a "transient network error / rate limiting" hint. Detect that case here and print
+# an actionable message instead. Creating the (empty) bin/ dir when it is writable is
+# harmless — it is exactly what the installer produces anyway.
+check_install_dir() {
+    local root="$HOME/.opencode"
+    if [ -e "$root" ] && [ ! -d "$root" ]; then
+        echo "opencode: $root exists but is not a directory." >&2
+        echo "          Move or remove it, then re-run 'opencode'." >&2
+        return 1
+    fi
+    if mkdir -p "$root/bin" 2>/dev/null && [ -w "$root/bin" ]; then
+        return 0
+    fi
+    local owner
+    owner="$(stat -c '%U:%G' "$root" 2>/dev/null || echo 'unknown')"
+    echo "opencode: cannot write to the install directory $root (owned by $owner)." >&2
+    echo "          opencode installs itself there, but the current user ($(id -un)) lacks write access." >&2
+    echo "          This usually means it was created by root — e.g. a prior 'sudo opencode'," >&2
+    echo "          or a container that ran as root with your home directory mounted." >&2
+    echo "          Fix it (choose one), then re-run 'opencode':" >&2
+    echo "              sudo chown -R $(id -un): $root     # keep an existing install" >&2
+    echo "              sudo rm -rf $root                  # discard it and reinstall fresh" >&2
+    return 1
+}
+
 fetch_installer() {
     if command -v curl >/dev/null 2>&1; then
         curl -fsSL "$INSTALLER_URL"
@@ -115,6 +146,9 @@ bootstrap() {
 
 if [ ! -x "$OPENCODE_BIN" ]; then
     echo "opencode: first run — performing one-time opencode install into $HOME/.opencode ..." >&2
+    if ! check_install_dir; then
+        exit 1
+    fi
     if ! bootstrap; then
         echo "opencode: first-run installation failed." >&2
         echo "          Usually a transient network error or GitHub API rate limiting." >&2

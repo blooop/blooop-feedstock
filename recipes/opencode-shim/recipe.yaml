@@ -7,7 +7,7 @@ package:
   # run and opencode self-updates thereafter (`opencode upgrade`), so there is no
   # upstream version to track. opencode is not on conda-forge; the `-shim` suffix
   # simply signals this is a bootstrap installer, not a redistributed binary.
-  version: "0.1.1"
+  version: "0.1.2"
 
 source:
   - path: opencode-shim.sh
