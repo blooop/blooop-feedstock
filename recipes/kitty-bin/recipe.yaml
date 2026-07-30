@@ -65,8 +65,13 @@ build:
 
           # Desktop entry and icons so the terminal shows up in application menus.
           # share/terminfo is deliberately NOT copied to $PREFIX/share/terminfo:
-          # ncurses ships xterm-kitty too and the files would clobber. kitty points
-          # child processes at its bundled copy via TERMINFO on its own.
+          # kitty points its own children at the bundled copy via TERMINFO, and a
+          # copy here would not help anything outside this env anyway. Note that
+          # other ncurses builds cannot read the bundled entry regardless of where
+          # it sits — conda-forge's ncurses uses hex-named terminfo directories
+          # (78/ for 'x') and ignores the classic x/ layout kitty ships. Programs
+          # in other environments need xterm-kitty in ~/.terminfo, in both layouts;
+          # that is a machine-level concern, not something a package can fix.
           mkdir -p "$PREFIX/share/applications"
           cp -a "$BUNDLE/share/applications/." "$PREFIX/share/applications/"
           mkdir -p "$PREFIX/share/icons"
