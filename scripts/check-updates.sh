@@ -54,6 +54,9 @@ check_package() {
         "uhk-agent")
             check_github_release "UltimateHackingKeyboard/agent" "$current_version"
             ;;
+        "kitty-bin")
+            check_github_release "kovidgoyal/kitty" "$current_version"
+            ;;
         *)
             echo "   ⚠️  No update checker implemented for $package_name"
             ;;
@@ -94,11 +97,13 @@ fi
 if [ $# -eq 1 ]; then
     check_package "$1"
 else
-    # Check all packages in recipes directory
+    # Check all packages in recipes directory. A single unparseable recipe must
+    # not abort the sweep: check_package returns non-zero for those, and `set -e`
+    # would otherwise stop at the first one and silently skip every package after.
     for recipe_dir in recipes/*/; do
         if [ -d "$recipe_dir" ]; then
             package_name=$(basename "$recipe_dir")
-            check_package "$package_name"
+            check_package "$package_name" || true
             echo ""
         fi
     done

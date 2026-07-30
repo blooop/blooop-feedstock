@@ -1,0 +1,150 @@
+schema_version: 1
+
+# Named kitty-bin, not kitty, on purpose: conda-forge ships a `kitty` built from
+# source, so a same-named package here would be a channel-priority collision.
+# conda-forge's is stuck at 0.23.1 (2021) with version bumps unmerged since 2024,
+# which is why this exists — it repackages upstream's own prebuilt Linux bundle.
+package:
+  name: kitty-bin
+  version: "0.48.1"
+
+# rattler-build downloads every source regardless of selectors, so both archives
+# are extracted on every build. They share a bin/lib/share layout, so each needs
+# its own target_directory or the arches would overwrite each other.
+source:
+  - url: https://github.com/kovidgoyal/kitty/releases/download/v0.48.1/kitty-0.48.1-x86_64.txz  # [linux and x86_64]
+    sha256: ab7d4978b146a3f4799d74fdd6fddf322e5cf93601494e3fcbed925141611963  # [linux and x86_64]
+    target_directory: kitty-x86_64  # [linux and x86_64]
+  - url: https://github.com/kovidgoyal/kitty/releases/download/v0.48.1/kitty-0.48.1-arm64.txz  # [linux and aarch64]
+    sha256: 6b0d8fe0af20ba03348e97e303f3c6084b5338bb4abd52737d8e2ffd2dba3d33  # [linux and aarch64]
+    target_directory: kitty-arm64  # [linux and aarch64]
+
+build:
+  number: 0
+  dynamic_linking:
+    # patchelf would rewrite the bundle's $ORIGIN/../lib RPATH and corrupt the
+    # Go-built kitten binary.
+    binary_relocation: false
+    # Only the dlopen-ed X11/Wayland window backends need these, so they are
+    # required at display time, not import time. Left to the host on purpose:
+    # any machine with a display already has them, and mixing a conda libX11
+    # with the host's GL drivers is a well-known way to break GPU apps.
+    # libuuid/libpanelw are optional CPython stdlib modules kitty never uses.
+    missing_dso_allowlist:
+      - "*/libX11.so.6"
+      - "*/libX11-xcb.so.1"
+      - "*/libxcb.so.1"
+      - "*/libxcb-xkb.so.1"
+      - "*/libXcursor.so.1"
+      - "*/libdbus-1.so.3"
+      - "*/libuuid.so.1"
+      - "*/libpanelw.so.6"
+      - "*/libsqlite3.so"
+  script:
+    - if: linux
+      then:
+        - |
+          case "${target_platform:-}" in
+            linux-64)      BUNDLE="$SRC_DIR/kitty-x86_64" ;;
+            linux-aarch64) BUNDLE="$SRC_DIR/kitty-arm64" ;;
+            *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+          test -x "$BUNDLE/bin/kitty" || { echo "kitty missing in $BUNDLE"; exit 1; }
+
+          # The bundle is self-contained and relocatable, but only as a unit: the
+          # binaries find their bundled Python, harfbuzz, freetype etc. through
+          # RPATH $ORIGIN/../lib, so the bin/ and lib/ pairing must stay intact.
+          mkdir -p "$PREFIX/lib/kitty-bin"
+          cp -a "$BUNDLE/." "$PREFIX/lib/kitty-bin/"
+
+          # Symlinking onto PATH is upstream's documented install method — kitty
+          # resolves /proc/self/exe, so it still locates lib/ and share/ correctly.
+          mkdir -p "$PREFIX/bin"
+          ln -s "../lib/kitty-bin/bin/kitty" "$PREFIX/bin/kitty"
+          ln -s "../lib/kitty-bin/bin/kitten" "$PREFIX/bin/kitten"
+
+          # Desktop entry and icons so the terminal shows up in application menus.
+          # share/terminfo is deliberately NOT copied to $PREFIX/share/terminfo:
+          # ncurses ships xterm-kitty too and the files would clobber. kitty points
+          # child processes at its bundled copy via TERMINFO on its own.
+          mkdir -p "$PREFIX/share/applications"
+          cp -a "$BUNDLE/share/applications/." "$PREFIX/share/applications/"
+          mkdir -p "$PREFIX/share/icons"
+          cp -a "$BUNDLE/share/icons/." "$PREFIX/share/icons/"
+
+          # fontconfig is the one gap upstream's bundle leaves in its otherwise
+          # vendored stack: bundled libcairo hard-links libfontconfig.so.1, which
+          # is loaded on import, so kitty cannot even start without it. Rather
+          # than depend on the host having it (it is absent from slim images), we
+          # satisfy it from conda-forge. The bundle's own lib dir is searched
+          # first for these libraries, so a relative symlink dropped in here is
+          # found without setting LD_LIBRARY_PATH — which matters a great deal
+          # for a terminal emulator, since that variable would otherwise be
+          # inherited by every program the user runs inside kitty.
+          ln -s ../../libfontconfig.so.1 "$PREFIX/lib/kitty-bin/lib/libfontconfig.so.1"
+
+requirements:
+  run:
+    # Bundled libpython3.14/harfbuzz/cairo need glibc 2.35 (Ubuntu 22.04+).
+    - __glibc >=2.35
+    - fontconfig
+
+tests:
+  - script:
+      - if: linux
+        then:
+          - test -x $PREFIX/lib/kitty-bin/bin/kitty
+          - test -x $PREFIX/lib/kitty-bin/bin/kitten
+          # Exercised through the PATH symlink, which is how users invoke it and
+          # the part most likely to break the $ORIGIN/self-exe path resolution.
+          - kitty --version
+          - kitten --version
+          # Confirms the bundled Python and extension modules actually load,
+          # which a --version check alone does not prove. This is what fails
+          # when libfontconfig is unavailable to the bundled libcairo.
+          - kitty +runpy 'import kitty.fast_data_types; print("ok")'
+          # -e follows the symlink, so this fails if conda's fontconfig moved.
+          - test -e $PREFIX/lib/kitty-bin/lib/libfontconfig.so.1
+          # Calls into fontconfig itself rather than just checking it is present.
+          # Not `kitty +list-fonts`, which needs a /dev/tty and cannot run here.
+          # Deliberately does not assert a non-empty result: a minimal build or
+          # CI image legitimately has no fonts installed, and what is under test
+          # is the fontconfig linkage, not the host's font collection.
+          - kitty +runpy 'from kitty.fast_data_types import fc_list; print("fontconfig ok:", len(fc_list()), "fonts")'
+
+about:
+  homepage: https://sw.kovidgoyal.net/kitty/
+  # kitty declares GPL-3.0-only in pyproject.toml. The bundle also carries
+  # third-party libraries (MIT, BSD, Apache-2.0, LGPL-2.1, PSF-2.0, FTL, Zlib,
+  # libpng-2.0, ISC, bzip2-1.0.6, 0BSD, X11); all are GPL-3.0 compatible, so the
+  # combined work is conveyed under GPL-3.0-only. Full inventory in upstream's
+  # SBOM: kitty-0.48.1.tar.xz.spdx.json on the release page.
+  license: GPL-3.0-only
+  license_family: GPL
+  license_file: LICENSE
+  summary: Cross-platform, fast, feature-rich, GPU-based terminal emulator (upstream Linux binary)
+  description: |
+    kitty is a fast, feature-rich, GPU-accelerated terminal emulator. It offers
+    ligature support, true color, graphics and image display, tabs and splits,
+    scriptable remote control, and "kittens" — small terminal programs such as
+    the diff, icat, ssh, and hyperlinked-grep tools.
+
+    This package repackages the official prebuilt Linux bundle published by
+    upstream rather than building from source, so it tracks current kitty
+    releases. The bundle vendors its own Python, harfbuzz, freetype, cairo and
+    OpenSSL; fontconfig comes from conda-forge. The host supplies only glibc
+    (2.35+) plus X11/Wayland and OpenGL, which are needed when a window is
+    actually opened — the same contract as upstream's own binary install.
+
+    It is named kitty-bin to avoid colliding with the source-built `kitty` on
+    conda-forge; the installed commands are still `kitty` and `kitten`. Do not
+    install both into the same environment, as they would clobber bin/kitty.
+
+    Being a GUI application, it requires a running X11 or Wayland display and
+    working OpenGL drivers.
+  documentation: https://sw.kovidgoyal.net/kitty/
+  repository: https://github.com/kovidgoyal/kitty
+
+extra:
+  recipe-maintainers:
+    - blooop

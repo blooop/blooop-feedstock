@@ -10,6 +10,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **eaik** - Toolbox for Efficient Analytical Inverse Kinematics by Subproblem Decomposition (from [OstermD/EAIK](https://github.com/OstermD/EAIK))
 - **forgit** - A utility tool powered by fzf for using git interactively (from [wfxr/forgit](https://github.com/wfxr/forgit))
 - **isd** - Interactive systemd TUI for managing systemd units with fuzzy search and live previews (from [kainctl/isd](https://github.com/kainctl/isd))
+- **kitty-bin** - Fast, feature-rich, GPU-based terminal emulator, repackaged from the official Linux binary (from [kovidgoyal/kitty](https://github.com/kovidgoyal/kitty)) — named `kitty-bin` to avoid colliding with conda-forge's much older source-built `kitty`; still provides the `kitty` and `kitten` commands. Linux only, needs glibc 2.35+ and a graphical session
 - **krill** - Professional-grade DAG-based process orchestrator for robotics systems (from [Zero-Robotics/krill](https://github.com/Zero-Robotics/krill))
 - **opencode-shim** - Bootstrap installer for [opencode](https://github.com/anomalyco/opencode), the open source AI coding agent (exposes the `opencode` command); installs the latest official opencode on first run so `opencode upgrade` and other native features work
 - **pi** - AI agent toolkit — coding agent CLI with 20+ LLM provider support, TUI & web UI libraries (from [badlogic/pi-mono](https://github.com/badlogic/pi-mono))
@@ -28,6 +29,7 @@ pixi global install --channel https://prefix.dev/blooop devpod
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge eaik
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge forgit
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge isd
+pixi global install --channel https://prefix.dev/blooop --channel conda-forge kitty-bin
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge krill
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge opencode-shim
 pixi global install --channel https://prefix.dev/blooop pi

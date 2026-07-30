@@ -333,6 +333,30 @@ else
     log_info "Skipping uhk-agent test (package not in channel)"
 fi
 
+# Test: Try to install kitty-bin if available
+log_info "Checking if kitty-bin is available..."
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"kitty-bin-'; then
+    log_info "Installing kitty-bin package..."
+    ((TESTS_RUN++))
+    # conda-forge is required here: kitty-bin depends on fontconfig
+    if pixi global install --channel "$CHANNEL" --channel conda-forge kitty-bin 2>&1; then
+        log_pass "kitty-bin installation"
+        run_test "kitty symlink exists" "which kitty"
+        run_test "kitten symlink exists" "which kitten"
+        run_test "kitty version check" "kitty --version"
+        run_test "kitten version check" "kitten --version"
+        # kitty is a GUI app, so there is no window to open in CI. Importing the
+        # native extension is the meaningful headless check: it loads the bundled
+        # Python, cairo and fontconfig, which is where a broken bundle shows up.
+        run_test "kitty native extension loads" "kitty +runpy 'import kitty.fast_data_types; print(\"ok\")'"
+        run_test "kitty fontconfig linkage" "kitty +runpy 'from kitty.fast_data_types import fc_list; fc_list()'"
+    else
+        log_fail "kitty-bin installation"
+    fi
+else
+    log_info "Skipping kitty-bin test (package not in channel)"
+fi
+
 # Test: Try to install zjsh if available
 log_info "Checking if zjsh is available..."
 if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"zjsh-'; then
