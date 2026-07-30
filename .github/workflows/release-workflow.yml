@@ -319,6 +319,24 @@ jobs:
             fi
           fi
 
+          # Check kitty-bin
+          if [ -d "recipes/kitty-bin" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "kitty-bin" ]); then
+            echo "Checking kitty-bin for updates..."
+
+            CURRENT=$(grep -A 3 'package:' recipes/kitty-bin/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            LATEST=$(curl -s https://api.github.com/repos/kovidgoyal/kitty/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/' || echo "")
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: kitty-bin $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "kitty-bin", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "kitty-bin is up to date"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix
@@ -340,7 +358,8 @@ jobs:
           PACKAGE_PLATFORMS='{
             "uhk-agent": ["linux-64", "linux-aarch64"],
             "envoy": ["linux-64", "linux-aarch64"],
-            "isd": ["linux-64"]
+            "isd": ["linux-64"],
+            "kitty-bin": ["linux-64", "linux-aarch64"]
           }'
 
           # Build the full matrix: each package × supported platforms
