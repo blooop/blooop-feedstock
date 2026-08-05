@@ -22,7 +22,7 @@ build:
             linux-aarch64) SRC_FILE="envoy-1.37.0-linux-aarch_64" ;;
             *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
           esac
-          install -Dm755 "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/envoy"
+          install -m755 "$SRC_DIR/$SRC_FILE" "$PREFIX/bin/envoy"
 
 requirements:
   run:

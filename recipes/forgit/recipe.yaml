@@ -13,7 +13,7 @@ build:
   noarch: generic
   script:
     - mkdir -p "$PREFIX/bin"
-    - install -Dm755 bin/git-forgit "$PREFIX/bin/git-forgit"
+    - install -m755 bin/git-forgit "$PREFIX/bin/git-forgit"
     # Copy so plugin.sh can find bin/git-forgit relative to its own directory
     - mkdir -p "$PREFIX/share/forgit/bin"
     - cp "$PREFIX/bin/git-forgit" "$PREFIX/share/forgit/bin/git-forgit"
