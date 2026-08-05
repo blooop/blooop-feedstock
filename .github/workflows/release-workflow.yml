@@ -560,8 +560,11 @@ jobs:
             [ -f "$pkg" ] || continue
             dir=$(dirname "$pkg")
             if [ "$dir" != "artifacts" ]; then
-              # artifacts/conda-<package>-<platform>/<file>
-              platform=$(basename "$dir" | sed 's/conda-[^-]*-//')
+              # artifacts/conda-<package>-<platform>/<file>. Package names contain
+              # hyphens too (conda-speedtest-go-linux-64), so match the platform
+              # suffix instead of stripping a fixed number of fields.
+              platform=$(basename "$dir" | grep -oE '(linux-64|linux-aarch64|osx-64|osx-arm64|win-64|noarch)$')
+              platform=${platform:-unknown}
             else
               # Flattened single artifact — only noarch packages are restricted
               # to one platform, so park it under noarch (routing is by metadata).
