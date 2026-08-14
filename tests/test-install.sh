@@ -7,6 +7,19 @@ PASSED=0
 FAILED=0
 TESTS_RUN=0
 
+# Channel subdir for the platform under test. Availability must be probed against
+# the repodata for THIS architecture: not every package is built for every arch
+# (zjsh, for one, is linux-64 only). Probing linux-64 from an arm64 runner reports
+# packages as present that cannot possibly install here, turning "not built for
+# this arch" into a spurious installation failure.
+case "$(uname -s)-$(uname -m)" in
+    Linux-x86_64)               SUBDIR="linux-64" ;;
+    Linux-aarch64|Linux-arm64)  SUBDIR="linux-aarch64" ;;
+    Darwin-x86_64)              SUBDIR="osx-64" ;;
+    Darwin-arm64)               SUBDIR="osx-arm64" ;;
+    *)                          SUBDIR="linux-64" ;;
+esac
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -49,6 +62,7 @@ echo "========================================"
 echo ""
 echo "Channel: $CHANNEL"
 echo "Platform: $(uname -s)-$(uname -m)"
+echo "Channel subdir: $SUBDIR"
 echo "Date: $(date -Iseconds)"
 echo ""
 
@@ -56,7 +70,7 @@ echo ""
 run_test "pixi is available" "pixi --version"
 
 # Test 2: Channel is accessible
-run_test "Channel is accessible" "curl -sLf '${CHANNEL}/linux-64/repodata.json' -o /dev/null"
+run_test "Channel is accessible" "curl -sLf '${CHANNEL}/${SUBDIR}/repodata.json' -o /dev/null"
 
 # Test 3: Install claude-shim package
 log_info "Installing claude-shim package..."
@@ -190,7 +204,7 @@ test_corrupted_binary_recovery
 
 # Test: Try to install devpod if available
 log_info "Checking if devpod package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"devpod-'; then
     log_info "Installing devpod package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" devpod 2>&1; then
@@ -238,7 +252,7 @@ fi
 
 # Test: Try to install speedtest-go if available
 log_info "Checking if speedtest-go package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"speedtest-go-'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"speedtest-go-'; then
     log_info "Installing speedtest-go package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" speedtest-go 2>&1; then
@@ -256,7 +270,7 @@ fi
 # codex-shim is a bootstrap shim exposing `codex`; running it triggers a network
 # install of the real Codex, so we only verify the shim installs and is valid here.
 log_info "Checking if codex-shim package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"codex-shim-'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"codex-shim-'; then
     log_info "Installing codex-shim package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" --channel conda-forge codex-shim 2>&1; then
@@ -280,7 +294,7 @@ fi
 # opencode-shim is a bootstrap shim exposing `opencode`; running it triggers a network
 # install of the real opencode, so we only verify the shim installs and is valid here.
 log_info "Checking if opencode-shim package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"opencode-shim-'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"opencode-shim-'; then
     log_info "Installing opencode-shim package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" --channel conda-forge opencode-shim 2>&1; then
@@ -302,7 +316,7 @@ fi
 
 # Test: Try to install pi if available
 log_info "Checking if pi package is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"pi-'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"pi-'; then
     log_info "Installing pi package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" pi 2>&1; then
@@ -319,7 +333,7 @@ fi
 
 # Test: Try to install uhk-agent if available
 log_info "Checking if uhk-agent is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"uhk-agent-'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"uhk-agent-'; then
     log_info "Installing uhk-agent package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" uhk-agent 2>&1; then
@@ -335,7 +349,7 @@ fi
 
 # Test: Try to install kitty-bin if available
 log_info "Checking if kitty-bin is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"kitty-bin-'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"kitty-bin-'; then
     log_info "Installing kitty-bin package..."
     ((TESTS_RUN++))
     # conda-forge is required here: kitty-bin depends on fontconfig
@@ -359,7 +373,7 @@ fi
 
 # Test: Try to install zjsh if available
 log_info "Checking if zjsh is available..."
-if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"zjsh-'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"zjsh-'; then
     log_info "Installing zjsh package..."
     ((TESTS_RUN++))
     if pixi global install --channel "$CHANNEL" zjsh 2>&1; then

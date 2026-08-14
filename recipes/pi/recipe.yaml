@@ -24,7 +24,9 @@ source:
     target_directory: win-64
 
 build:
-  number: 2
+  # 3: pi-wrapper resolves the latest version via the releases redirect instead of
+  #    the rate-limited GitHub API (the old path made `pi update` fail in CI).
+  number: 3
   dynamic_linking:
     binary_relocation: false
   script:
