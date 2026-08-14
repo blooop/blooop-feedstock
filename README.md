@@ -13,7 +13,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **kitty-bin** - Fast, feature-rich, GPU-based terminal emulator, repackaged from the official Linux binary (from [kovidgoyal/kitty](https://github.com/kovidgoyal/kitty)) — named `kitty-bin` to avoid colliding with conda-forge's much older source-built `kitty`; still provides the `kitty` and `kitten` commands. Linux only, needs glibc 2.35+ and a graphical session
 - **krill** - Professional-grade DAG-based process orchestrator for robotics systems (from [Zero-Robotics/krill](https://github.com/Zero-Robotics/krill))
 - **opencode-shim** - Bootstrap installer for [opencode](https://github.com/anomalyco/opencode), the open source AI coding agent (exposes the `opencode` command); installs the latest official opencode on first run so `opencode upgrade` and other native features work
-- **pi** - AI agent toolkit — coding agent CLI with 20+ LLM provider support, TUI & web UI libraries (from [badlogic/pi-mono](https://github.com/badlogic/pi-mono))
+- **pi** - AI agent toolkit — coding agent CLI with 20+ LLM provider support, TUI & web UI libraries (from [earendil-works/pi](https://github.com/earendil-works/pi))
 - **pkl** - A configuration as code language with rich validation and tooling (from [apple/pkl](https://github.com/apple/pkl))
 - **speedtest-go** - CLI and Go API to test internet speed using speedtest.net (from [showwin/speedtest-go](https://github.com/showwin/speedtest-go))
 - **uhk-agent** - Configuration application for the Ultimate Hacking Keyboard (from [UltimateHackingKeyboard/agent](https://github.com/UltimateHackingKeyboard/agent))

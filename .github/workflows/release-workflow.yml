@@ -273,7 +273,16 @@ jobs:
             CURRENT=$(grep -A 3 'package:' recipes/pi/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
             echo "Current version: $CURRENT"
 
-            LATEST=$(curl -s https://api.github.com/repos/badlogic/pi-mono/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/' || echo "")
+            # Resolve from the releases redirect rather than api.github.com. Two
+            # reasons this check was silently broken: upstream renamed the repo
+            # (badlogic/pi-mono -> earendil-works/pi) and `curl -s` does not follow
+            # the 301, so it parsed the redirect body, found no tag_name, and left
+            # LATEST empty — which this block reads as "up to date". pi therefore sat
+            # at 0.73.0 while upstream shipped 11 releases. The redirect also avoids
+            # the API's 60 req/hour/IP limit, which fails the same silent way.
+            LATEST=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+              https://github.com/earendil-works/pi/releases/latest \
+              | sed -n 's#.*/releases/tag/v##p' || echo "")
             echo "Latest version: $LATEST"
 
             if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then

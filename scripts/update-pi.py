@@ -2,8 +2,13 @@
 """
 Update script for pi package in the blooop-feedstock.
 
-This script monitors the badlogic/pi-mono GitHub repository for new releases
+This script monitors the earendil-works/pi GitHub repository for new releases
 and updates the recipe with the latest version and checksums for all platforms.
+
+GITHUB_REPO must match the repo name in the recipe's source URLs: update_recipe()
+rewrites those URLs with a pattern built from it, and a mismatch would leave the
+old version in the URLs while the sha256s move on — a build failure at best.
+Upstream renamed badlogic/pi-mono -> earendil-works/pi; both are kept in step here.
 """
 
 import hashlib
@@ -13,7 +18,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-GITHUB_REPO = "badlogic/pi-mono"
+GITHUB_REPO = "earendil-works/pi"
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 RECIPE_PATH = Path("recipes/pi/recipe.yaml")
 
