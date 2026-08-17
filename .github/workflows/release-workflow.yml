@@ -337,6 +337,24 @@ jobs:
             fi
           fi
 
+          # Check rmux
+          if [ -d "recipes/rmux" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "rmux" ]); then
+            echo "Checking rmux for updates..."
+
+            CURRENT=$(grep -A 3 'package:' recipes/rmux/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            LATEST=$(curl -s https://api.github.com/repos/Helvesec/rmux/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": "v\([^"]*\)".*/\1/' || echo "")
+            echo "Latest version: $LATEST"
+
+            if [ -n "$LATEST" ] && ([ "$CURRENT" != "$LATEST" ] || [ "${{ github.event.inputs.force_build }}" == "true" ]); then
+              echo "Update found: rmux $CURRENT -> $LATEST (forced: ${{ github.event.inputs.force_build }})"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "rmux", "current": "'$CURRENT'", "latest": "'$LATEST'"}]')
+            else
+              echo "rmux is up to date"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix

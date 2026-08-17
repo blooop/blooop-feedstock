@@ -1,0 +1,150 @@
+schema_version: 1
+
+# Repackages upstream's own prebuilt release archives. rmux is a Rust workspace
+# that builds a "tiny" launcher plus a much larger full CLI helper and a daemon,
+# wired together by a specific on-disk layout (see the build script) — upstream's
+# archives already encode that layout, so reusing them avoids reproducing the
+# xtask packaging logic here. Not on conda-forge, so the plain name is free.
+package:
+  name: rmux
+  version: "0.10.0"
+
+# rattler-build downloads and extracts every source regardless of selectors, so
+# each archive gets its own target_directory. Note target_directory strips the
+# archive's top-level directory, so contents land at $SRC_DIR/<dir>/bin/rmux.
+# Hashes match upstream's signed SHA256SUMS on the v0.10.0 release.
+source:
+  - url: https://github.com/Helvesec/rmux/releases/download/v0.10.0/rmux-0.10.0-linux-x86_64.tar.gz  # [linux and x86_64]
+    sha256: 1bec11eff08c3313c3a400196e7a93d00b8ad4a24f81ef13debb03355c2696c5  # [linux and x86_64]
+    target_directory: rmux-linux-64  # [linux and x86_64]
+  - url: https://github.com/Helvesec/rmux/releases/download/v0.10.0/rmux-0.10.0-linux-aarch64.tar.gz  # [linux and aarch64]
+    sha256: 7e916560ea0fb90864b8c24e5d0f81b4e3e0b013b8aad5ab53839d7e8e5e1926  # [linux and aarch64]
+    target_directory: rmux-linux-aarch64  # [linux and aarch64]
+  - url: https://github.com/Helvesec/rmux/releases/download/v0.10.0/rmux-0.10.0-macos-x86_64.tar.gz  # [osx and x86_64]
+    sha256: b897898eadc4d96c6d555b79affd834bd488013c44f8c6f815bb5195eafd1e0a  # [osx and x86_64]
+    target_directory: rmux-osx-64  # [osx and x86_64]
+  - url: https://github.com/Helvesec/rmux/releases/download/v0.10.0/rmux-0.10.0-macos-aarch64.tar.gz  # [osx and arm64]
+    sha256: aac857519071f680be53aa9a328dc0cd04c2abe66ec726f78aa9e26337c5ef7b  # [osx and arm64]
+    target_directory: rmux-osx-arm64  # [osx and arm64]
+
+build:
+  number: 0
+  script:
+    - if: unix
+      then:
+        - |
+          case "${target_platform:-}" in
+            linux-64)      BUNDLE="$SRC_DIR/rmux-linux-64" ;;
+            linux-aarch64) BUNDLE="$SRC_DIR/rmux-linux-aarch64" ;;
+            osx-64)        BUNDLE="$SRC_DIR/rmux-osx-64" ;;
+            osx-arm64)     BUNDLE="$SRC_DIR/rmux-osx-arm64" ;;
+            *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+          esac
+
+          # Upstream's install.sh asserts the same three executables before it
+          # will install, and a missing one here means the wrong archive was
+          # selected — worth failing on loudly rather than shipping a stub.
+          for required in bin/rmux bin/rmux-daemon libexec/rmux/rmux; do
+            test -x "$BUNDLE/$required" || { echo "archive is missing executable $required in $BUNDLE"; exit 1; }
+          done
+
+          # The three binaries are independent executables, but the layout that
+          # pairs them is load-bearing: bin/rmux is a ~2.9MB launcher that
+          # resolves the ~18MB full CLI helper at libexec/rmux/rmux relative to
+          # its own executable path, and spawns bin/rmux-daemon for the server.
+          # Keeping the same bin/ + libexec/ relationship inside $PREFIX is what
+          # makes it work here; RMUX_FULL_BINARY_PATH can override the helper
+          # lookup, but nothing should need to. install -D is avoided because
+          # BSD install on macOS has no such flag.
+          mkdir -p "$PREFIX/bin" "$PREFIX/libexec/rmux"
+          install -m755 "$BUNDLE/bin/rmux" "$PREFIX/bin/rmux"
+          install -m755 "$BUNDLE/bin/rmux-daemon" "$PREFIX/bin/rmux-daemon"
+          install -m755 "$BUNDLE/libexec/rmux/rmux" "$PREFIX/libexec/rmux/rmux"
+
+          # Shell completions and the man page, into the locations conda
+          # environments already put them. Upstream also ships elvish and
+          # PowerShell completions, which have no conda convention on unix.
+          mkdir -p "$PREFIX/share/bash-completion/completions"
+          install -m644 "$BUNDLE/share/bash-completion/completions/rmux" "$PREFIX/share/bash-completion/completions/rmux"
+          mkdir -p "$PREFIX/share/zsh/site-functions"
+          install -m644 "$BUNDLE/share/zsh/site-functions/_rmux" "$PREFIX/share/zsh/site-functions/_rmux"
+          mkdir -p "$PREFIX/share/fish/vendor_completions.d"
+          install -m644 "$BUNDLE/share/fish/vendor_completions.d/rmux.fish" "$PREFIX/share/fish/vendor_completions.d/rmux.fish"
+          mkdir -p "$PREFIX/share/man/man1"
+          install -m644 "$BUNDLE/share/man/man1/rmux.1" "$PREFIX/share/man/man1/rmux.1"
+
+          # about.license_file resolves against the source dir, and every arch
+          # keeps its licenses inside its own target_directory, so lift the
+          # selected archive's copies to a stable path.
+          install -m644 "$BUNDLE/LICENSE-MIT" "$SRC_DIR/LICENSE-MIT"
+          install -m644 "$BUNDLE/LICENSE-APACHE" "$SRC_DIR/LICENSE-APACHE"
+
+requirements:
+  run:
+    # Upstream builds against glibc 2.30 (artifact-metadata.json reports
+    # binary_glibc_min 2.30 for all three executables); they link nothing but
+    # libc/libm/libpthread/libdl and carry no RPATH.
+    - __glibc >=2.30  # [linux]
+
+tests:
+  - script:
+      - if: unix
+        then:
+          - test -x $PREFIX/bin/rmux
+          - test -x $PREFIX/bin/rmux-daemon
+          - test -x $PREFIX/libexec/rmux/rmux
+          # Answered by the launcher alone, so it proves nothing about layout.
+          - rmux -V
+          # This one does: the tmux-compatible command surface lives in the
+          # libexec helper, so it only prints if the launcher found it after
+          # being relocated into $PREFIX. Failure mode is the explicit
+          # "private rmux helper not found under libexec/rmux" error.
+          - rmux list-commands
+          - test -f $PREFIX/share/man/man1/rmux.1
+          - test -f $PREFIX/share/bash-completion/completions/rmux
+          - test -f $PREFIX/share/zsh/site-functions/_rmux
+          - test -f $PREFIX/share/fish/vendor_completions.d/rmux.fish
+          # Full round trip through the daemon: it exercises the third binary,
+          # a real PTY, and the client/server IPC handshake, none of which the
+          # checks above touch. RMUX_TMPDIR keeps the socket out of the shared
+          # default so a build host running rmux is unaffected, and kill-server
+          # leaves no daemon behind.
+          - |
+            export RMUX_TMPDIR="$(mktemp -d)"
+            rmux new-session -d -s conda-test
+            rmux list-sessions | grep -q conda-test
+            rmux kill-server
+
+about:
+  homepage: https://rmux.io
+  # Cargo.toml and the bundled LICENSE both declare MIT OR Apache-2.0; the
+  # archives ship the full text of each.
+  license: MIT OR Apache-2.0
+  license_family: MIT
+  license_file:
+    - LICENSE-MIT
+    - LICENSE-APACHE
+  summary: Async, typed terminal multiplexer engine with a tmux-compatible CLI
+  description: |
+    RMUX is a terminal multiplexer written in Rust. It implements a
+    tmux-compatible command surface (sessions, windows, panes, copy mode,
+    hooks, formats and key tables) and runs natively on Linux, macOS and
+    Windows, so the same CLI works without WSL.
+
+    Beyond the tmux surface it is designed to be driven programmatically: a
+    local daemon keeps shells and processes on your machine while typed SDKs
+    (Rust, plus Python and TypeScript published separately) automate any CLI or
+    TUI app. Extensions include pane snapshots and output streaming,
+    `expect-pane`-style waits for scripted interaction, a ratatui widget for
+    embedding panes in other Rust TUIs, and opt-in web session sharing.
+
+    This package repackages upstream's prebuilt release archives. It installs
+    the `rmux` launcher and its `rmux-daemon` server onto PATH, keeping the
+    private CLI helper under `libexec/rmux/` as upstream's own installer does,
+    along with bash, zsh and fish completions and the rmux(1) man page.
+  documentation: https://rmux.io
+  repository: https://github.com/Helvesec/rmux
+
+extra:
+  recipe-maintainers:
+    - blooop

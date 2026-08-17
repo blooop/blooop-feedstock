@@ -15,6 +15,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **opencode-shim** - Bootstrap installer for [opencode](https://github.com/anomalyco/opencode), the open source AI coding agent (exposes the `opencode` command); installs the latest official opencode on first run so `opencode upgrade` and other native features work
 - **pi** - AI agent toolkit — coding agent CLI with 20+ LLM provider support, TUI & web UI libraries (from [badlogic/pi-mono](https://github.com/badlogic/pi-mono))
 - **pkl** - A configuration as code language with rich validation and tooling (from [apple/pkl](https://github.com/apple/pkl))
+- **rmux** - Async, typed terminal multiplexer with a tmux-compatible CLI and a typed SDK for driving any CLI or TUI app (from [Helvesec/rmux](https://github.com/Helvesec/rmux)) — repackaged from upstream's prebuilt release archives; provides `rmux` and `rmux-daemon`
 - **speedtest-go** - CLI and Go API to test internet speed using speedtest.net (from [showwin/speedtest-go](https://github.com/showwin/speedtest-go))
 - **uhk-agent** - Configuration application for the Ultimate Hacking Keyboard (from [UltimateHackingKeyboard/agent](https://github.com/UltimateHackingKeyboard/agent))
 - **zjsh** - A sesh-like zellij launcher for projects, sessions, and zoxide paths (from [saweima12/zjsh](https://github.com/saweima12/zjsh))
@@ -34,6 +35,7 @@ pixi global install --channel https://prefix.dev/blooop --channel conda-forge kr
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge opencode-shim
 pixi global install --channel https://prefix.dev/blooop pi
 pixi global install --channel https://prefix.dev/blooop pkl
+pixi global install --channel https://prefix.dev/blooop rmux
 pixi global install --channel https://prefix.dev/blooop speedtest-go
 pixi global install --channel https://prefix.dev/blooop uhk-agent
 pixi global install --channel https://prefix.dev/blooop zjsh

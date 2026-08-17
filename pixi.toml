@@ -67,6 +67,9 @@ build-zjsh = "rattler-build build --recipe recipes/zjsh/recipe.yaml --output-dir
 # Build kitty-bin (linux only — upstream ships no conda-mappable macOS/Windows artifact)
 build-kitty-bin = "rattler-build build --recipe recipes/kitty-bin/recipe.yaml --output-dir output"
 
+# Build rmux
+build-rmux = "rattler-build build --recipe recipes/rmux/recipe.yaml --output-dir output"
+
 # Build all packages
 build-all = { depends-on = ["build-shim", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go", "build-forgit"] }
 

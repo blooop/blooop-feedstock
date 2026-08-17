@@ -357,6 +357,29 @@ else
     log_info "Skipping kitty-bin test (package not in channel)"
 fi
 
+# Test: Try to install rmux if available
+log_info "Checking if rmux is available..."
+if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"rmux-'; then
+    log_info "Installing rmux package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" rmux 2>&1; then
+        log_pass "rmux installation"
+        run_test "rmux binary exists" "which rmux"
+        run_test "rmux-daemon binary exists" "which rmux-daemon"
+        run_test "rmux version check" "rmux -V"
+        # list-commands is served by the private helper under libexec/rmux, so
+        # this is what catches a launcher that cannot find it after relocation.
+        run_test "rmux reaches its libexec helper" "rmux list-commands | grep -q new-session"
+        # Full client/daemon/PTY round trip. RMUX_TMPDIR isolates the socket and
+        # kill-server leaves no daemon running after the suite.
+        run_test "rmux session round trip" "export RMUX_TMPDIR=\$(mktemp -d) && rmux new-session -d -s citest && rmux list-sessions | grep -q citest && rmux kill-server"
+    else
+        log_fail "rmux installation"
+    fi
+else
+    log_info "Skipping rmux test (package not in channel)"
+fi
+
 # Test: Try to install zjsh if available
 log_info "Checking if zjsh is available..."
 if curl -sLf "${CHANNEL}/linux-64/repodata.json" 2>/dev/null | grep -q '"zjsh-'; then
