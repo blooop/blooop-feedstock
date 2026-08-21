@@ -5,6 +5,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 ## 📦 Available Packages
 
 - **claude-shim** - Shim that downloads and runs the official [Claude Code CLI](https://github.com/anthropics/claude-code) from Anthropic
+- **claude-statusline** - Claude Code status line renderer — model, context usage, rate-limit pacing and session cost, as one dependency-free binary (from [blooop/claude-statusline](https://github.com/blooop/claude-statusline))
 - **codex-shim** - Bootstrap installer for OpenAI's [Codex CLI](https://github.com/openai/codex) (exposes the `codex` command); installs the latest official Codex on first run so `codex update` and other native features work
 - **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
 - **eaik** - Toolbox for Efficient Analytical Inverse Kinematics by Subproblem Decomposition (from [OstermD/EAIK](https://github.com/OstermD/EAIK))
@@ -24,6 +25,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 ```bash
 # Install packages globally with pixi
 pixi global install --channel https://prefix.dev/blooop claude-shim
+pixi global install --channel https://prefix.dev/blooop --channel conda-forge claude-statusline
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge codex-shim
 pixi global install --channel https://prefix.dev/blooop devpod
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge eaik

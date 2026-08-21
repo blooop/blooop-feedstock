@@ -64,6 +64,9 @@ build-zed-ros2 = "rattler-build build --recipe recipes/ros-jazzy-zed-ros2/recipe
 # Build zjsh
 build-zjsh = "rattler-build build --recipe recipes/zjsh/recipe.yaml --output-dir output"
 
+# Build claude-statusline
+build-claude-statusline = "rattler-build build --recipe recipes/claude-statusline/recipe.yaml --output-dir output"
+
 # Build kitty-bin (linux only — upstream ships no conda-mappable macOS/Windows artifact)
 build-kitty-bin = "rattler-build build --recipe recipes/kitty-bin/recipe.yaml --output-dir output"
 

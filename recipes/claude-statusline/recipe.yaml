@@ -1,0 +1,68 @@
+schema_version: 1
+
+package:
+  name: claude-statusline
+  version: "0.1.0"
+
+source:
+  # The release tag's tarball, not the branch: the checksum below is what pins
+  # the build to the commit that was tagged. Bumping the version means bumping
+  # the URL and this sha256 together.
+  - url: https://github.com/blooop/claude-statusline/archive/refs/tags/v0.1.0.tar.gz
+    sha256: 7521bf92ab9a6d0892efa785c9bd28d57dc9dc8bad1fefbd09443b17c29156a0
+
+build:
+  number: 0
+  script:
+    - if: unix
+      then:
+        # `--locked` is the point of building from a tag: the dependency
+        # versions are the tagged `Cargo.lock`'s, not whatever crates.io holds
+        # on build day. `--no-track` keeps cargo's install ledger
+        # (`.crates.toml`, `.crates2.json`) out of `$PREFIX`, where it would
+        # ship as package content.
+        - cargo install --locked --no-track --path . --root "$PREFIX"
+
+requirements:
+  build:
+    # The C compiler is here for the linker and its sysroot, which is what makes
+    # the binary runnable on a glibc older than the build machine's.
+    - ${{ compiler('c') }}
+    - rust >=1.74
+  # No run requirements, deliberately. Replacing a Python status-line script
+  # with a compiled binary is the whole point: the package must not drag an
+  # interpreter into a container behind it.
+
+tests:
+  - script:
+      - if: unix
+        then:
+          # The binary takes a JSON payload on stdin and has no flags, so "does
+          # it run" has to be an actual render. An empty object is the
+          # every-field-missing case, which still prints both window slots.
+          - test -x "$PREFIX/bin/claude-statusline"
+          - echo '{}' | claude-statusline | grep -q '5h'
+          - echo '{}' | claude-statusline | grep -q '7d'
+          # Nothing on stdin is the "still loading" hourglass, not a crash.
+          - printf '' | claude-statusline | grep -q '⏳'
+
+about:
+  homepage: https://github.com/blooop/claude-statusline
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: Claude Code status line — model, context, rate-limit pacing, session cost
+  description: |
+    A single binary that reads Claude Code's status-line JSON payload on stdin
+    and prints one ANSI-coloured line: the live model, context-window usage, a
+    pacing gauge per rate-limit window, and session cost, duration and diff.
+
+    It is a faithful port of the stdlib-Python status line it replaces — same
+    output, byte for byte — so it can be dropped into a container that has no
+    Python at all.
+  documentation: https://github.com/blooop/claude-statusline#readme
+  repository: https://github.com/blooop/claude-statusline
+
+extra:
+  recipe-maintainers:
+    - blooop

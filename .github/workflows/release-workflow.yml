@@ -346,6 +346,23 @@ jobs:
             fi
           fi
 
+          # Check claude-statusline (Rust source build from a pinned tag tarball +
+          # sha256 - the version and checksum move together, by hand, so an
+          # auto-detected new tag could only rebuild the old pinned source)
+          if [ -d "recipes/claude-statusline" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "claude-statusline" ]); then
+            echo "Checking claude-statusline..."
+
+            CURRENT=$(grep -A 3 'package:' recipes/claude-statusline/recipe.yaml | grep 'version:' | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            if [ "${{ github.event.inputs.force_build }}" == "true" ]; then
+              echo "Force build requested for claude-statusline $CURRENT"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "claude-statusline", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
+            else
+              echo "claude-statusline - no build requested (use force_build to rebuild)"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix

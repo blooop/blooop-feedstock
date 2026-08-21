@@ -387,6 +387,27 @@ else
     log_info "Skipping zjsh test (package not in channel)"
 fi
 
+# Test: Try to install claude-statusline if available
+log_info "Checking if claude-statusline is available..."
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"claude-statusline-'; then
+    log_info "Installing claude-statusline package..."
+    ((TESTS_RUN++))
+    # conda-forge is required here: the compiled binary links libgcc
+    if pixi global install --channel "$CHANNEL" --channel conda-forge claude-statusline 2>&1; then
+        log_pass "claude-statusline installation"
+        run_test "claude-statusline binary exists" "which claude-statusline"
+        # No flags to probe — it renders a line from a JSON payload on stdin, so
+        # the only real smoke test is a render. An empty object is the
+        # every-field-missing case and still prints both rate-limit windows.
+        run_test "claude-statusline renders the 5h window" "echo '{}' | claude-statusline | grep -q '5h'"
+        run_test "claude-statusline renders the 7d window" "echo '{}' | claude-statusline | grep -q '7d'"
+    else
+        log_fail "claude-statusline installation"
+    fi
+else
+    log_info "Skipping claude-statusline test (package not in channel)"
+fi
+
 # Note: Dependency resolution is implicitly tested by the installation tests above
 # If a package has unresolvable dependencies, the installation will fail
 
