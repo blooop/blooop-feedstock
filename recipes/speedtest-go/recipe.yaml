@@ -2,23 +2,23 @@ schema_version: 1
 
 package:
   name: speedtest-go
-  version: "1.8.2"
+  version: "1.8.3"
 
 source:
-  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.2/speedtest-go_1.8.2_Linux_x86_64.tar.gz  # [linux and x86_64]
-    sha256: d2a265c447c73273460222405fa2dbc88b7ec06f75c28bba1f015e024c7f9944  # [linux and x86_64]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.3/speedtest-go_1.8.3_Linux_x86_64.tar.gz  # [linux and x86_64]
+    sha256: c55caae22927cd719a2f8c0bef96ecf74b5fe8ca919ff9200d76328ae5de9477  # [linux and x86_64]
     target_directory: linux-x86_64  # [linux and x86_64]
-  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.2/speedtest-go_1.8.2_Linux_arm64.tar.gz  # [linux and aarch64]
-    sha256: 8e5d1bd0226f2f6307633e310d61ec783be2c2cf9d248496d15aa5fa76e9e6ad  # [linux and aarch64]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.3/speedtest-go_1.8.3_Linux_arm64.tar.gz  # [linux and aarch64]
+    sha256: 48f51504548d76d5dc2ce7f72e713bd3b4e35554028b7131467060688754c657  # [linux and aarch64]
     target_directory: linux-aarch64  # [linux and aarch64]
-  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.2/speedtest-go_1.8.2_Darwin_x86_64.tar.gz  # [osx and x86_64]
-    sha256: 1f39c7c336f42799e62db0e33a78032d36150347c23e2056b5eba81f995ef589  # [osx and x86_64]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.3/speedtest-go_1.8.3_Darwin_x86_64.tar.gz  # [osx and x86_64]
+    sha256: 4c35ec3c4b49628931eb5020fd5a261135e6ca15b45ec0f5b98753766843cb38  # [osx and x86_64]
     target_directory: osx-x86_64  # [osx and x86_64]
-  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.2/speedtest-go_1.8.2_Darwin_arm64.tar.gz  # [osx and arm64]
-    sha256: 51467af5ca43289f6bd383aa76f8e7fa7b3752064f680ba54cba16961869720b  # [osx and arm64]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.3/speedtest-go_1.8.3_Darwin_arm64.tar.gz  # [osx and arm64]
+    sha256: 3900aa9d4c935ae87bd5be7b93bc0f19777f72e02e1997cf0c5f4f4cdd0282bd  # [osx and arm64]
     target_directory: osx-arm64  # [osx and arm64]
-  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.2/speedtest-go_1.8.2_Windows_x86_64.tar.gz  # [win]
-    sha256: 7001889657d61fa0ac455d36989dbbc7a762e43488864d3acdbbc330ac41e6fd  # [win]
+  - url: https://github.com/showwin/speedtest-go/releases/download/v1.8.3/speedtest-go_1.8.3_Windows_x86_64.tar.gz  # [win]
+    sha256: 0b7843d2e9582eee4d1c7390a58e86353444bfe35c27b8073ab68711091be96d  # [win]
     target_directory: win-x86_64  # [win]
 
 build:
