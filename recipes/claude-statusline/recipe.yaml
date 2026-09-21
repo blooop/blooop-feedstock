@@ -12,10 +12,17 @@ source:
     sha256: 0b04fadea12660f9b83640107ee3109982687ea97ce33c83afd6c3fde1075fa0
 
 build:
-  number: 0
+  number: 1
   script:
     - if: unix
       then:
+        # rustc drives its own link step and does not read `CC`, so on its own
+        # it links against the *build machine's* libc no matter what the build
+        # environment provides. On a glibc 2.39 runner that stamps versioned
+        # `GLIBC_2.39` references into the binary and it then refuses to start
+        # on anything older. Pointing the linker at the conda compiler makes it
+        # link against the sysroot pinned below instead.
+        - export RUSTFLAGS="-C linker=$CC"
         # `--locked` is the point of building from a tag: the dependency
         # versions are the tagged `Cargo.lock`'s, not whatever crates.io holds
         # on build day. `--no-track` keeps cargo's install ledger
@@ -25,9 +32,17 @@ build:
 
 requirements:
   build:
-    # The C compiler is here for the linker and its sysroot, which is what makes
-    # the binary runnable on a glibc older than the build machine's.
     - ${{ compiler('c') }}
+    # The sysroot is what makes the binary runnable on a glibc older than the
+    # build machine's, and its run_export is what puts a `__glibc` floor in the
+    # package metadata -- so a build that does come out too new is a solver
+    # error at install time rather than a crash on first run. Spelled out
+    # rather than via `stdlib()`, which needs a `c_stdlib` variant this
+    # feedstock does not define; the package name and `target_platform` happen
+    # to agree, so one line covers linux-64 and linux-aarch64.
+    - if: linux
+      then:
+        - sysroot_${{ target_platform }} 2.17.*
     - rust >=1.74
   # No run requirements, deliberately. Replacing a Python status-line script
   # with a compiled binary is the whole point: the package must not drag an
@@ -45,6 +60,24 @@ tests:
           - echo '{}' | claude-statusline | grep -q '7d'
           # Nothing on stdin is the "still loading" hourglass, not a crash.
           - printf '' | claude-statusline | grep -q '⏳'
+
+  # The renders above all pass on a build machine whose glibc is newer than the
+  # oldest distro this package is expected to run on, so they cannot catch a
+  # binary that links too new a libc -- that is exactly how a build requiring
+  # GLIBC_2.39 shipped and broke Debian bookworm (2.36) and Ubuntu jammy
+  # (2.35). This asserts the floor directly, on the symbol table, where the
+  # build machine's own glibc cannot hide it.
+  - script:
+      - if: linux
+        then:
+          - bash ./check-glibc-floor.sh "$PREFIX/bin/claude-statusline"
+    requirements:
+      run:
+        - binutils
+        - bash
+    files:
+      recipe:
+        - check-glibc-floor.sh
 
 about:
   homepage: https://github.com/blooop/claude-statusline
