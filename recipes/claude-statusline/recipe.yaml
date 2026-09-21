@@ -21,7 +21,7 @@ build:
         # environment provides. On a glibc 2.39 runner that stamps versioned
         # `GLIBC_2.39` references into the binary and it then refuses to start
         # on anything older. Pointing the linker at the conda compiler makes it
-        # link against the sysroot the C stdlib pin below provides instead.
+        # link against the sysroot pinned below instead.
         - export RUSTFLAGS="-C linker=$CC"
         # `--locked` is the point of building from a tag: the dependency
         # versions are the tagged `Cargo.lock`'s, not whatever crates.io holds
@@ -34,10 +34,15 @@ requirements:
   build:
     - ${{ compiler('c') }}
     # The sysroot is what makes the binary runnable on a glibc older than the
-    # build machine's, and it is also what puts a `__glibc` floor in the
+    # build machine's, and its run_export is what puts a `__glibc` floor in the
     # package metadata -- so a build that does come out too new is a solver
-    # error at install time rather than a crash on first run.
-    - ${{ stdlib('c') }}
+    # error at install time rather than a crash on first run. Spelled out
+    # rather than via `stdlib()`, which needs a `c_stdlib` variant this
+    # feedstock does not define; the package name and `target_platform` happen
+    # to agree, so one line covers linux-64 and linux-aarch64.
+    - if: linux
+      then:
+        - sysroot_${{ target_platform }} 2.17.*
     - rust >=1.74
   # No run requirements, deliberately. Replacing a Python status-line script
   # with a compiled binary is the whole point: the package must not drag an
