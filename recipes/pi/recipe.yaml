@@ -2,25 +2,25 @@ schema_version: 1
 
 package:
   name: pi
-  version: "0.86.0"
+  version: "0.86.1"
 
 # Tarballs all extract to a pi/ subdir internally, so use target_directory to avoid conflicts.
 # rattler-build downloads all sources regardless of selectors; build script picks the right one.
 source:
-  - url: https://github.com/earendil-works/pi/releases/download/v0.86.0/pi-linux-x64.tar.gz
-    sha256: afc6979293b95062c63fadee18b46b83089b244d67e1cb215cdca37ef9527caa
+  - url: https://github.com/earendil-works/pi/releases/download/v0.86.1/pi-linux-x64.tar.gz
+    sha256: 2494f5587a8774a10296d00a7e504e7ad05596ca93e057cb89372c8b1a7f46a9
     target_directory: linux-64
-  - url: https://github.com/earendil-works/pi/releases/download/v0.86.0/pi-linux-arm64.tar.gz
-    sha256: f6ce943a175b05a2f5f8dda2e0edf6538f476208e1ed3a0026b82600df08f385
+  - url: https://github.com/earendil-works/pi/releases/download/v0.86.1/pi-linux-arm64.tar.gz
+    sha256: 3957cb7ac3ec84fe905f0f077c599fd3fecfbb886a93467dfebfacc108b8c3b7
     target_directory: linux-aarch64
-  - url: https://github.com/earendil-works/pi/releases/download/v0.86.0/pi-darwin-x64.tar.gz
-    sha256: efbb5052e8f3de68d6882b002f639449dceeb56c61aa83ab08e3ff38581ac555
+  - url: https://github.com/earendil-works/pi/releases/download/v0.86.1/pi-darwin-x64.tar.gz
+    sha256: 74b0262948651f70c6d85a52043985e8fce2c89f1cd3a6f08f81d9cc799ec4a4
     target_directory: osx-64
-  - url: https://github.com/earendil-works/pi/releases/download/v0.86.0/pi-darwin-arm64.tar.gz
-    sha256: 9a84969c5365be16e593737b898e0ded756482c189bcfcd28e41a64f7f0314b0
+  - url: https://github.com/earendil-works/pi/releases/download/v0.86.1/pi-darwin-arm64.tar.gz
+    sha256: 03bd097ad4540ae4c3d9c1b5b19c517047cda0f1506bfcb992b17308460b0383
     target_directory: osx-arm64
-  - url: https://github.com/earendil-works/pi/releases/download/v0.86.0/pi-windows-x64.zip
-    sha256: bbb55cb641b7cf888a43a5d953faa715f12de05c703893d9f8ff5f09f495051d
+  - url: https://github.com/earendil-works/pi/releases/download/v0.86.1/pi-windows-x64.zip
+    sha256: b049d35a176fa5f4353d53ca90212320c031c9912b59efe95bb7985d52ed1507
     target_directory: win-64
 
 build:
