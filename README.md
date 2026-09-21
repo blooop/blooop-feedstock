@@ -49,6 +49,21 @@ pixi global install --channel https://prefix.dev/blooop zjsh
 
 - [pixi](https://prefix.dev/docs/pixi/overview) (recommended) or conda/mamba
 - Git
+- Docker, if you want to run `pixi run test-docker`
+
+### Devcontainer
+
+The repo ships a devcontainer (`.devcontainer/`), so the whole toolchain comes up
+with one command and nothing is installed on the host:
+
+```bash
+dl blooop/blooop-feedstock          # or: "Reopen in Container" in VS Code
+```
+
+It uses the prebuilt `python_template` image, adds docker-in-docker so
+`pixi run test-docker` works from inside, and runs `pixi install` on create. The
+nested daemon means the install-matrix tests build and tear down their images
+inside the container instead of on your host's image store.
 
 ### Local Development
 
