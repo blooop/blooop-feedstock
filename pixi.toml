@@ -9,6 +9,7 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "linux-aarch64"]
 rattler-build = "*"
 python = ">=3.10"
 curl = "*"
+pyyaml = ">=6.0.3,<7"
 
 [tasks]
 # Build specific packages
@@ -86,12 +87,7 @@ test-docker = "bash scripts/run-docker-tests.sh"
 clean = "rm -rf output/*"
 
 # Development tasks
-lint-recipes = '''
-    for recipe in recipes/*/recipe.yaml; do
-        echo "Checking $recipe..."
-        python -c "import yaml; yaml.safe_load(open('$recipe'))"
-    done
-'''
+lint-recipes = "bash scripts/lint-recipes.sh"
 
 [feature.dev.dependencies]
 pre-commit = "*"
