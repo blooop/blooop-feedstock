@@ -9,6 +9,7 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "linux-aarch64"]
 rattler-build = "*"
 python = ">=3.10"
 curl = "*"
+pyyaml = ">=6.0.3,<7"
 
 [tasks]
 # Build specific packages
