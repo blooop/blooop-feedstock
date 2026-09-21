@@ -13,7 +13,7 @@ source:
   rev: ${{ git_ref }}
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
   script:
@@ -38,6 +38,15 @@ requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
+    # Pin the sysroot so the binary runs on a glibc older than the build
+    # machine's. Without this the toolchain resolves whatever sysroot is
+    # newest -- on the ubuntu-latest runner that produced artifacts needing
+    # GLIBC_2.38/2.39, which will not exec on Debian bookworm (2.36) or
+    # Ubuntu jammy (2.35). The run_export also records a `__glibc` floor, so
+    # a too-new build becomes a solver error rather than a crash on first use.
+    - if: linux
+      then:
+        - sysroot_${{ target_platform }} 2.17.*
     - cmake >=3.22
     - ninja
     - pkg-config
@@ -61,6 +70,23 @@ requirements:
 tests:
   - script:
       - test -f $PREFIX/lib/liblibplaco.so
+
+  # Renders and file-existence checks pass on any build machine whose glibc is
+  # new enough, so they cannot catch a binary that links too new a libc. This
+  # asserts the floor on the symbol table instead. The condition is on the whole
+  # test item: an `if:` around the command list alone renders `script:` to
+  # nothing on other platforms, which rattler-build rejects outright.
+  - if: linux
+    then:
+      script:
+        - bash ./check-glibc-floor.sh "$PREFIX/lib/liblibplaco.so"
+      requirements:
+        run:
+          - binutils
+          - bash
+      files:
+        recipe:
+          - check-glibc-floor.sh
 
 about:
   homepage: https://github.com/Rhoban/placo
