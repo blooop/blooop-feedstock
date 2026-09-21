@@ -86,12 +86,7 @@ test-docker = "bash scripts/run-docker-tests.sh"
 clean = "rm -rf output/*"
 
 # Development tasks
-lint-recipes = '''
-    for recipe in recipes/*/recipe.yaml; do
-        echo "Checking $recipe..."
-        python -c "import yaml; yaml.safe_load(open('$recipe'))"
-    done
-'''
+lint-recipes = "bash scripts/lint-recipes.sh"
 
 [feature.dev.dependencies]
 pre-commit = "*"
