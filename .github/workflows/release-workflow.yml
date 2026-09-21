@@ -310,6 +310,22 @@ jobs:
             fi
           fi
 
+          # Check lely-core (C/C++ source build from a pinned git commit, like
+          # krill: there is nothing to poll, so only force_build builds it)
+          if [ -d "recipes/lely-core" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "lely-core" ]); then
+            echo "Checking lely-core..."
+
+            CURRENT=$(grep -E '^  version:' recipes/lely-core/recipe.yaml | head -1 | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            if [ "${{ github.event.inputs.force_build }}" == "true" ]; then
+              echo "Force build requested for lely-core $CURRENT"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "lely-core", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
+            else
+              echo "lely-core - no build requested (use force_build to rebuild)"
+            fi
+          fi
+
           # Check uhk-agent
           if [ -d "recipes/uhk-agent" ] && ([ -z "${{ github.event.inputs.package }}" ] || [ "${{ github.event.inputs.package }}" == "uhk-agent" ]); then
             echo "Checking uhk-agent for updates..."
@@ -383,6 +399,7 @@ jobs:
           # Packages not listed here are built for all platforms above
           PACKAGE_PLATFORMS='{
             "uhk-agent": ["linux-64", "linux-aarch64"],
+            "lely-core": ["linux-64", "linux-aarch64"],
             "envoy": ["linux-64", "linux-aarch64"],
             "isd": ["linux-64"],
             "kitty-bin": ["linux-64", "linux-aarch64"]
