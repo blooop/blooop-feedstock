@@ -43,6 +43,9 @@ build-forgit = "rattler-build build --recipe recipes/forgit/recipe.yaml --output
 # Build krill
 build-krill = "rattler-build build --recipe recipes/krill/recipe.yaml --output-dir output"
 
+# Build lely-core
+build-lely-core = "rattler-build build --recipe recipes/lely-core/recipe.yaml --output-dir output"
+
 # Build isd
 build-isd = "rattler-build build --recipe recipes/isd/recipe.yaml --output-dir output"
 
