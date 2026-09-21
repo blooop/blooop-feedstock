@@ -9,8 +9,17 @@ source:
     sha256: b034c5dad028eb18f117f3e39cc1fe055cc3eb2043cedad262d43d02af4c2755
 
 build:
-  number: 0
+  number: 1
   script:
+    # Linux only: this is a glibc problem, and scoping it here keeps the
+    # macOS build byte-identical to what already works. Script entries are
+    # concatenated into one shell script, so the export reaches cargo below.
+    - if: linux
+      then:
+        # rustc drives its own link step and does not read `CC`, so without
+        # this it links against the build machine's libc: the published 0.1.0
+        # needs GLIBC_2.39 and dies at exec on bookworm and jammy.
+        - export RUSTFLAGS="-C linker=$CC"
     - if: unix
       then:
         - cargo build --release --package krill-cli
@@ -24,6 +33,16 @@ build:
 
 requirements:
   build:
+    # Both linux-only, for the reason above. The sysroot is what lets the
+    # binary run on a glibc older than the build machine's; without it the
+    # toolchain takes whatever sysroot is newest, which on the ubuntu-latest
+    # runner produced a binary needing GLIBC_2.39. Its run_export also records
+    # a `__glibc` floor, so a too-new build becomes a solver error at install
+    # time rather than a crash on first run.
+    - if: linux
+      then:
+        - ${{ compiler('c') }}
+        - sysroot_${{ target_platform }} 2.17.*
     - rust >=1.75
 
 tests:
@@ -37,6 +56,23 @@ tests:
         then:
           - where krill
           - krill --help
+
+  # Renders and file-existence checks pass on any build machine whose glibc is
+  # new enough, so they cannot catch a binary that links too new a libc. This
+  # asserts the floor on the symbol table instead. The condition is on the whole
+  # test item: an `if:` around the command list alone renders `script:` to
+  # nothing on other platforms, which rattler-build rejects outright.
+  - if: linux
+    then:
+      script:
+        - bash ./check-glibc-floor.sh "$PREFIX/bin/krill"
+      requirements:
+        run:
+          - binutils
+          - bash
+      files:
+        recipe:
+          - check-glibc-floor.sh
 
 about:
   homepage: https://github.com/Zero-Robotics/krill

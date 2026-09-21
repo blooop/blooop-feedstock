@@ -13,7 +13,7 @@ source:
   rev: ${{ commit }}
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
   script:
@@ -46,6 +46,20 @@ requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
+    # Pin the sysroot so the binary runs on a glibc older than the build
+    # machine's. Without this the toolchain resolves whatever sysroot is
+    # newest -- on the ubuntu-latest runner that produced artifacts needing
+    # GLIBC_2.38, which will not exec on Debian bookworm (2.36) or Ubuntu
+    # jammy (2.35). The run_export also records a `__glibc` floor, so a
+    # too-new build becomes a solver error rather than a crash on first use.
+    #
+    # 2.28 rather than 2.17: the sysroot carries kernel headers as well as
+    # glibc, and 2.17's are 2.6.32 -- too old for the CAN netlink attributes
+    # this builds against. 2.28 ships 4.18 headers and still clears both
+    # distros in the install-test matrix.
+    - if: linux
+      then:
+        - sysroot_${{ target_platform }} 2.28.*
     - autoconf
     - automake
     - libtool
@@ -56,6 +70,25 @@ tests:
   - script:
       - test -f $PREFIX/lib/liblely-can.so
       - test -f $PREFIX/lib/liblely-co.so
+
+  # Renders and file-existence checks pass on any build machine whose glibc is
+  # new enough, so they cannot catch a binary that links too new a libc. This
+  # asserts the floor on the symbol table instead. The condition is on the whole
+  # test item: an `if:` around the command list alone renders `script:` to
+  # nothing on other platforms, which rattler-build rejects outright.
+  - if: linux
+    then:
+      script:
+        - bash ./check-glibc-floor.sh "$PREFIX/lib/liblely-can.so"
+        - bash ./check-glibc-floor.sh "$PREFIX/lib/liblely-co.so"
+        - bash ./check-glibc-floor.sh "$PREFIX/bin/can2udp"
+      requirements:
+        run:
+          - binutils
+          - bash
+      files:
+        recipe:
+          - check-glibc-floor.sh
 
 about:
   homepage: https://gitlab.com/lely_industries/lely-core
