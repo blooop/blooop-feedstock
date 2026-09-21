@@ -11,12 +11,17 @@ source:
 build:
   number: 1
   script:
-    - if: unix
+    # Linux only: this is a glibc problem, and scoping it here keeps the
+    # macOS build byte-identical to what already works. Script entries are
+    # concatenated into one shell script, so the export reaches cargo below.
+    - if: linux
       then:
         # rustc drives its own link step and does not read `CC`, so without
         # this it links against the build machine's libc: the published 0.1.0
         # needs GLIBC_2.39 and dies at exec on bookworm and jammy.
         - export RUSTFLAGS="-C linker=$CC"
+    - if: unix
+      then:
         - cargo build --release --package krill-cli
         - mkdir -p "$PREFIX/bin"
         - install -m755 target/release/krill "$PREFIX/bin/krill"
@@ -28,15 +33,15 @@ build:
 
 requirements:
   build:
-    - ${{ compiler('c') }}
-    # Pin the sysroot so the binary runs on a glibc older than the build
-    # machine's. Without this the toolchain resolves whatever sysroot is
-    # newest -- on the ubuntu-latest runner that produced artifacts needing
-    # GLIBC_2.38/2.39, which will not exec on Debian bookworm (2.36) or
-    # Ubuntu jammy (2.35). The run_export also records a `__glibc` floor, so
-    # a too-new build becomes a solver error rather than a crash on first use.
+    # Both linux-only, for the reason above. The sysroot is what lets the
+    # binary run on a glibc older than the build machine's; without it the
+    # toolchain takes whatever sysroot is newest, which on the ubuntu-latest
+    # runner produced a binary needing GLIBC_2.39. Its run_export also records
+    # a `__glibc` floor, so a too-new build becomes a solver error at install
+    # time rather than a crash on first run.
     - if: linux
       then:
+        - ${{ compiler('c') }}
         - sysroot_${{ target_platform }} 2.17.*
     - rust >=1.75
 
