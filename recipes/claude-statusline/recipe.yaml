@@ -70,11 +70,14 @@ tests:
   - script:
       - if: linux
         then:
-          - bash "${RECIPE_DIR}/check-glibc-floor.sh" "$PREFIX/bin/claude-statusline"
+          - bash ./check-glibc-floor.sh "$PREFIX/bin/claude-statusline"
     requirements:
       run:
         - binutils
         - bash
+    files:
+      recipe:
+        - check-glibc-floor.sh
 
 about:
   homepage: https://github.com/blooop/claude-statusline
