@@ -67,17 +67,21 @@ tests:
   # GLIBC_2.39 shipped and broke Debian bookworm (2.36) and Ubuntu jammy
   # (2.35). This asserts the floor directly, on the symbol table, where the
   # build machine's own glibc cannot hide it.
-  - script:
-      - if: linux
-        then:
-          - bash ./check-glibc-floor.sh "$PREFIX/bin/claude-statusline"
-    requirements:
-      run:
-        - binutils
-        - bash
-    files:
-      recipe:
-        - check-glibc-floor.sh
+  # The condition is on the whole test, not on the commands inside it: an
+  # `if: linux` around the command list renders `script:` to nothing on macOS,
+  # and rattler-build rejects that with "missing field `script`" before it
+  # builds anything.
+  - if: linux
+    then:
+      script:
+        - bash ./check-glibc-floor.sh "$PREFIX/bin/claude-statusline"
+      requirements:
+        run:
+          - binutils
+          - bash
+      files:
+        recipe:
+          - check-glibc-floor.sh
 
 about:
   homepage: https://github.com/blooop/claude-statusline
