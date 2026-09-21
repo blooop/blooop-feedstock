@@ -41,19 +41,29 @@ requirements:
     # Pin the sysroot so the binary runs on a glibc older than the build
     # machine's. Without this the toolchain resolves whatever sysroot is
     # newest -- on the ubuntu-latest runner that produced artifacts needing
-    # GLIBC_2.38/2.39, which will not exec on Debian bookworm (2.36) or
-    # Ubuntu jammy (2.35). The run_export also records a `__glibc` floor, so
-    # a too-new build becomes a solver error rather than a crash on first use.
+    # GLIBC_2.38, which will not exec on Debian bookworm (2.36) or Ubuntu
+    # jammy (2.35). The run_export also records a `__glibc` floor, so a
+    # too-new build becomes a solver error rather than a crash on first use.
+    #
+    # 2.28 rather than 2.17: the sysroot carries kernel headers as well as
+    # glibc, and 2.17's are 2.6.32 -- too old for the CAN netlink attributes
+    # this builds against. 2.28 ships 4.18 headers and still clears both
+    # distros in the install-test matrix.
     - if: linux
       then:
-        - sysroot_${{ target_platform }} 2.17.*
+        - sysroot_${{ target_platform }} 2.28.*
     - cmake >=3.22
     - ninja
     - pkg-config
   host:
     - libpinocchio >=3.5
     - libcoal >=3.0
-    - eigen
+    # `find_package(Eigen3 3 ...)`: conda-forge's eigen is 5.x now, whose
+    # Eigen3Config reports version 5 and is rejected, so configure fails
+    # before any of this recipe's own settings matter. Unrelated to the glibc
+    # floor, but it makes the recipe unbuildable, so the floor change could
+    # not be verified without it.
+    - eigen >=3.4,<4
     - libboost-devel
     - jsoncpp
     - urdfdom
@@ -61,7 +71,7 @@ requirements:
   run:
     - libpinocchio >=3.5
     - libcoal >=3.0
-    - eigen
+    - eigen >=3.4,<4
     - libboost
     - jsoncpp
     - urdfdom
