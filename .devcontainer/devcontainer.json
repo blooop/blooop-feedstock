@@ -1,0 +1,82 @@
+{
+    // The same prebuilt image every repo cut from blooop/python_template uses.
+    // Nothing in this repo needs a base of its own: the toolchain is pixi's
+    // (rattler-build, python, curl, jq -- see pixi.toml), and pixi is what the
+    // image brings. A Dockerfile here would exist only to re-derive that.
+    "image": "ghcr.io/blooop/python_template/devcontainer:latest",
+
+    // python_template has no "features" block on purpose -- its comment
+    // explains that adding one back makes the devcontainer spec build a derived
+    // image on the first launch of every branch, so the "pull, don't build"
+    // property of an "image:" config is lost.
+    //
+    // This repo takes that cost knowingly, for one task. `pixi run test-docker`
+    // (scripts/run-docker-tests.sh) shells out to `docker build` and
+    // `docker run` against tests/Dockerfile, which is how the install matrix in
+    // .github/workflows/test-install.yml is reproduced locally. Without a
+    // daemon in here that task is the one thing a maintainer cannot check
+    // before pushing, and it is exactly the check that catches a package that
+    // builds but will not install.
+    //
+    // docker-in-docker rather than docker-outside-of-docker: the test script
+    // builds an image, runs it, and then `docker rmi`s it. Pointed at the
+    // host's daemon that churns the developer's own image store and races any
+    // other checkout doing the same, because the tag (blooop-test:local) is
+    // fixed and not per-branch. A nested daemon keeps all of it inside the
+    // container, and the feature brings its own privileged flag, entrypoint and
+    // named volume for /var/lib/docker -- that last one is what buys overlayfs
+    // instead of the vfs fallback, so nested builds run at normal speed.
+    //
+    // The build recipes themselves need none of this. rattler-build runs
+    // unprivileged and every build dependency across recipes/ is a conda
+    // package (cmake, ninja, pkg-config, rust, squashfs-tools), so
+    // `pixi run build-*` works in here with or without the daemon.
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
+
+    "initializeCommand": ".devcontainer/claude-code/init-host.sh",
+
+    "customizations": {
+        "vscode": {
+            "settings": {},
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "jjjermiah.pixi-vscode",
+                "charliermarsh.ruff",
+                "tamasfe.even-better-toml",
+                "mhutchie.git-graph",
+                "anthropic.claude-code"
+            ]
+        }
+    },
+
+    "containerEnv": {
+        "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+        "XDG_CONFIG_HOME": "/home/vscode/.config",
+        "XDG_CACHE_HOME": "/home/vscode/.cache",
+        "XDG_DATA_HOME": "/home/vscode/.local/share"
+    },
+
+    // The pixi volume keeps the solved environment out of the bind-mounted
+    // workspace; the other two share host credentials. ~/.ssh is deliberately
+    // absent -- devpod forwards an agent, and post-create.sh keyscans the forge
+    // for the host identity the agent does not carry.
+    //
+    // PIXI_TOKEN is deliberately not forwarded here. Publishing to the channel
+    // is CI's job (.github/workflows/release-workflow.yml, which reads it from
+    // repository secrets); scripts/upload-to-prefix.sh reads it from the
+    // environment, so a maintainer who really means to upload by hand can
+    // export it for that one shell rather than have every container in every
+    // branch hold a channel write token for the life of the container.
+    "mounts": [
+        "source=${localWorkspaceFolderBasename}-pixi,target=${containerWorkspaceFolder}/.pixi,type=volume",
+        "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
+        "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+    ],
+
+    "postCreateCommand": ".devcontainer/post-create.sh",
+
+    "name": "blooop-feedstock"
+}
