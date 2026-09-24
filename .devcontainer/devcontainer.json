@@ -35,7 +35,7 @@
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
 
-    "initializeCommand": ".devcontainer/claude-code/init-host.sh",
+    "initializeCommand": ".devcontainer/init-host.sh",
 
     "customizations": {
         "vscode": {
@@ -56,7 +56,13 @@
         "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
         "XDG_CONFIG_HOME": "/home/vscode/.config",
         "XDG_CACHE_HOME": "/home/vscode/.cache",
-        "XDG_DATA_HOME": "/home/vscode/.local/share"
+        "XDG_DATA_HOME": "/home/vscode/.local/share",
+        // The host's display, as seen when the container was created. It is a
+        // starting point, not a promise: x11/display.sh checks it answers in each
+        // shell, and falls back to a private Xvfb when it does not (empty on a
+        // headless host or CI runner, stale after the host X server restarts).
+        "DISPLAY": "${localEnv:DISPLAY}",
+        "XAUTHORITY": "/home/vscode/.devcontainer-x11/Xauthority"
     },
 
     // The pixi volume keeps the solved environment out of the bind-mounted
@@ -73,7 +79,17 @@
     "mounts": [
         "source=${localWorkspaceFolderBasename}-pixi,target=${containerWorkspaceFolder}/.pixi,type=volume",
         "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
-        "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+        "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind",
+        // X11 forward. Both sources are created by x11/init-host.sh before the
+        // container is, so they exist even on a host with no X server; a missing
+        // source would fail the create. The socket directory goes to /mnt, not
+        // anywhere under /tmp: docker-in-docker mounts a tmpfs over /tmp at start
+        // and hides it (x11/display.sh has the details).
+        //
+        // Anything in the container that can reach the host X server can read the
+        // screen and the keyboard. That is the price of windows on your desktop.
+        "source=/tmp/.X11-unix,target=/mnt/host-x11,type=bind",
+        "source=${localEnv:HOME}/.cache/devcontainer-x11,target=/home/vscode/.devcontainer-x11,type=bind,readonly"
     ],
 
     "postCreateCommand": ".devcontainer/post-create.sh",
