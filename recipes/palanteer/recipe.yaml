@@ -1,0 +1,135 @@
+schema_version: 1
+
+context:
+  version: "0.8.0"
+  tag: "0.8"
+
+recipe:
+  name: palanteer-split
+  version: ${{ version }}
+
+source:
+  url: https://github.com/dfeneyrou/palanteer/archive/refs/tags/v${{ tag }}.tar.gz
+  sha256: 2e36f6b969ac44621de902adf3d5a7dbdbb6e00002ba7c8d29b1e303500144e1
+
+build:
+  number: 0
+  # Upstream supports Linux (X11 + OpenGL) and Windows only; there is no macOS backend.
+  skip:
+    - not linux
+
+outputs:
+  # --- Viewer + header-only C++ instrumentation library -----------------------
+  - package:
+      name: palanteer
+    build:
+      script:
+        # Only the viewer is built with CMake. The Python modules are built by the
+        # outputs below, per Python version, straight from their in-tree setup.py.
+        - cmake -S . -B build-viewer ${CMAKE_ARGS} -DCMAKE_BUILD_TYPE=Release
+          -DPALANTEER_BUILD_VIEWER=ON
+          -DPALANTEER_BUILD_CPP_EXAMPLE=OFF
+          -DPALANTEER_BUILD_PYTHON_INSTRUMENTATION=OFF
+          -DPALANTEER_BUILD_SERVER_SCRIPTING=OFF
+        - cmake --build build-viewer -j${CPU_COUNT}
+        # Upstream's install target does not install the viewer, so copy it by hand.
+        - mkdir -p "$PREFIX/bin" "$PREFIX/include"
+        - install -m755 build-viewer/bin/palanteer "$PREFIX/bin/palanteer"
+        - install -m644 c++/palanteer.h "$PREFIX/include/palanteer.h"
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+        - cmake
+        - make
+      host:
+        - libgl-devel
+        - xorg-libx11
+        - xorg-libxrender
+        - xorg-xorgproto
+    tests:
+      - script:
+          - test -x $PREFIX/bin/palanteer
+          - test -f $PREFIX/include/palanteer.h
+          - grep -q 'PALANTEER_VERSION "${{ version }}"' $PREFIX/include/palanteer.h
+    about:
+      summary: Palanteer viewer and header-only C++ instrumentation library
+      license: MIT AND AGPL-3.0-or-later
+      license_file:
+        - LICENSE.md
+        - c++/LICENSE
+        - server/viewer/LICENSE
+        - server/common/LICENSE
+
+  # --- Python instrumentation module (`import palanteer`) ---------------------
+  - package:
+      name: palanteer-python
+    build:
+      script:
+        - cd python && ${PYTHON} -m pip install . -vv --no-deps --no-build-isolation
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+      host:
+        - python
+        - pip
+        - setuptools
+      run:
+        - python
+    tests:
+      - python:
+          imports:
+            - palanteer
+          pip_check: true
+    about:
+      summary: Palanteer Python instrumentation module (import palanteer)
+      license: MIT
+      license_file: python/LICENSE
+
+  # --- Python scripting module (`import palanteer_scripting`) -----------------
+  - package:
+      name: palanteer-scripting
+    build:
+      script:
+        - cd server/scripting && ${PYTHON} -m pip install . -vv --no-deps --no-build-isolation
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+      host:
+        - python
+        - pip
+        - setuptools
+      run:
+        - python
+    tests:
+      - python:
+          imports:
+            - palanteer_scripting
+          pip_check: true
+    about:
+      summary: Palanteer Python scripting module for automated tests (import palanteer_scripting)
+      license: AGPL-3.0-or-later
+      license_file: server/scripting/LICENSE
+
+about:
+  homepage: https://github.com/dfeneyrou/palanteer
+  repository: https://github.com/dfeneyrou/palanteer
+  documentation: https://dfeneyrou.github.io/palanteer/
+  license: MIT AND AGPL-3.0-or-later
+  license_file: LICENSE.md
+  summary: Visual Python and C++ nanosecond profiler, logger and tests enabler
+  description: |
+    Palanteer is a set of lean and efficient tools to improve the quality of
+    software, for C++ and Python programs. It records timings, memory usage,
+    locks, logs and variables, and shows them in a visual viewer.
+
+    This recipe ships three packages:
+    - palanteer: the viewer and the header-only C++ instrumentation library (palanteer.h)
+    - palanteer-python: the Python instrumentation module (import palanteer)
+    - palanteer-scripting: the Python scripting module (import palanteer_scripting)
+
+extra:
+  recipe-maintainers:
+    - blooop
