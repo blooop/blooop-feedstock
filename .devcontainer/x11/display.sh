@@ -49,9 +49,9 @@ if [ -z "${__x11_display_done:-}" ] && command -v xdpyinfo >/dev/null 2>&1; then
                 __x11_i=$((__x11_i + 1))
             done
         fi
-        case $- in
-            *i*) echo "x11: $__x11_why; using Xvfb on :99 (a virtual display: no window on your screen)" >&2 ;;
-        esac
+        # stderr, and in non-interactive shells too: `dl <ws> -- <cmd>` runs
+        # `bash -lc`, and that is where a silent fallback costs the most.
+        echo "x11: $__x11_why; using Xvfb on :99 (a virtual display: no window on your screen)" >&2
     fi
     unset __x11_n __x11_why __x11_i
 fi
