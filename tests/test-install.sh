@@ -419,6 +419,7 @@ if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"palant
         --environment palanteer palanteer palanteer-python palanteer-scripting python 2>&1; then
         log_pass "palanteer installation"
         run_test "palanteer viewer exists" "test -x \$HOME/.pixi/envs/palanteer/bin/palanteer"
+        run_test "palanteer viewer runs headless" "env -u DISPLAY \$HOME/.pixi/envs/palanteer/bin/palanteer --version | grep -q '^Palanteer v[0-9]'"
         run_test "palanteer.h installed" "test -f \$HOME/.pixi/envs/palanteer/include/palanteer.h"
         # The viewer is a GUI app with no window to open here, so the headless
         # checks are the two C extensions and a real recording to a file.
