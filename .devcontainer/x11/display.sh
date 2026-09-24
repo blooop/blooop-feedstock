@@ -51,7 +51,12 @@ if [ -z "${__x11_display_done:-}" ] && command -v xdpyinfo >/dev/null 2>&1; then
         fi
         # stderr, and in non-interactive shells too: `dl <ws> -- <cmd>` runs
         # `bash -lc`, and that is where a silent fallback costs the most.
-        echo "x11: $__x11_why; using Xvfb on :99 (a virtual display: no window on your screen)" >&2
+        if xdpyinfo >/dev/null 2>&1; then
+            echo "x11: $__x11_why; using Xvfb on :99 (a virtual display: no window on your screen)" >&2
+        else
+            unset DISPLAY
+            echo "x11: $__x11_why, and Xvfb on :99 did not start (see /tmp/xvfb-99.log); DISPLAY is unset" >&2
+        fi
     fi
     unset __x11_n __x11_why __x11_i
 fi
