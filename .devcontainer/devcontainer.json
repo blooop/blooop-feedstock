@@ -59,8 +59,9 @@
         "XDG_DATA_HOME": "/home/vscode/.local/share",
         // The host's display, as seen when the container was created. It is a
         // starting point, not a promise: x11/display.sh checks it answers in each
-        // shell, and falls back to a private Xvfb when it does not (empty on a
-        // headless host or CI runner, stale after the host X server restarts).
+        // shell, tries the host's current display (x11/init-host.sh writes it on
+        // every start) when it does not, and then falls back to a private Xvfb.
+        // Kept for processes that no shell starts, which never run display.sh.
         "DISPLAY": "${localEnv:DISPLAY}",
         "XAUTHORITY": "/home/vscode/.devcontainer-x11/Xauthority"
     },

@@ -31,3 +31,9 @@ if [ -n "${DISPLAY:-}" ] && command -v xauth >/dev/null 2>&1; then
         xauth -q -f "$cookie.new" nmerge - 2>/dev/null || true
 fi
 mv -f "$cookie.new" "$cookie"
+
+# 3. The host's display, for the same reason the cookie is copied on every start:
+#    containerEnv DISPLAY is fixed at create, and goes stale when the host X
+#    server comes back on another number. Empty when there is no display.
+(umask 077 && printf '%s\n' "${DISPLAY:-}" > "$dir/display.new")
+mv -f "$dir/display.new" "$dir/display"
