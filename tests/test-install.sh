@@ -425,7 +425,7 @@ if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"palant
         # checks are the two C extensions and a real recording to a file.
         run_test "palanteer module imports" "\$HOME/.pixi/envs/palanteer/bin/python -c 'import palanteer'"
         run_test "palanteer_scripting module imports" "\$HOME/.pixi/envs/palanteer/bin/python -c 'import palanteer_scripting'"
-        run_test "palanteer records a script to a file" "cd /tmp && echo 'sum(range(1000))' > pl_smoke.py && \$HOME/.pixi/envs/palanteer/bin/python -m palanteer -f pl_smoke.pltraw pl_smoke.py && test -s pl_smoke.pltraw"
+        run_test "palanteer records a script to a file" "cd /tmp && printf 'def pl_marker_fn():\n    return sum(range(1000))\npl_marker_fn()\n' > pl_smoke.py && \$HOME/.pixi/envs/palanteer/bin/python -m palanteer -f pl_smoke.pltraw pl_smoke.py && grep -q pl_marker_fn pl_smoke.pltraw"
     else
         log_fail "palanteer installation"
     fi
