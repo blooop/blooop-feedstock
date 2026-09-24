@@ -54,12 +54,15 @@ outputs:
           - grep -q 'PALANTEER_VERSION "${{ version }}"' $PREFIX/include/palanteer.h
     about:
       summary: Palanteer viewer and header-only C++ instrumentation library
-      license: MIT AND AGPL-3.0-or-later
+      license: MIT AND AGPL-3.0-or-later AND BSD-3-Clause
       license_file:
         - LICENSE.md
         - c++/LICENSE
         - server/viewer/LICENSE
         - server/common/LICENSE
+        - server/base/LICENSE
+        - server/external/zstd/LICENSE
+        - server/external/imgui/LICENSE.txt
 
   # --- Python instrumentation module (`import palanteer`) ---------------------
   - package:
@@ -110,8 +113,12 @@ outputs:
           pip_check: true
     about:
       summary: Palanteer Python scripting module for automated tests (import palanteer_scripting)
-      license: AGPL-3.0-or-later
-      license_file: server/scripting/LICENSE
+      license: AGPL-3.0-or-later AND MIT AND BSD-3-Clause
+      license_file:
+        - server/scripting/LICENSE
+        - server/common/LICENSE
+        - server/base/LICENSE
+        - server/external/zstd/LICENSE
 
 about:
   homepage: https://github.com/dfeneyrou/palanteer
