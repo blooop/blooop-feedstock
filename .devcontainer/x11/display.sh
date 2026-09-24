@@ -7,6 +7,8 @@
 # It never leaves DISPLAY pointing at a display that does not answer, and it
 # says so whenever it falls back: a GUI app "opening" on the virtual display
 # puts nothing on your screen, which is otherwise indistinguishable from a hang.
+# The one exception: without xdpyinfo (post-create could not install it) there
+# is no way to check, so it only links the host socket and leaves DISPLAY as is.
 #
 # The host directory is mounted at /mnt/host-x11, not over /tmp/.X11-unix, for
 # two reasons:
@@ -16,7 +18,7 @@
 #     where every other workspace on the machine would see -- and could take
 #     over -- :99.
 
-if [ -z "${__x11_display_done:-}" ] && command -v xdpyinfo >/dev/null 2>&1; then
+if [ -z "${__x11_display_done:-}" ]; then
     __x11_display_done=1
 
     # Expose the host socket where X clients look for it: /tmp/.X11-unix/X<n>.
@@ -31,7 +33,9 @@ if [ -z "${__x11_display_done:-}" ] && command -v xdpyinfo >/dev/null 2>&1; then
             ;;
     esac
 
-    if [ -n "${DISPLAY:-}" ] && xdpyinfo >/dev/null 2>&1; then
+    if ! command -v xdpyinfo >/dev/null 2>&1; then
+        :   # can not check: see the header
+    elif [ -n "${DISPLAY:-}" ] && xdpyinfo >/dev/null 2>&1; then
         :   # the host display answers: use it
     else
         if [ -n "${DISPLAY:-}" ]; then

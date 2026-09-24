@@ -55,7 +55,8 @@ pixi install --frozen
 # glvnd dispatcher and loads the vendor library from the system.
 #
 # Non-fatal, like the known_hosts step: no network at postCreate must not fail
-# the container create. Without the packages display.sh does nothing at all.
+# the container create. Without them display.sh can only link the host socket:
+# it can not check the display, and there is no Xvfb to fall back to.
 if sudo apt-get update -qq >/dev/null 2>&1 &&
    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
        xvfb x11-utils xauth libgl1-mesa-dri libglx-mesa0 libegl-mesa0 >/dev/null 2>&1; then
