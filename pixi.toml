@@ -49,22 +49,6 @@ build-lely-core = "rattler-build build --recipe recipes/lely-core/recipe.yaml --
 # Build isd
 build-isd = "rattler-build build --recipe recipes/isd/recipe.yaml --output-dir output"
 
-# Build ROS Jazzy packages
-build-pymoveit2 = "rattler-build build --recipe recipes/ros-jazzy-pymoveit2/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-ros2-joystick-gui = "rattler-build build --recipe recipes/ros-jazzy-ros2-joystick-gui/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-zbar-ros-interfaces = "rattler-build build --recipe recipes/ros-jazzy-zbar-ros-interfaces/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-zbar-ros = "rattler-build build --recipe recipes/ros-jazzy-zbar-ros/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-robot-calibration-msgs = "rattler-build build --recipe recipes/ros-jazzy-robot-calibration-msgs/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-robot-calibration = "rattler-build build --recipe recipes/ros-jazzy-robot-calibration/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-
-# Build ROS Jazzy hardware packages
-build-phantom-touch-msgs = "rattler-build build --recipe recipes/ros-jazzy-phantom-touch-msgs/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-phantom-touch-description = "rattler-build build --recipe recipes/ros-jazzy-phantom-touch-description/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-phantom-touch-control = "rattler-build build --recipe recipes/ros-jazzy-phantom-touch-control/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-zed-components = "rattler-build build --recipe recipes/ros-jazzy-zed-components/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-zed-wrapper = "rattler-build build --recipe recipes/ros-jazzy-zed-wrapper/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-build-zed-ros2 = "rattler-build build --recipe recipes/ros-jazzy-zed-ros2/recipe.yaml --output-dir output -c https://prefix.dev/robostack-jazzy -c conda-forge -c https://prefix.dev/blooop"
-
 # Build zjsh
 build-zjsh = "rattler-build build --recipe recipes/zjsh/recipe.yaml --output-dir output"
 
