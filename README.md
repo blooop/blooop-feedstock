@@ -8,7 +8,6 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **claude-statusline** - Claude Code status line renderer — model, context usage, rate-limit pacing and session cost, as one dependency-free binary (from [blooop/claude-statusline](https://github.com/blooop/claude-statusline))
 - **codex-shim** - Bootstrap installer for OpenAI's [Codex CLI](https://github.com/openai/codex) (exposes the `codex` command); installs the latest official Codex on first run so `codex update` and other native features work
 - **devpod** - Open-source tool for creating reproducible developer environments (from [skevetter/devpod](https://github.com/skevetter/devpod) fork)
-- **eaik** - Toolbox for Efficient Analytical Inverse Kinematics by Subproblem Decomposition (from [OstermD/EAIK](https://github.com/OstermD/EAIK))
 - **forgit** - A utility tool powered by fzf for using git interactively (from [wfxr/forgit](https://github.com/wfxr/forgit))
 - **isd** - Interactive systemd TUI for managing systemd units with fuzzy search and live previews (from [kainctl/isd](https://github.com/kainctl/isd))
 - **kitty-bin** - Fast, feature-rich, GPU-based terminal emulator, repackaged from the official Linux binary (from [kovidgoyal/kitty](https://github.com/kovidgoyal/kitty)) — named `kitty-bin` to avoid colliding with conda-forge's much older source-built `kitty`; still provides the `kitty` and `kitten` commands. Linux only, needs glibc 2.35+ and a graphical session
@@ -28,7 +27,6 @@ pixi global install --channel https://prefix.dev/blooop claude-shim
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge claude-statusline
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge codex-shim
 pixi global install --channel https://prefix.dev/blooop devpod
-pixi global install --channel https://prefix.dev/blooop --channel conda-forge eaik
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge forgit
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge isd
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge kitty-bin
