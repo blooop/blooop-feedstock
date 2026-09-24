@@ -13,6 +13,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **kitty-bin** - Fast, feature-rich, GPU-based terminal emulator, repackaged from the official Linux binary (from [kovidgoyal/kitty](https://github.com/kovidgoyal/kitty)) — named `kitty-bin` to avoid colliding with conda-forge's much older source-built `kitty`; still provides the `kitty` and `kitten` commands. Linux only, needs glibc 2.35+ and a graphical session
 - **krill** - Professional-grade DAG-based process orchestrator for robotics systems (from [Zero-Robotics/krill](https://github.com/Zero-Robotics/krill))
 - **opencode-shim** - Bootstrap installer for [opencode](https://github.com/anomalyco/opencode), the open source AI coding agent (exposes the `opencode` command); installs the latest official opencode on first run so `opencode upgrade` and other native features work
+- **palanteer** - Visual Python and C++ nanosecond profiler, logger and tests enabler: the viewer and the header-only C++ library (`palanteer.h`), plus `palanteer-python` (`import palanteer`) and `palanteer-scripting` (`import palanteer_scripting`) as separate packages (from [dfeneyrou/palanteer](https://github.com/dfeneyrou/palanteer)). Linux only; the viewer needs a graphical session with OpenGL
 - **pi** - AI agent toolkit — coding agent CLI with 20+ LLM provider support, TUI & web UI libraries (from [earendil-works/pi](https://github.com/earendil-works/pi))
 - **pkl** - A configuration as code language with rich validation and tooling (from [apple/pkl](https://github.com/apple/pkl))
 - **speedtest-go** - CLI and Go API to test internet speed using speedtest.net (from [showwin/speedtest-go](https://github.com/showwin/speedtest-go))
@@ -32,6 +33,7 @@ pixi global install --channel https://prefix.dev/blooop --channel conda-forge is
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge kitty-bin
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge krill
 pixi global install --channel https://prefix.dev/blooop --channel conda-forge opencode-shim
+pixi global install --channel https://prefix.dev/blooop --channel conda-forge palanteer
 pixi global install --channel https://prefix.dev/blooop pi
 pixi global install --channel https://prefix.dev/blooop pkl
 pixi global install --channel https://prefix.dev/blooop speedtest-go

@@ -45,3 +45,32 @@ fi
 # as it stands, which is the reproducible thing to do and leaves fixing the
 # drift to `pixi install` when someone actually wants it fixed.
 pixi install --frozen
+
+# 4. A display for GUI apps (the palanteer viewer, kitty-bin, uhk-agent).
+#
+# devcontainer.json forwards the host's X socket and cookie; x11/display.sh,
+# sourced by every shell, checks that the forward answers and otherwise starts a
+# private Xvfb. Both paths need the packages below: Xvfb for the fallback,
+# xdpyinfo (x11-utils) for the check, and Mesa, because conda's libGL is only the
+# glvnd dispatcher and loads the vendor library from the system.
+#
+# Non-fatal, like the known_hosts step: no network at postCreate must not fail
+# the container create. Without the packages display.sh does nothing at all.
+if sudo apt-get update -qq >/dev/null 2>&1 &&
+   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
+       xvfb x11-utils xauth libgl1-mesa-dri libglx-mesa0 libegl-mesa0 >/dev/null 2>&1; then
+    echo "post-create: installed X11 display packages"
+else
+    echo "post-create: could not install X11 display packages, no display in this container" >&2
+fi
+
+# Hook display.sh into every shell kind: login shells (bash -l, which is also how
+# `dl <ws> -- <cmd>` runs), interactive bash, and interactive zsh. The hook
+# sources the script from the checkout, so an edit to it applies to the next shell.
+hook="[ -r '$PWD/.devcontainer/x11/display.sh' ] && . '$PWD/.devcontainer/x11/display.sh'"
+echo "$hook" | sudo tee /etc/profile.d/zz-x11-display.sh >/dev/null
+for rc in /etc/bash.bashrc /etc/zsh/zshrc; do
+    if [ -f "$rc" ] && ! grep -qF 'x11/display.sh' "$rc"; then
+        echo "$hook" | sudo tee -a "$rc" >/dev/null
+    fi
+done

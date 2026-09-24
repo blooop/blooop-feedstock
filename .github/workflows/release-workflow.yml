@@ -379,6 +379,17 @@ jobs:
             fi
           fi
 
+          # Check palanteer
+          # Upstream tags releases as vX.Y ("v0.8") while the recipe carries X.Y.Z, and
+          # releases are rare, so there is no auto-compare. Build it only when explicitly
+          # requested; bump `version`, `tag` and `sha256` in the recipe by hand first.
+          if [ -d "recipes/palanteer" ] && [ "${{ github.event.inputs.package }}" == "palanteer" ]; then
+            # version lives in the recipe's `context:` block, so take the first match
+            CURRENT=$(grep -m1 '^  version:' recipes/palanteer/recipe.yaml | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Building palanteer $CURRENT"
+            UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "palanteer", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix
@@ -402,7 +413,8 @@ jobs:
             "lely-core": ["linux-64", "linux-aarch64"],
             "envoy": ["linux-64", "linux-aarch64"],
             "isd": ["linux-64"],
-            "kitty-bin": ["linux-64", "linux-aarch64"]
+            "kitty-bin": ["linux-64", "linux-aarch64"],
+            "palanteer": ["linux-64", "linux-aarch64"]
           }'
 
           # Build the full matrix: each package × supported platforms
