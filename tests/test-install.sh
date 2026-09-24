@@ -410,7 +410,7 @@ fi
 
 # Test: Try to install palanteer if available
 log_info "Checking if palanteer is available..."
-if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"palanteer-0'; then
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"palanteer-[0-9]'; then
     log_info "Installing palanteer packages..."
     ((TESTS_RUN++))
     # One environment for all three, so its python can import both modules.
