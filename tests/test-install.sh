@@ -408,6 +408,31 @@ else
     log_info "Skipping claude-statusline test (package not in channel)"
 fi
 
+# Test: Try to install palanteer if available
+log_info "Checking if palanteer is available..."
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"palanteer-[0-9]'; then
+    log_info "Installing palanteer packages..."
+    ((TESTS_RUN++))
+    # One environment for all three, so its python can import both modules.
+    # conda-forge is required here: the viewer links libGL and libX11.
+    if pixi global install --channel "$CHANNEL" --channel conda-forge \
+        --environment palanteer palanteer palanteer-python palanteer-scripting python 2>&1; then
+        log_pass "palanteer installation"
+        run_test "palanteer viewer exists" "test -x \$HOME/.pixi/envs/palanteer/bin/palanteer"
+        run_test "palanteer viewer runs headless" "env -u DISPLAY \$HOME/.pixi/envs/palanteer/bin/palanteer --version | grep -q '^Palanteer v[0-9]'"
+        run_test "palanteer.h installed" "test -f \$HOME/.pixi/envs/palanteer/include/palanteer.h"
+        # The viewer is a GUI app with no window to open here, so the headless
+        # checks are the two C extensions and a real recording to a file.
+        run_test "palanteer module imports" "\$HOME/.pixi/envs/palanteer/bin/python -c 'import palanteer'"
+        run_test "palanteer_scripting module imports" "\$HOME/.pixi/envs/palanteer/bin/python -c 'import palanteer_scripting'"
+        run_test "palanteer records a script to a file" "cd /tmp && printf 'def pl_marker_fn():\n    return sum(range(1000))\npl_marker_fn()\n' > pl_smoke.py && \$HOME/.pixi/envs/palanteer/bin/python -m palanteer -f pl_smoke.pltraw pl_smoke.py && grep -q pl_marker_fn pl_smoke.pltraw"
+    else
+        log_fail "palanteer installation"
+    fi
+else
+    log_info "Skipping palanteer test (package not in channel)"
+fi
+
 # Note: Dependency resolution is implicitly tested by the installation tests above
 # If a package has unresolvable dependencies, the installation will fail
 

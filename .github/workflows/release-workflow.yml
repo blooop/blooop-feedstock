@@ -379,6 +379,31 @@ jobs:
             fi
           fi
 
+          # Check palanteer
+          # Upstream tags releases as vX.Y ("v0.8") while the recipe carries X.Y.Z, and
+          # releases are rare, so there is no auto-compare and no recipe update script.
+          # Build it only with package=palanteer and force_build; bump `version`, `tag` and
+          # `sha256` in the recipe by hand first. A `version` input that differs from the
+          # recipe fails the step, because the workflow cannot bump this recipe.
+          if [ -d "recipes/palanteer" ] && [ "${{ github.event.inputs.package }}" == "palanteer" ]; then
+            # version lives in the recipe's `context:` block, so take the first match
+            CURRENT=$(grep -m1 '^  version:' recipes/palanteer/recipe.yaml | sed 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/')
+            echo "Current version: $CURRENT"
+
+            REQUESTED="${{ github.event.inputs.version }}"
+            if [ -n "$REQUESTED" ] && [ "$REQUESTED" != "$CURRENT" ]; then
+              echo "::error::palanteer version input $REQUESTED differs from the recipe version $CURRENT. The workflow cannot bump this recipe: edit version, tag and sha256 in recipes/palanteer/recipe.yaml by hand, then dispatch again."
+              exit 1
+            fi
+
+            if [ "${{ github.event.inputs.force_build }}" == "true" ]; then
+              echo "Force build requested for palanteer $CURRENT"
+              UPDATES=$(echo $UPDATES | jq -c '. + [{"package": "palanteer", "current": "'$CURRENT'", "latest": "'$CURRENT'"}]')
+            else
+              echo "palanteer - no build requested (use force_build to rebuild)"
+            fi
+          fi
+
           echo "updates=$UPDATES" >> $GITHUB_OUTPUT
 
       - name: Set matrix
@@ -402,7 +427,8 @@ jobs:
             "lely-core": ["linux-64", "linux-aarch64"],
             "envoy": ["linux-64", "linux-aarch64"],
             "isd": ["linux-64"],
-            "kitty-bin": ["linux-64", "linux-aarch64"]
+            "kitty-bin": ["linux-64", "linux-aarch64"],
+            "palanteer": ["linux-64", "linux-aarch64"]
           }'
 
           # Build the full matrix: each package × supported platforms

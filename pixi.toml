@@ -58,6 +58,10 @@ build-claude-statusline = "rattler-build build --recipe recipes/claude-statuslin
 # Build kitty-bin (linux only — upstream ships no conda-mappable macOS/Windows artifact)
 build-kitty-bin = "rattler-build build --recipe recipes/kitty-bin/recipe.yaml --output-dir output"
 
+# Build palanteer (linux only — upstream has no macOS backend). One recipe, three
+# outputs: the viewer, and the two Python modules for each Python in variants.yaml
+build-palanteer = "rattler-build build --recipe recipes/palanteer/recipe.yaml --output-dir output"
+
 # Build all packages
 build-all = { depends-on = ["build-shim", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go", "build-forgit"] }
 
