@@ -1,5 +1,7 @@
 #!/bin/sh
-# Host side of the X11 forward. Runs on the HOST before the container is created.
+# Host side of the X11 forward. Runs on the HOST as part of initializeCommand,
+# which runs before every container create and every start, not only the first.
+# Steps 2 and 3 depend on that: they refresh the cookie and display each time.
 #
 # It has to succeed on a host with no X server at all -- a headless box, a CI
 # runner -- so every path devcontainer.json bind-mounts for X11 is created here.
