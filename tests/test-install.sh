@@ -266,6 +266,22 @@ else
     log_info "Skipping speedtest-go test (package not in channel)"
 fi
 
+# Test: Try to install tuicr if available
+log_info "Checking if tuicr package is available..."
+if curl -sLf "${CHANNEL}/${SUBDIR}/repodata.json" 2>/dev/null | grep -q '"tuicr-'; then
+    log_info "Installing tuicr package..."
+    ((TESTS_RUN++))
+    if pixi global install --channel "$CHANNEL" tuicr 2>&1; then
+        log_pass "tuicr package installation"
+        run_test "tuicr binary exists" "which tuicr"
+        run_test "tuicr version check" "tuicr --version"
+    else
+        log_fail "tuicr package installation"
+    fi
+else
+    log_info "Skipping tuicr test (package not in channel)"
+fi
+
 # Test: Try to install codex-shim if available
 # codex-shim is a bootstrap shim exposing `codex`; running it triggers a network
 # install of the real Codex, so we only verify the shim installs and is valid here.
