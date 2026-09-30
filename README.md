@@ -17,6 +17,7 @@ Personal conda channel feedstock for the `blooop` channel. This repository conta
 - **pi** - AI agent toolkit — coding agent CLI with 20+ LLM provider support, TUI & web UI libraries (from [earendil-works/pi](https://github.com/earendil-works/pi))
 - **pkl** - A configuration as code language with rich validation and tooling (from [apple/pkl](https://github.com/apple/pkl))
 - **speedtest-go** - CLI and Go API to test internet speed using speedtest.net (from [showwin/speedtest-go](https://github.com/showwin/speedtest-go))
+- **tuicr** - Code review TUI with vim keybindings for local diffs, commit ranges and GitHub PRs, repackaged from the official release binaries (from [agavra/tuicr](https://github.com/agavra/tuicr))
 - **uhk-agent** - Configuration application for the Ultimate Hacking Keyboard (from [UltimateHackingKeyboard/agent](https://github.com/UltimateHackingKeyboard/agent))
 - **zjsh** - A sesh-like zellij launcher for projects, sessions, and zoxide paths (from [saweima12/zjsh](https://github.com/saweima12/zjsh))
 
@@ -37,6 +38,7 @@ pixi global install --channel https://prefix.dev/blooop --channel conda-forge pa
 pixi global install --channel https://prefix.dev/blooop pi
 pixi global install --channel https://prefix.dev/blooop pkl
 pixi global install --channel https://prefix.dev/blooop speedtest-go
+pixi global install --channel https://prefix.dev/blooop tuicr
 pixi global install --channel https://prefix.dev/blooop uhk-agent
 pixi global install --channel https://prefix.dev/blooop zjsh
 ```

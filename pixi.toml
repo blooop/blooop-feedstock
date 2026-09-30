@@ -62,6 +62,9 @@ build-kitty-bin = "rattler-build build --recipe recipes/kitty-bin/recipe.yaml --
 # outputs: the viewer, and the two Python modules for each Python in variants.yaml
 build-palanteer = "rattler-build build --recipe recipes/palanteer/recipe.yaml --output-dir output"
 
+# Build tuicr (prebuilt release binaries; static musl on linux)
+build-tuicr = "rattler-build build --recipe recipes/tuicr/recipe.yaml --output-dir output"
+
 # Build all packages
 build-all = { depends-on = ["build-shim", "build-devpod-prerelease", "build-iterfzf", "build-speedtest-go", "build-forgit"] }
 

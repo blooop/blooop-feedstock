@@ -1,0 +1,62 @@
+schema_version: 1
+
+package:
+  name: tuicr
+  version: "0.27.0"
+
+# Linux uses the static musl builds so the binary runs on any glibc.
+# Each archive holds a single top-level `tuicr` binary.
+source:
+  - url: https://github.com/agavra/tuicr/releases/download/v0.27.0/tuicr-0.27.0-x86_64-unknown-linux-musl.tar.gz  # [linux and x86_64]
+    sha256: f673ff709af2501c111216c95745395ae2bfedf3daa3d039539f9614a6ddb4e4  # [linux and x86_64]
+    target_directory: linux-x86_64  # [linux and x86_64]
+  - url: https://github.com/agavra/tuicr/releases/download/v0.27.0/tuicr-0.27.0-aarch64-unknown-linux-musl.tar.gz  # [linux and aarch64]
+    sha256: d0707f491cc8cdf0930fc1466029341d804a0105dd0b674f8dca33afb8366490  # [linux and aarch64]
+    target_directory: linux-aarch64  # [linux and aarch64]
+  - url: https://github.com/agavra/tuicr/releases/download/v0.27.0/tuicr-0.27.0-x86_64-apple-darwin.tar.gz  # [osx and x86_64]
+    sha256: c93a066b4c0d558ecb09ebad498f12b6c34fd95cad536ec5a05a4fec91be1850  # [osx and x86_64]
+    target_directory: osx-x86_64  # [osx and x86_64]
+  - url: https://github.com/agavra/tuicr/releases/download/v0.27.0/tuicr-0.27.0-aarch64-apple-darwin.tar.gz  # [osx and arm64]
+    sha256: 170b2e5290435faaf663c9498b1385493df7c336646b74c9336388844e028dcf  # [osx and arm64]
+    target_directory: osx-arm64  # [osx and arm64]
+
+build:
+  number: 0
+  # The linux binaries are static-pie; patchelf rewrites them into a binary that
+  # segfaults on start, and there is nothing to relocate anyway.
+  dynamic_linking:
+    binary_relocation: false
+  script:
+    - mkdir -p "$PREFIX/bin"
+    - |
+      case "${target_platform:-}" in
+        linux-64)      SRC_SUBDIR="linux-x86_64" ;;
+        linux-aarch64) SRC_SUBDIR="linux-aarch64" ;;
+        osx-64)        SRC_SUBDIR="osx-x86_64" ;;
+        osx-arm64)     SRC_SUBDIR="osx-arm64" ;;
+        *) echo "Unsupported target_platform: ${target_platform:-unknown}" && exit 1 ;;
+      esac
+      install -m755 "$SRC_DIR/$SRC_SUBDIR/tuicr" "$PREFIX/bin/tuicr"
+
+tests:
+  - script:
+      - test -x $PREFIX/bin/tuicr
+      - tuicr --version
+
+about:
+  homepage: https://github.com/agavra/tuicr
+  license: MIT
+  license_family: MIT
+  summary: A code review TUI with vim keybindings
+  description: |
+    tuicr is a terminal UI for reviewing diffs with vim keybindings. It reviews
+    local changes, commit ranges and GitHub pull requests, and exports review
+    comments to GitHub or the clipboard.
+
+    Note: `tuicr update` replaces the binary in place. Update through pixi instead.
+  documentation: https://github.com/agavra/tuicr#readme
+  repository: https://github.com/agavra/tuicr
+
+extra:
+  recipe-maintainers:
+    - blooop
