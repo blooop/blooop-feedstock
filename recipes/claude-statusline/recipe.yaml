@@ -2,17 +2,17 @@ schema_version: 1
 
 package:
   name: claude-statusline
-  version: "0.2.1"
+  version: "0.2.2"
 
 source:
   # The release tag's tarball, not the branch: the checksum below is what pins
   # the build to the commit that was tagged. Bumping the version means bumping
   # the URL and this sha256 together.
-  - url: https://github.com/blooop/claude-statusline/archive/refs/tags/v0.2.1.tar.gz
-    sha256: 0b04fadea12660f9b83640107ee3109982687ea97ce33c83afd6c3fde1075fa0
+  - url: https://github.com/blooop/claude-statusline/archive/refs/tags/v0.2.2.tar.gz
+    sha256: 5afc0857c22fbd7b93f39311be860ec9963298b4b93a06c01e34bb00a494fc97
 
 build:
-  number: 1
+  number: 0
   script:
     - if: unix
       then:
