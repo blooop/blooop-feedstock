@@ -2,25 +2,25 @@ schema_version: 1
 
 package:
   name: pi
-  version: "1.0.2"
+  version: "1.0.3"
 
 # Tarballs all extract to a pi/ subdir internally, so use target_directory to avoid conflicts.
 # rattler-build downloads all sources regardless of selectors; build script picks the right one.
 source:
-  - url: https://github.com/earendil-works/pi/releases/download/v1.0.2/pi-linux-x64.tar.gz
-    sha256: 0d7687a6a9fcbaa88ff664cb6b28683ce9ee3e028931b55eb48a70ae9a285d18
+  - url: https://github.com/earendil-works/pi/releases/download/v1.0.3/pi-linux-x64.tar.gz
+    sha256: 9b8c7ff523bd90881d1c1505168f0b9deb2c0357396b92b62f799550a48ff1ed
     target_directory: linux-64
-  - url: https://github.com/earendil-works/pi/releases/download/v1.0.2/pi-linux-arm64.tar.gz
-    sha256: 3321ccdc3ff38d6c52274bdab28246e06434618d1988a54e99cce45e535a013c
+  - url: https://github.com/earendil-works/pi/releases/download/v1.0.3/pi-linux-arm64.tar.gz
+    sha256: d3093a79ac9e22ef430e2a73e002a3ddeb451de07b722b3aa53aa6a94eaa9edc
     target_directory: linux-aarch64
-  - url: https://github.com/earendil-works/pi/releases/download/v1.0.2/pi-darwin-x64.tar.gz
-    sha256: d54be8df33ab6a2f3457bd7de37edc947050ac4a7f043456d37e03afd15684de
+  - url: https://github.com/earendil-works/pi/releases/download/v1.0.3/pi-darwin-x64.tar.gz
+    sha256: 769e0c1d599dbc8e63ac355957bec8e9832bff91f190d67432392e62ac552194
     target_directory: osx-64
-  - url: https://github.com/earendil-works/pi/releases/download/v1.0.2/pi-darwin-arm64.tar.gz
-    sha256: c2f035ea4adba87916f005c99515e3c91674b11d16ba75d95d0881e4781aa3bb
+  - url: https://github.com/earendil-works/pi/releases/download/v1.0.3/pi-darwin-arm64.tar.gz
+    sha256: 7b1aa89ba13542f1aca61ebd63486d0417b5d2fefd5c41ededd8d083ab719b23
     target_directory: osx-arm64
-  - url: https://github.com/earendil-works/pi/releases/download/v1.0.2/pi-windows-x64.zip
-    sha256: 37a2ee3c5222a73efc78b49f571748f11a74f4dbe160da3030a404da71f464e7
+  - url: https://github.com/earendil-works/pi/releases/download/v1.0.3/pi-windows-x64.zip
+    sha256: 6cddc3d11210539faa7ba0188504813f2f3ae6d8f93a161d4145cc61a8bdd5de
     target_directory: win-64
 
 build:
