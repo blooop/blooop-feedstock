@@ -2,19 +2,19 @@ schema_version: 1
 
 package:
   name: pkl
-  version: "0.32.1"
+  version: "0.32.2"
 
 source:
-  - url: https://github.com/apple/pkl/releases/download/0.32.1/pkl-linux-amd64  # [linux and x86_64]
-    sha256: 3180b62da95c0cad1d904e9bb6c5f4a8f9032413c21e53194bb91ff1ee5f3211  # [linux and x86_64]
-  - url: https://github.com/apple/pkl/releases/download/0.32.1/pkl-linux-aarch64  # [linux and aarch64]
-    sha256: a76d2dd47da435a8f911b0347373f47c7e59ea54fb75ff846d20b8df10dba058  # [linux and aarch64]
-  - url: https://github.com/apple/pkl/releases/download/0.32.1/pkl-macos-amd64  # [osx and x86_64]
-    sha256: 5b74b903234047960144f66f2cebdd12d267d9b98e8155ed91d2ae5ed27e2d1f  # [osx and x86_64]
-  - url: https://github.com/apple/pkl/releases/download/0.32.1/pkl-macos-aarch64  # [osx and arm64]
-    sha256: 563eb51c9a20b16a3625464ed745c675ed9750381f2126722696a0d7cac1d9d3  # [osx and arm64]
-  - url: https://github.com/apple/pkl/releases/download/0.32.1/pkl-windows-amd64.exe  # [win]
-    sha256: 8550a00fcf027335e42c5e2cd553b88e98845408cb1880b3e3d1860caf46d22a  # [win]
+  - url: https://github.com/apple/pkl/releases/download/0.32.2/pkl-linux-amd64  # [linux and x86_64]
+    sha256: 874c75484c79add77fb2346ea4ab2e8875eea35fb707894bf5457a2df5d03def  # [linux and x86_64]
+  - url: https://github.com/apple/pkl/releases/download/0.32.2/pkl-linux-aarch64  # [linux and aarch64]
+    sha256: e60744e17d4ddc0257a35260998b5f98387b5d6a5e868317cccfbebe8d962ae3  # [linux and aarch64]
+  - url: https://github.com/apple/pkl/releases/download/0.32.2/pkl-macos-amd64  # [osx and x86_64]
+    sha256: 3c4c914a75210d3f3292740b4a8d447f9f832e81b60720bec57221e884717eee  # [osx and x86_64]
+  - url: https://github.com/apple/pkl/releases/download/0.32.2/pkl-macos-aarch64  # [osx and arm64]
+    sha256: 466952f0b30c93dfa36393a5b3695159917ce4291e3c936a18a0a240cfbe98e9  # [osx and arm64]
+  - url: https://github.com/apple/pkl/releases/download/0.32.2/pkl-windows-amd64.exe  # [win]
+    sha256: ac3c55c2e43c20964dc5faf51e47bf73a90150dfe1874aa37753651753edf201  # [win]
 
 build:
   number: 0
