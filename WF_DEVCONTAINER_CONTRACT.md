@@ -203,6 +203,9 @@ Neither is the `~/.claude` **credential directory**. `devlaunch/tools.py:1-13` s
 >
 > **A guarantee that depends on the repo is not a guarantee.**
 
+(devlaunch 0.63.0 renamed `aid` to `dla` and dropped the old name, in blooop/devlaunch#689. The
+quote keeps the wording of the source it cites.)
+
 And `tools.py:15-25` describes the lending mechanism — a tar stream over the ssh channel, not a
 mount:
 
