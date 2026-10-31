@@ -2,12 +2,12 @@ schema_version: 1
 
 package:
   name: isd
-  version: "0.6.1"
+  version: "0.6.2"
 
 source:
   # PyPI project is named "isd-tui" (naming clash on PyPI), but the CLI is "isd"
-  - url: https://files.pythonhosted.org/packages/49/10/bcb5c7659c62519cc48efb513cbf0d9511323e0ead3349fe5d415d0bdf95/isd_tui-0.6.1.tar.gz
-    sha256: 048012c6f455a95658e0b3422da30e24578db6756ed4540f34e70c27504008e1
+  - url: https://files.pythonhosted.org/packages/25/b6/290673a160665b41edb6b8f600dacef3c14db078d94dd9bbb238664f3eca/isd_tui-0.6.2.tar.gz
+    sha256: 71ba04e754909d2c6d9ed948a06f3b9a2800c7e8a79b4240b561964756909554
 
 build:
   number: 0
