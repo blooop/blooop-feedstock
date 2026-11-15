@@ -2,22 +2,22 @@ schema_version: 1
 
 package:
   name: tuicr
-  version: "0.28.0"
+  version: "0.29.0"
 
 # Linux uses the static musl builds so the binary runs on any glibc.
 # Each archive holds a single top-level `tuicr` binary.
 source:
-  - url: https://github.com/agavra/tuicr/releases/download/v0.28.0/tuicr-0.28.0-x86_64-unknown-linux-musl.tar.gz  # [linux and x86_64]
-    sha256: 0e6be65458e83bf3f917a30660d029b7f4dc5f9b6d203adc10f11a93a30c22f2  # [linux and x86_64]
+  - url: https://github.com/agavra/tuicr/releases/download/v0.29.0/tuicr-0.29.0-x86_64-unknown-linux-musl.tar.gz  # [linux and x86_64]
+    sha256: 48ba2ee347400a780756bc0c7726792a1a117b59d7920c10b0157bcf085b5128  # [linux and x86_64]
     target_directory: linux-x86_64  # [linux and x86_64]
-  - url: https://github.com/agavra/tuicr/releases/download/v0.28.0/tuicr-0.28.0-aarch64-unknown-linux-musl.tar.gz  # [linux and aarch64]
-    sha256: c5f60e3846733c3f6f676f0b5b44a6c1cec148e2d1132f3bd107833cf5f7fc0e  # [linux and aarch64]
+  - url: https://github.com/agavra/tuicr/releases/download/v0.29.0/tuicr-0.29.0-aarch64-unknown-linux-musl.tar.gz  # [linux and aarch64]
+    sha256: 94c0cc1672015bc41511657a81b4223596232372715d36131fd16f950b260313  # [linux and aarch64]
     target_directory: linux-aarch64  # [linux and aarch64]
-  - url: https://github.com/agavra/tuicr/releases/download/v0.28.0/tuicr-0.28.0-x86_64-apple-darwin.tar.gz  # [osx and x86_64]
-    sha256: 28c8eb8c7adca4ae4d557e032255df0089bd261fcd45a715d44481881f126871  # [osx and x86_64]
+  - url: https://github.com/agavra/tuicr/releases/download/v0.29.0/tuicr-0.29.0-x86_64-apple-darwin.tar.gz  # [osx and x86_64]
+    sha256: d8460f635012cc4ea5269da4992ffd6211e2c16f2c13cb7094f921def33bfec8  # [osx and x86_64]
     target_directory: osx-x86_64  # [osx and x86_64]
-  - url: https://github.com/agavra/tuicr/releases/download/v0.28.0/tuicr-0.28.0-aarch64-apple-darwin.tar.gz  # [osx and arm64]
-    sha256: 4138f2d243422aff68b32ec52fb1524cbadffcf6763b34fc180f25f0ac971674  # [osx and arm64]
+  - url: https://github.com/agavra/tuicr/releases/download/v0.29.0/tuicr-0.29.0-aarch64-apple-darwin.tar.gz  # [osx and arm64]
+    sha256: 3f4677eded21a470c3a14fee01c3a6d04146194a05d7d346a42fc7e612743b84  # [osx and arm64]
     target_directory: osx-arm64  # [osx and arm64]
 
 build:
