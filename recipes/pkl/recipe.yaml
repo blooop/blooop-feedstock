@@ -2,19 +2,19 @@ schema_version: 1
 
 package:
   name: pkl
-  version: "0.33.0"
+  version: "0.33.1"
 
 source:
-  - url: https://github.com/apple/pkl/releases/download/0.33.0/pkl-linux-amd64  # [linux and x86_64]
-    sha256: b9a6ddea6b382b7d4db4cf78e77aa3858e0c8a7e02939d2ba298574b5d1fcc69  # [linux and x86_64]
-  - url: https://github.com/apple/pkl/releases/download/0.33.0/pkl-linux-aarch64  # [linux and aarch64]
-    sha256: edcea361402ecab0f3a93f86b1a896c41d00a9241f4962f70278254b08fbd26d  # [linux and aarch64]
-  - url: https://github.com/apple/pkl/releases/download/0.33.0/pkl-macos-amd64  # [osx and x86_64]
+  - url: https://github.com/apple/pkl/releases/download/0.33.1/pkl-linux-amd64  # [linux and x86_64]
+    sha256: acbca9bb4f31139d09e295d03c9fb25f77edf5a74af4e772b56b32dc6dc17c44  # [linux and x86_64]
+  - url: https://github.com/apple/pkl/releases/download/0.33.1/pkl-linux-aarch64  # [linux and aarch64]
+    sha256: 4a752096dab13d7432e1f0a4f1219833df95e1e36ce0b8d424b0edb2cd5436f9  # [linux and aarch64]
+  - url: https://github.com/apple/pkl/releases/download/0.33.1/pkl-macos-amd64  # [osx and x86_64]
     sha256: 3c4c914a75210d3f3292740b4a8d447f9f832e81b60720bec57221e884717eee  # [osx and x86_64]
-  - url: https://github.com/apple/pkl/releases/download/0.33.0/pkl-macos-aarch64  # [osx and arm64]
-    sha256: e39c157df0f00a35d34b46270a768784edcaf509aafbf743849b27b4c83ef83b  # [osx and arm64]
-  - url: https://github.com/apple/pkl/releases/download/0.33.0/pkl-windows-amd64.exe  # [win]
-    sha256: 9875af0d17d3535ed0e3903f3ae71fc8007268949328f73c2d12942fca11840c  # [win]
+  - url: https://github.com/apple/pkl/releases/download/0.33.1/pkl-macos-aarch64  # [osx and arm64]
+    sha256: 6f93ddf6524a5771bd4b6ebde11010c6dfee8e3a8906ffebaa8f52f8a0ba16b7  # [osx and arm64]
+  - url: https://github.com/apple/pkl/releases/download/0.33.1/pkl-windows-amd64.exe  # [win]
+    sha256: b1da686befc4ce4d92fe81bd2892e7457a505328313380010c4791c7f68d7432  # [win]
 
 build:
   number: 0
